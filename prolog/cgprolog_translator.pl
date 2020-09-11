@@ -118,7 +118,7 @@ assign_varsn_pred([Id|Next],[_Var-Id|NextVars]):-
     assign_varsn_pred(Next,NextVars).
 
 
-next_var_pred(_):- fail.
+next_var_pred(_):- !.
 next_var_pred(?(Var)):- retract(seed1(N)),
     N1 is N+1,
     assert(seed1(N1)),

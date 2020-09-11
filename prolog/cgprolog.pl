@@ -1,13 +1,23 @@
 :- module(cgpro,[cg_reader_tests/0,cg_demo/0]).
+:- set_module(class(library)).
 :- use_module(library(logicmoo_common)).
-
+%:- abolish(cgpro:isa/2).
+:- ensure_loaded('cgprolog_fwd.pfc').
+%:- multifile(baseKB:isa/2).
+%:- dynamic(baseKB:isa/2).
 :- kb_global(baseKB:isa/2).
+:- baseKB:export(baseKB:isa/2).
+:- import(baseKB:isa/2).
+
+
+
+%:- break.
+% :- kb_shared(isa/2).
 
 :- expects_dialect(sicstus).
+:- ensure_loaded(cgprolog_operations).
 :- ensure_loaded(cgprolog_translator).
 :- ensure_loaded(cgprolog_reader).
-:- ensure_loaded('cgprolog_fwd.pfc').
-:- ensure_loaded(cgprolog_operations).
 
 
 id_to_info(ID,(Label + List)):- cgc(ID,simple,Label,_,_),!,
@@ -56,9 +66,4 @@ id_type(ID,C):-
 
 
 :- fixup_exports.
-
-
-
-
-
 
