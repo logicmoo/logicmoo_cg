@@ -3,7 +3,7 @@ multifile_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
 :- multifile_data(cgr/3).
 :- multifile_data(cg/4).
 :- multifile_data(cgc/5).
-:- multifile_data(isa/2).
+%:- multifile_data(isa/2).
 :- multifile_data(isa_rel/2).
 :- multifile_data(ind/3).
 :- multifile_data(reldef/3).
@@ -277,9 +277,9 @@ ref_sp_case(R1, R2, R):- 	member(fs(num, sing), R1), !, member(fs(num, sing), R2
     append([N1], [N2], N), append([fs(num, plur)], [fs(name, N)], R).
 
 ref_sp_case(R1, R2, R):- 	check_tn(R1, L1), check_tn(R2, L2), append(L1, L2, L), !,
-    if(ref_sp_case1(R1, R2, Rf), (append(Rf, [fs(name, L)], R), !),
+  if(ref_sp_case1(R1, R2, Rf), (append(Rf, [fs(name, L)], R), !),
     (append([fs(type, def)], [fs(num, plur)], S1),
-    append(S1, [fs(name, L)], R))).
+     append(S1, [fs(name, L)], R))).
 ref_sp_case(R1, R2, R):- member(fs(name, L1), R1), member(fs(name, L2), R2),
     append(L1, L2, L), append([fs(num, plur)], [fs(name, L)], R).
 
@@ -352,7 +352,7 @@ unifyconc(Cid1, Cid2, Id):-
 
 /*if the two concepts are previously unified then returns the unified concept id(g) else performs unification*/
 unifyconcepts(Cid1, Cid2, Id):-
-(u_conc(Cid1, Cid2, Id);u_conc(Cid2, Cid1, Id)), !.
+  (u_conc(Cid1, Cid2, Id);u_conc(Cid2, Cid1, Id)), !.
 unifyconcepts(Cid1, Cid2, Id):- unifyconc(Cid1, Cid2, Id).
 
 /*unifies simple concepts*/
