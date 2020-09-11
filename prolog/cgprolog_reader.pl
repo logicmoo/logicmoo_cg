@@ -52,6 +52,7 @@ Outputs:
 
 
 %:- expects_dialect(cg).
+:- begin_cg.
 
 cg([Man:karim]<-agnt-[Eat]-obj->[Apple]).
 

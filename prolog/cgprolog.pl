@@ -20,7 +20,8 @@
 :- ensure_loaded(cgprolog_operations).
 :- ensure_loaded(cgprolog_translator).
 
-:- expects_dialect(cg).
+%:- expects_dialect(cg).
+:- begin_cg.
 
 cg([Man:karim]<-agnt-[Eat]-obj->[Apple]).
 
