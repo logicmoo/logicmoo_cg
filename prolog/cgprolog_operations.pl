@@ -4,7 +4,7 @@ multifile_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
 :- multifile_data(cg/4).
 :- multifile_data(cgc/5).
 
-% :- discontiguous(isa/2).
+:- multifile_data(isa_cg/2).
 :- multifile_data(isa_rel/2).
 :- multifile_data(ind/3).
 :- multifile_data(reldef/3).
@@ -110,8 +110,8 @@ subRef([fs(set_type, T)], [fs(set_type, T)]).
 /*HIERARCY*/
 /*sub(X, Y) check if X is subtype of Y*/
 sub(X, X).
-sub(X, Y):- isa(X, Y), !.
-sub(X, Y):- isa(X, Z), sub(Z, Y).
+sub(X, Y):- isa_cg(X, Y), !.
+sub(X, Y):- isa_cg(X, Z), sub(Z, Y).
 
 suptype(X, Y, X):- sub(Y, X), !.
 suptype(X, Y, Y):- sub(X, Y).
@@ -119,7 +119,7 @@ suptype(X, Y, Y):- sub(X, Y).
 subtype(X, Y, X):- sub(X, Y), !.
 subtype(X, Y, Y):- sub(Y, X).
 
-/*subrel(subrel_type, rel_type) this prodcedure may be needless if relation hierarcy introduces with isa/2 clause*/
+/*subrel(subrel_type, rel_type) this prodcedure may be needless if relation hierarcy introduces with isa_cg/2 clause*/
 
 subrel(X, Y):- X==Y, !;isa_rel(X, Y).
 subrel(X, Y):- isa_rel(X, Z), !, subrel(Z, Y).
@@ -135,10 +135,10 @@ super(A, B, S):- suptype(A, B, S), !;
 
 /*path_up(X, Y, P) path from X to Y climbing up*/
 path_up(X, X, [X]).
-path_up(X, Y, P):- isa(X, Z), path_up(Z, Y, L), append([X], L, P).
+path_up(X, Y, P):- isa_cg(X, Z), path_up(Z, Y, L), append([X], L, P).
 
 path_up_len(_, _, 0, []).
-path_up_len(X, Y, N, P):- isa(X, Z), N1 is N-1,
+path_up_len(X, Y, N, P):- isa_cg(X, Z), N1 is N-1,
     path_up_len(Z, Y, N1, P1), append([X], P1, P).
 paths_up_len(X, Y, N, P):-
     findall(P1, path_up_len(X, Y, N, P1), P).
@@ -173,7 +173,7 @@ below(A, B, S):- subtype(A, B, S), !;bottom(X),
 
 /*path_down(X, Y, P) path from X to Y climbing down*/
 path_down(X, X, [X]).
-path_down(X, Y, P):- isa(Z, X), path_down(Z, Y, L),
+path_down(X, Y, P):- isa_cg(Z, X), path_down(Z, Y, L),
     append([X], L, P).
 
 max_sub_type(A, B, S):- if(A=B, S=A,
@@ -306,13 +306,13 @@ brel([_|T], N):- brel(T, N1), N is N1+1.
 
 /*ind(IndID, Name, Type) declares that individual with IndID conforms to the Type, this individual also conforms to all super types of the given type*/
 conformity(IndID, Type):- ind(IndID, _, Type).
-conformity(IndID, Type):- isa(SubType, Type), bottom(X),
+conformity(IndID, Type):- isa_cg(SubType, Type), bottom(X),
     SubType\=X,
     conformity(IndID, SubType).
 conformity(_, _):- !, fail.
 
 conformity1(IndName, Type):- ind(_, IndName, Type).
-conformity1(IndName, Type):- isa(SubType, Type), bottom(X),
+conformity1(IndName, Type):- isa_cg(SubType, Type), bottom(X),
     SubType\=X,
     conformity1(IndName, SubType).
 conformity1(_, _):- !, fail.
@@ -682,7 +682,7 @@ gen_tl([C|T], PL):- apply_lbl(C, L), gen_tl(T, P), append([L], P, PL).
 apply_lbl(C, E):- cgc(C, K, T, F, Cm), !, isa_res(T, T1),
     exist_cgc(K, T1, F, Cm, NC), E=gen(C, NC).
 
-isa_res(L, NL):- if((isa(L, L1), top(U), dif(L1, U)), NL=L1, NL=L).
+isa_res(L, NL):- if((isa_cg(L, L1), top(U), dif(L1, U)), NL=L1, NL=L).
 
 tripls([], [], _).
 tripls([cgr(N, R1, _)|T1], [cgr(N, R2, _)|T2], Gn):-
@@ -699,7 +699,7 @@ general_conc_in_graph(Grid, Lbl, NGrid):-
     (
     cg(Grid, Rel, _, _), rel_to_list(Rel, List),
     (cgc(Cid, K, Lbl, Fs, _), member(Cid, List)), !,
-    isa(Lbl, SLbl), exist_cgc(K, SLbl, Fs, _, Cid1),
+    isa_cg(Lbl, SLbl), exist_cgc(K, SLbl, Fs, _, Cid1),
     replace(Cid, Cid1, Rel, NR), clean_help(NR, NRel),
     to_string('This graph is received from graph ', Grid, Com1),
     to_string(' by generalizing the concept with label ', Lbl, Com2),
@@ -799,7 +799,7 @@ gen_tl1([C|T], PL):- apply_lbl1(C, L), gen_tl1(T, P), append([L], P, PL).
 apply_lbl1(C, E):- cgc(C, K, T, F, Cm), !, isa_res1(T, T1),
     exist_cgc(K, T1, F, Cm, NC), E=spec(C, NC).
 
-isa_res1(L, NL):- if((isa(L1, L), bottom(B), dif(L1, B)), NL=L1, NL=L).
+isa_res1(L, NL):- if((isa_cg(L1, L), bottom(B), dif(L1, B)), NL=L1, NL=L).
 
 tripls1([], [], _).
 tripls1([cgr(N, R1, _)|T1], [cgr(N, R2, _)|T2], Sp):-
@@ -814,7 +814,7 @@ special_conc_in_graph(Grid, Lbl, NGrid):-
     (
     cg(Grid, Rel, _, _), rel_to_list(Rel, List),
     (cgc(Cid, K, Lbl, Fs, _), member(Cid, List)), !,
-    isa(SLbl, Lbl), exist_cgc(K, SLbl, Fs, _, Cid1),
+    isa_cg(SLbl, Lbl), exist_cgc(K, SLbl, Fs, _, Cid1),
     replace(Cid, Cid1, Rel, NRels), clean_help(NRels, NRel),
     to_string('This graph is received from graph ', Grid, Com1),
     to_string(' by specializing the concept with label ', Lbl, Com2),
@@ -1208,25 +1208,25 @@ not_sub(X, Y):- sub(X, Y), !, fail.
 not_sub(_, _).
 
 %dobavka
-not_son(X):- isa(X, _), !, fail.
+not_son(X):- isa_cg(X, _), !, fail.
 not_son(_).
 
-find_top(X):- isa(_, X), not_son(X), !, assertz(top(X)).
+find_top(X):- isa_cg(_, X), not_son(X), !, assertz(top(X)).
 
 :- find_top(_X).
 
-not_father(X):- isa(_, X), !, fail.
+not_father(X):- isa_cg(_, X), !, fail.
 not_father(_).
 
-find_bottom(X):- isa(X, _), not_father(X), !, assertz(bottom(X)).
+find_bottom(X):- isa_cg(X, _), not_father(X), !, assertz(bottom(X)).
 
 :- find_bottom(_X).
 
 depth(Y, 0):- top(Y), !.
-depth(X, N):- isa(X, Y), !, depth(Y, N1), N is N1+1.
+depth(X, N):- isa_cg(X, Y), !, depth(Y, N1), N is N1+1.
 
 depth1(Y, 0):- bottom(Y).
-depth1(X, N):- isa(Y, X), !, depth1(Y, N1), N is N1+1.
+depth1(X, N):- isa_cg(Y, X), !, depth1(Y, N1), N is N1+1.
 
 %new_join(Grid1, Grid2, NewGrid):-
 %cg(Grid1, R1, F1, _), cg(Grid2, R2, F2, _),
@@ -1244,10 +1244,10 @@ member1(cgr(N, _, _), [cgr(N, _, _)|_]).
 member1(cgr(N, L, _), [_|T]):- member1(cgr(N, L, _), T).
 
 super_type_labels(L, []):- top(L).
-super_type_labels(L, S):- isa(L, S1), super_type_labels(S1, S2),
+super_type_labels(L, S):- isa_cg(L, S1), super_type_labels(S1, S2),
     append([S1], S2, S).
 sub_type_labels(L, []):- bottom(L).
-sub_type_labels(L, S):- isa(S1, L), sub_type_labels(S1, S2),
+sub_type_labels(L, S):- isa_cg(S1, L), sub_type_labels(S1, S2),
     append([S1], S2, S).
 /*Replaces all relation wchich point to the same concepts with the same relation but point to different concepts*/
 clean_help(R, Rel):- rel_point_to_same_conc(R, RC), razlika(R, RC, RR),

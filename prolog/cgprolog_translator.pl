@@ -245,7 +245,7 @@ make_string_f(F,S):-
     
 make_string_f(F,S):-
     functor(F,A,2),
-    member(A,[&,#,->]),!,
+    member(A,[&,'#','->']),!,
     arg(1,F,Arg),
     make_string_f(Arg,S4),
     a_concat(S4,' ',S5),

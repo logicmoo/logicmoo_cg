@@ -6,15 +6,16 @@ cginput:is_module.
 :- cginput:current_op(X,Y,(*)),cginput:op(X,Y,(?)).
 :- cginput:current_op(X,Y,(*)),cginput:op(X,Y,(@)).
 
-cg_df_to_term(In,CGOut):- any_to_string(In,Str),
+cg_df_to_term(In,cg(Out)):- any_to_string(In,Str),
   % replace_in_string(['('='{',')'='}'],Str,Str0),
   replace_in_string(['XXX'='XXX'],Str,Str0),
   read_term_from_atom(Str0,Out,[module(cginput),variable_names(Vars)]),
-  maplist(call,Vars),
-  CGOut = cg(Out).
+  maplist(call,Vars),!.
+  
 
 assert_cg(X):- \+ compound(X),cg_df_to_term(X,Y),!,assert_cg(Y).
-assert_cg(X):- format("~N~p.~n",[X]),assert_if_new(X).
+assert_cg(X):- is_list(X),maplist(assert_cg,X).
+assert_cg(X):- format("~N~p.~n",[X]),ain(X).
 
 
 cg_reader_text("
