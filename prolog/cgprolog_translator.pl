@@ -43,7 +43,6 @@ translate_ind(ind(_A,Name,Ind),S):- S=..[Name,Ind].
 % cg(Id,A,B,C),translate_cgraph(cg(Id,A,B,C),F).
 translate_cgraph(Id,Formula):- var(Id),!, isCG(Id),translate_cgraph(Id,Formula).
 translate_cgraph(Id,Formula):- number(Id),!,cg(Id,Rels,A,B),translate_cgraph(cg(Id,Rels,A,B),Formula).
-
 translate_cgraph(cg(Id,Rels,A,B),Formula):-
     expand_names(cg(Id,Rels,A,B),cg(Id,Rels1,A,B)),
     translate_cg(cg(Id,Rels1,A,B),Formula).
@@ -52,7 +51,7 @@ translate_cg(cg(_,Rels,_,_),Formula):-
     get_concepts_pred(Rels,CIDs),
     assign_varsn_pred(CIDs,ListIdsConcs),
     make_formula(Rels,ListIdsConcs,FormulaBody),
-    make_cg_prefix1(ListIdsConcs,Formula, FormulaBody).
+    make_cg_prefix1(ListIdsConcs,Formula, FormulaBody),guess_varnames(Formula).
 
 expand_names(cg(Id,Rels,A,B),cg(Id,Rels1,A,B)):-
     get_named_concepts(Rels,CIDs),
