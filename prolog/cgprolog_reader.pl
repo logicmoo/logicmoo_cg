@@ -14,7 +14,7 @@ cg_df_to_term(In,CGOut):- any_to_string(In,Str),
   CGOut = cg(Out).
 
 assert_cg(X):- \+ compound(X),cg_df_to_term(X,Y),!,assert_cg(Y).
-assert_cg(X):- format("~N~p.~n",[X]).
+assert_cg(X):- format("~N~p.~n",[X]),assert_if_new(X).
 
 
 cg_reader_text("
@@ -34,7 +34,11 @@ cg_reader_text("
 ").
 cg_reader_text("[Cat: ?x]-(On)->[Mat].").
 cg_reader_tests :- forall(cg_reader_text(X),assert_cg(X)).
-/*
+
+cg_demo:- !.
+
+end_of_file.
+
 
 ?- cg_reader_tests.
 
@@ -48,8 +52,9 @@ Outputs:
 
 ['Cat': ?x]-'On'->['Mat'].
 
-*/
 
+
+end_of_file.
 
 %:- expects_dialect(cg).
 :- begin_cg.

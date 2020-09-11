@@ -246,7 +246,7 @@ comt_case1(R1,R2,R2):- check_mq(R1,Q1),check_mq(R2,Q2),!,
     subset(N1,N2),!).
 
 comt_case2(R1,R2,R2):- check_mq(R1,Q1),check_mq(R2,Q2),!,Q2>=Q1,
-	brel(R1,N),N2 is (N+1),brel(R2,N2),member(fs(name,L),R2).
+	brel(R1,N),N2 is (N+1),brel(R2,N2),member(fs(name,_L),R2).
 	
 comt_case2(R1,R2,R):- check_mq(R1,Q1),check_mq(R2,Q2),Q2>=Q1,
 	brel(R2,N),N2 is (N+1),brel(R1,N2),member(fs(name,L),R1),
@@ -501,8 +501,8 @@ join_op(Grid1,L1,Grid2,L2,Grid3):-
 find_conc(Grid1,Grid2,L1,L2,Cid1,Cid2):- 
 	graph_relations(Grid1,R1),graph_relations(Grid2,R2),
 	rel_to_list(R1,Ls1),rel_to_list(R2,Ls2),
-	(cgc(Cid1,C1,L1,F1,_),member(Cid1,Ls1)),
-	(cgc(Cid2,C2,L2,F2,_),member(Cid2,Ls2)),!.
+	(cgc(Cid1,_C1,L1,_F1,_),member(Cid1,Ls1)),
+	(cgc(Cid2,_C2,L2,_F2,_),member(Cid2,Ls2)),!.
 
 max_join(Grid1,Grid1,Grid1).
 max_join(Grid1,Grid2,NGrid):- 
@@ -511,7 +511,7 @@ max_join(Grid1,Grid2,NGrid):-
 	(
 	graph_relations(Grid1,Rl1),graph_relations(Grid2,Rl2),
 	comn_relsj(Rl1,Rl2,Rel1,Rel2),(Rel1= [];Rel2 =[]),
-	compareconsj(Rl1,Rl2,RelC),all_un(Rl1,Rl2,U),
+	compareconsj(Rl1,Rl2,_RelC),all_un(Rl1,Rl2,U),
 	graph_clinks(Grid1,Link1),graph_clinks(Grid2,Link2),
 	un_process(U,Rl1,Rl2,NR1,NR2),
 	un_processl(U,Link1,Link2,L1,L2),
@@ -552,7 +552,7 @@ conceptsunify([H|L1],L2,L):- conceptun(H,L2,H1),conceptsunify(L1,L2,T),append(H1
 
 conceptun(_,[],[]).
 conceptun(C,[H|T],UC):- unifyconcepts(C,H,C1),conceptun(C,T,U1),append([C1],U1,UC).
-conceptun(C,[H|T],UC):- conceptun(C,T,UC).
+conceptun(C,[_H|T],UC):- conceptun(C,T,UC).
 
 
 /*GENERALIZATION OPERATION*/

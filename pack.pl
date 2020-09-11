@@ -6,4 +6,5 @@ packager( 'TeamSPoon/LogicMoo', 'https://github.com/TeamSPoon/' ).
 maintainer( 'TeamSPoon', 'https://github.com/TeamSPoon/' ).
 home( 'https://github.com/TeamSPoon/logicmoo_cg' ).
 download( 'https://github.com/TeamSPoon/logicmoo_cg/release/*.zip' ).
+requires(pfc).
 requires(logicmoo_utils).
