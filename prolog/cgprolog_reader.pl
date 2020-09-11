@@ -47,7 +47,7 @@ term_expansion(cg(Stuff), Out):- nonvar(Stuff), nb_current(cg_term_expand,true),
    term_variables(Stuff,Vs),
    nb_current('$variable_names',Vars), ground_variables_as_atoms(Vs,Vars),
    current_why(UU),
-   Out = (:- with_current_why(UU, assert_cg(Stuff))).
+   Out = (:- with_current_why(UU, assert_cg(cg(Stuff)))).
 
 
 begin_cg:- style_check(-singleton), nb_setval(cg_term_expand,true).
