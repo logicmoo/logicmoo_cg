@@ -1,0 +1,280 @@
+// Iterative factorial process.
+//
+// This is based upon the factorial process example in 
+// Mineau's 1998 ICCS paper. The implementation is similar
+// although not identical. As much as possible has been kept
+// the same including defining variable and marker names,
+// and rule numbers.
+//
+// Action blocks are included to show the pattern of rule firings.
+//
+// The C code from page 67 of [Mineau 1998]:
+//
+// L0: int fact(int n)
+// L1: { int f;
+// L2:   int i;
+// L3:   f = 1;
+// L4:   i = 2;
+// L5:   while (i <= n)
+// L6:   {  f = f * i;
+// L7:      i = i + 1;
+// L8:   }
+// L9:   return f; }
+
+// Types.
+concept Number > Integer;
+concept String > Identifier > Variable;
+
+// Function definitions.
+function LTorEq(a,b,result)
+  first = a.designator;
+  second = b.designator;
+  if not (first is number) or not (second is number) then
+    exit "The first 2 arguments to " + me.name + " must be numbers.";
+  end
+  result.designator = first <= second;
+end
+
+function Multiply(a,b,result)
+  first = a.designator;
+  second = b.designator;
+  if not (first is number) or not (second is number) then
+    exit "The first 2 arguments to " + me.name + " must be numbers.";
+  end
+  result.designator = first * second;
+end
+
+function Add(a,b,result)
+  first = a.designator;
+  second = b.designator;
+  if not (first is number) or not (second is number) then
+    exit "The first 2 arguments to " + me.name + " must be numbers.";
+  end
+  result.designator = first + second;
+end
+
+// The iterative factorial process definition.
+process fact(in trigger, out result)
+  rule r1
+    pre
+      action
+	println "";
+	println "Entering Rule 1. Graphs: " + _KB.graphs;
+      end
+
+      `[Integer:*a'*x'][Variable:*b'#n'](val?b?a)`;
+      `[Line:*a'#L0'](to_do?a)`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 1 matched";
+      end
+
+      `[ERASURE:[Line:*a'#L0'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L3'](to_do?a)]`; // lines 1 and 2 can be ignored
+      `[PROPOSITION:[Line:*a'#L4'](to_do?a)]`; // why L3 and L4 at once?
+    end
+  end // rule r1
+
+  rule r2
+    pre
+      action
+	println "";
+	println "Entering Rule 2. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L3'](to_do?a)`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 2 matched";
+      end
+
+      `[PROPOSITION:[Integer:*a 1][Variable:*b'#f'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L3'](to_do?a)]`;
+    end
+  end // rule r2
+
+
+  rule r4
+    pre
+      action
+	println "";
+	println "Entering Rule 4. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L4'](to_do?a)`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 4 matched";
+      end
+
+      `[PROPOSITION:[Integer:*a 2][Variable:*b'#i'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L4'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L5'](to_do?a)]`;
+    end
+  end // rule r4
+
+  rule r6
+    pre
+      action
+	println "";
+	println "Entering Rule 6. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L5'](to_do?a)`;
+
+      `[Integer:*a'*first'][Variable:*b'#i']
+       [Integer:*c'*second'][Variable:*d'#n']
+       [Boolean:*e"true"]
+	 (val?b?a)
+         (val?d?c)
+ 	 <LTorEq?a?c|?e>`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 6 matched. Matches: " + _MATCHES;
+        println "** Rule 6 matched. Coref vars: " + _KB.corefvars;
+      end
+
+      `[ERASURE:[Line:*a'#L5'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L6'](to_do?a)]`;
+    end
+  end // rule r6
+
+  rule r7
+    pre
+      action
+	println "";
+	println "Entering Rule 7. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L5'](to_do?a)`;
+
+      `[Integer:*a'*first'][Variable:*b'#i']
+       [Integer:*c'*second'][Variable:*d'#n']
+       [Boolean:*e"false"]
+	 (val?b?a)
+         (val?d?c)
+ 	 <LTorEq?a?c|?e>`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 7 matched. Matches: " + _MATCHES;
+      end
+
+      `[ERASURE:[Line:*a'#L5'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L9'](to_do?a)]`; // exit the while loop
+    end
+  end // rule r7
+
+  rule r8
+    pre
+      action
+	println "";
+	println "Entering Rule 8. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L6'](to_do?a)`;
+
+      `[Integer:*a'*z4'][Variable:*b'#f']
+       [Integer:*c'*x'][Variable:*d'#i']
+       [Integer:*e'*y4']
+         (val?b?a)
+         (val?d?c)
+         <Multiply?a?c|?e>`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 8 matched";
+      end
+
+      `[ERASURE:[Integer:*a'*z4'][Variable:*b'#f'](val?b?a)]`;
+      `[PROPOSITION:[Integer:*a'*y4'][Variable:*b'#f'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L6'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L7'](to_do?a)]`;
+    end
+  end // rule r8
+
+  rule r10
+    pre
+      action
+	println "";
+	println "Entering Rule 10. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L7'](to_do?a)`;
+
+      `[Integer:*a'*z4'][Variable:*b'#i']
+       [Integer:*c 1]
+       [Integer:*d'*y4']
+         (val?b?a)
+         <Add?a?c|?d>`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 10 matched";
+      end
+
+      `[ERASURE:[Integer:*a'*z4'][Variable:*b'#i'](val?b?a)]`;
+      `[PROPOSITION:[Integer:*a'*y4'][Variable:*b'#i'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L7'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L5'](to_do?a)]`;
+    end
+  end // rule r10
+
+  rule r12
+    pre
+      action
+	println "";
+	println "Entering Rule 12. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#L9'](to_do?a)`;
+      `[Integer:*a'*z5'][Variable:*b'#f'](val?b?a)`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 12 matched";
+      end
+
+      `[ERASURE:[Line:*a'#L9'](to_do?a)]`;
+    end
+  end // rule r12
+end
+
+// Graph representing the initial value for a variable n.
+n = 7;
+varN = "[Integer:*a " + n + "][Variable:*b'#n'](val?b?a)";
+assert varN.toGraph();
+
+// Construct process invocation graph.
+s = "[PROPOSITION:*a[Line:*b'#L0'](to_do?b)]" + 
+    "[PROPOSITION:*c[Integer:*d'*z5']]" +
+    "<fact?a|?c>";
+g = s.toGraph();
+
+println "Before process 'fact'. Graphs: " + _KB.graphs;
+println "";
+      
+x = activate g;
+
+println "";
+println "After process 'fact'. Graphs: " + _KB.graphs;

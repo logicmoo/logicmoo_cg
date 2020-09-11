@@ -1,0 +1,231 @@
+// Iterative factorial process.
+//
+// This is based upon the factorial process example in 
+// Mineau's 1998 ICCS paper. The implementation is similar
+// although not identical. As much as possible has been kept
+// the same including defining variable and marker names,
+// and rule numbers. 
+//
+// Multi-line precondtions are precededed by a blank line for clarity.
+//
+// Differences from [Mineau 1998]:
+//
+// - CGIF is used to represent graphs, not LF.
+// - Erasure is used in pCG processes, rather than negation, hence
+//   [Line:#Ln]<-(done) is not used. [Line:#Ln]<-(to_do) is guaranteed
+//   to be retracted in the rule's post-condition when the associated 
+//   precondition matches.
+// - The negation symbol is missing in the rules of [Mineau 1998], e.g. 
+//   in the post-condition of rule 8, f's old value must first be negated 
+//   before the new value is asserted. This is also a good example of why 
+//   retraction not negation should be used, otherwise what one ends up 
+//   with is numerous negated variable f assignment graphs.
+// - Since the variable f in rules 2 and 3 has not yet been assigned, 
+//   the rules will not fire. The actors in rules 2 and 3 are not 
+//   necessary for the same reason. Just rule 2 is needed here.
+//   The same is true for rules 4 and 5 which assign the variable i.
+//   I have changed rules 2 and 4 to simply match the line number, and 
+//   assert the variable value graphs, while rules 3 and 5 have been omitted.
+// - Similar remarks can be made about the use of the "!=" actor node in 
+//   rules 8, 9, 10, and 11. The only purpose of these rules is to compute 
+//   new values of f and i, so there are no True and False cases, hence the
+//   actors may be omitted. Hence, only rules 8 and 10 are necessary.
+// - As suggested on page 68, markers have been used for line numbers,
+//   e.g. '#L2'.
+// - Markers have been used for variable names, rather than defining names
+//   (e.g. '#f' vs '*f') to avoid match ambiguity, e.g. see pre6 actor
+//   on page 71. In any case, only the value of the variable needs to be
+//   matched, not its name since this is statically known.
+// - Using concepts with blank referents in graphs may cause errors, so 
+//   referent variables are always used. This seems to be a bug in pCG.
+//
+// The C code from page 67 of [Mineau 1998]:
+//
+// L0: int fact(int n)
+// L1: { int f;
+// L2:   int i;
+// L3:   f = 1;
+// L4:   i = 2;
+// L5:   while (i <= n)
+// L6:   {  f = f * i;
+// L7:      i = i + 1;
+// L8:   }
+// L9:   return f; }
+
+option cgifparser="notio.translators.CGIFParser";
+
+// Types.
+// Not necessary here, since only referent specialisation will occur.
+concept Number > Integer;
+concept String > Identifier > Variable;
+
+// Function definitions.
+function LTorEq(a,b,result)
+  first = a.designator;
+  second = b.designator;
+  if not (first is number) or not (second is number) then
+    exit "The first 2 arguments to " + me.name + " must be numbers.";
+  end
+  result.designator = first <= second;
+end
+
+function Multiply(a,b,result)
+  first = a.designator;
+  second = b.designator;
+  if not (first is number) or not (second is number) then
+    exit "The first 2 arguments to " + me.name + " must be numbers.";
+  end
+  result.designator = first * second;
+end
+
+function Add(a,b,result)
+  first = a.designator;
+  second = b.designator;
+  if not (first is number) or not (second is number) then
+    exit "The first 2 arguments to " + me.name + " must be numbers.";
+  end
+  result.designator = first + second;
+end
+
+// The iterative factorial process definition.
+process fact(in trigger, out result)
+  rule r1
+    pre
+      `[Integer:*a'*x'][Variable:*b'#n'](val?b?a)`;
+      `[Line:*a'#L0'](to_do?a)`;
+    end
+
+    post
+      `[ERASURE:[Line:*a'#L0'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L3'](to_do?a)]`; // lines 1 and 2 can be ignored
+      `[PROPOSITION:[Line:*a'#L4'](to_do?a)]`; // why L3 and L4 at once?
+    end
+  end // rule r1
+
+  rule r2
+    pre
+      `[Line:*a'#L3'](to_do?a)`;
+    end
+
+    post
+      `[PROPOSITION:[Integer:*a 1][Variable:*b'#f'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L3'](to_do?a)]`;
+    end
+  end // rule r2
+
+
+  rule r4
+    pre
+      `[Line:*a'#L4'](to_do?a)`;
+    end
+
+    post
+      `[PROPOSITION:[Integer:*a 2][Variable:*b'#i'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L4'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L5'](to_do?a)]`;
+    end
+  end // rule r4
+
+  rule r6
+    pre
+      `[Line:*a'#L5'](to_do?a)`;
+
+      `[Integer:*a'*first'][Variable:*b'#i']
+       [Integer:*c'*second'][Variable:*d'#n']
+       [Boolean:*e"true"]
+	 (val?b?a)
+         (val?d?c)
+ 	 <LTorEq?a?c|?e>`;
+    end
+
+    post
+      `[ERASURE:[Line:*a'#L5'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L6'](to_do?a)]`;
+    end
+  end // rule r6
+
+  rule r7
+    pre
+      `[Line:*a'#L5'](to_do?a)`;
+
+      `[Integer:*a'*first'][Variable:*b'#i']
+       [Integer:*c'*second'][Variable:*d'#n']
+       [Boolean:*e"false"]
+	 (val?b?a)
+         (val?d?c)
+ 	 <LTorEq?a?c|?e>`;
+    end
+
+    post
+      `[ERASURE:[Line:*a'#L5'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L9'](to_do?a)]`; // exit the while loop
+    end
+  end // rule r7
+
+  rule r8
+    pre
+      `[Line:*a'#L6'](to_do?a)`;
+
+      `[Integer:*a'*z4'][Variable:*b'#f']
+       [Integer:*c'*x'][Variable:*d'#i']
+       [Integer:*e'*y4']
+         (val?b?a)
+         (val?d?c)
+         <Multiply?a?c|?e>`;
+    end
+
+    post
+      `[ERASURE:[Integer:*a'*z4'][Variable:*b'#f'](val?b?a)]`;
+      `[PROPOSITION:[Integer:*a'*y4'][Variable:*b'#f'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L6'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L7'](to_do?a)]`;
+    end
+  end // rule r8
+
+  rule r10
+    pre
+      `[Line:*a'#L7'](to_do?a)`;
+
+      `[Integer:*a'*z4'][Variable:*b'#i']
+       [Integer:*c 1]
+       [Integer:*d'*y4']
+         (val?b?a)
+         <Add?a?c|?d>`;
+    end
+
+    post
+      `[ERASURE:[Integer:*a'*z4'][Variable:*b'#i'](val?b?a)]`;
+      `[PROPOSITION:[Integer:*a'*y4'][Variable:*b'#i'](val?b?a)]`;
+      `[ERASURE:[Line:*a'#L7'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#L5'](to_do?a)]`;
+    end
+  end // rule r10
+
+  rule r12
+    pre
+      `[Line:*a'#L9'](to_do?a)`;
+      `[Integer:*a'*z5'][Variable:*b'#f'](val?b?a)`;
+    end
+
+    post
+      `[ERASURE:[Line:*a'#L9'](to_do?a)]`;
+    end
+  end // rule r12
+end
+
+// Graph representing the initial value for a variable n.
+n = 7;
+varN = "[Integer:*a " + n + "][Variable:*b'#n'](val?b?a)";
+assert varN.toGraph();
+
+// Construct process invocation graph.
+s = "[PROPOSITION:*a[Line:*b'#L0'](to_do?b)]" + 
+    "[PROPOSITION:*c[Integer:*d'*z5']]" +
+    "<fact?a|?c>";
+g = s.toGraph();
+
+println "Before process 'fact'. Graphs: " + _KB.graphs;
+      
+x = activate g;
+
+println "After process 'fact'. Graphs: " + _KB.graphs;

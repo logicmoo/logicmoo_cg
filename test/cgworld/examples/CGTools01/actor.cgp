@@ -1,0 +1,15 @@
+// A simple actor which uses the new CGIF translator.
+
+option cgifparser = "cgp.translators.CGIFParser";
+
+option LFout;
+
+function sqr(n,m)
+  m.designator = n.designator*n.designator;
+end
+
+g = `<sqr [Number: +12] | [Number: '*y']>`;
+
+result = activate g;
+
+println result;

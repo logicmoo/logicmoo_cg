@@ -1,0 +1,221 @@
+#!/home/david/cgp/pCG
+
+# Concept Types converted from (GT [TypeLabel t1] [TypeLabel t2]) format
+# in cgtypes.txt file, which is claimed to be CGIF. Is it really?
+concept universal > entity;
+concept entity > financial_instrument;
+concept financial_instrument > certificate;
+concept certificate > certificate_of_deposit;
+concept certificate_of_deposit > negotiable_certificate_of_deposit;
+concept financial_instrument > commercial_paper;
+concept financial_instrument > bankers_acceptance;
+concept financial_instrument > contract;
+concept contract > option_contract;
+concept option_contract > stock_option;
+concept option_contract > euporean_standart_option;
+concept option_contract > index_option;
+concept option_contract > american_standart_option;
+concept option_contract > call_option;
+concept option_contract > put_option;
+concept contract > futures_contract;
+concept futures_contract > agricultural_futures_contract;
+concept futures_contract > metallurgical_futures_contract;
+concept contract > foward_contract;
+concept financial_instrument > debt_instrument;
+concept debt_instrument > loan;
+concept debt_instrument > bond;
+concept bond > multiplier_bond;
+concept bond > compound_interest_bond;
+concept bond > zero_coupon_bond;
+concept bond > convertible_bond;
+concept bond > municipal_bond;
+concept municipal_bond > housing_bond;
+concept municipal_bond > municipal_note;
+concept municipal_note > tax_anticipation_note;
+concept municipal_note > bond_anticipation_note;
+concept municipal_note > revenue_anticipation_note;
+concept municipal_bond > moral_obligation_bond;
+concept municipal_bond > limited_and_special_tax_bond;
+concept municipal_bond > insured_municipal_bond;
+concept municipal_bond > revenue_bond;
+concept revenue_bond > industrial_revenue_bond;
+concept municipal_bond > general_obligation_bond;
+concept municipal_bond > double_barreled_bond;
+concept bond > non_tax_exempt_bond;
+concept bond > tax_exempt_bond;
+concept tax_exempt_bond > revenue_bond;
+concept tax_exempt_bond > general_obligation_bond;
+concept tax_exempt_bond > double_barreled_bond;
+concept bond > non_callable_bond;
+concept bond > callable_bond;
+concept bond > put_bond;
+concept bond > coupon_bond;
+concept coupon_bond > bearer_bond;
+concept coupon_bond > partially_registered_bond;
+concept bond > income_bond;
+concept bond > registered_bond;
+concept registered_bond > partially_registered_bond;
+concept bond > subordinated_bond;
+concept bond > corporate_bond;
+concept corporate_bond > secured_bond;
+concept corporate_bond > unsecured_bond;
+concept corporate_bond > samuraibond;
+concept corporate_bond > junk_bond;
+concept corporate_bond > gilt_edged_bond;
+concept corporate_bond > bulldog_bond;
+concept bond > serial_bond;
+concept serial_bond > equipment_trust_certifcate;
+concept bond > senior_bond;
+concept senior_bond > equipment_trust_certifcate;
+concept senior_bond > mortgage_bond;
+concept mortgage_bond > open_end_mortgage_bond;
+concept mortgage_bond > closed_end_mortgage_bond;
+concept bond > agency_bond;
+concept agency_bond > federal_agency_bond;
+concept bond > government_bond;
+concept government_bond > federal_agency_bond;
+concept government_bond > gilt;
+concept government_bond > u_s_treasuries;
+concept u_s_treasuries > u_s_treasury_bill;
+concept u_s_treasuries > u_s_treasury_note;
+concept u_s_treasuries > u_s_treasury_bond;
+concept government_bond > savings_bond;
+concept government_bond > eurobond;
+concept financial_instrument > security;
+concept security > bond;
+concept security > fixed_interest_security;
+concept security > floating_rate_security;
+concept security > hybrid_security;
+concept security > asset_backed_security;
+concept security > mortgage_backed_security;
+concept security > stock;
+concept stock > growth_stock;
+concept stock > speculative_stock;
+concept stock > defnsive_stock;
+concept stock > cyclical_stock;
+concept stock > common_stock;
+concept stock > preferred_stock;
+concept preferred_stock > cummulative_preferred_stock;
+concept preferred_stock > non_cummulative_preferred_stock;
+concept stock > unlisted_stock;
+concept stock > listed_stock;
+concept stock > blue_chip_stock;
+concept entity > organization;
+concept organization > option_clearing_corporation;
+concept organization > company;
+concept organization > corporation;
+concept organization > self_regulatory_organization;
+concept self_regulatory_organization > forward_market;
+concept self_regulatory_organization > stock_market;
+concept stock_market > stock_exchange;
+concept stock_exchange > nyse;
+concept stock_exchange > nasd;
+concept stock_exchange > amex;
+concept organization > security_and_exchannge_comission;
+concept organization > market;
+concept market > financial_market;
+concept financial_market > stock_market;
+concept financial_market > secondary_market;
+concept secondary_market > stock_exchange;
+concept secondary_market > otc_market;
+concept financial_market > primary_market;
+concept financial_market > negotiated_market;
+concept financial_market > capital_market;
+concept financial_market > money_market;
+concept financial_market > open_market;
+concept financial_market > spot_market;
+concept financial_market > bond_market;
+concept organization > usa_federal_reserve;
+concept organization > commodity_futures_trading_commission;
+concept organization > government;
+concept government > municipal_government;
+concept municipal_government > state_government;
+concept municipal_government > local_government;
+concept government > national_government;
+concept organization > brokerage_firm;
+concept organization > government_agency;
+concept organization > bank;
+concept bank > investment_bank;
+
+# Added.
+concept financial_instrument > cash;
+concept futures_contract > money_market_investment; // ??
+
+# Read and assert each graph into the top-level KB.
+if _ARGS.length == 1 then
+  f = file (_ARGS[1]);
+  lines = f.readall();
+  f.close();
+  
+  foreach line in lines do
+    if line.index("/*") == -1 then
+      # Skip comments.
+      println "Parsing and asserting " + line;
+      g = line.toGraph();
+      assert g;
+    end
+  end
+end else
+  exit "No KB file specified.";
+end
+
+# Ask something interesting.
+# What kind of financial conversions are possible?
+
+# Imperatively.
+println "";
+filter = `(convert_into [financial_instrument] [financial_instrument])`;
+foreach g in _KB.graphs do
+  h = g.project(filter);
+  if not (h is undefined) then println g; end
+end
+
+# Declaratively. Well, sort of...
+function findMatchingGraph(filter)
+  foreach g in _KB.graphs do
+    h = g.project(filter);
+    if not (h is undefined) then
+      return g;
+    end    
+  end        
+end
+
+function mkErasureGraph(g)
+  return ("[ERASURE:" + g + "]").toGraph();
+end
+
+process financial_conversions()
+  initial
+    conversions = {};
+  end
+
+  rule r1
+    pre
+      `(convert_into [financial_instrument] [financial_instrument])`;
+    end
+
+    post
+      action
+	g = findMatchingGraph(_MATCHES[1]);
+        conversions.append(g);
+      end
+
+      mkErasureGraph(g);
+    end
+  end
+
+  rule dummy_end
+    pre
+      action
+        return conversions;
+      end
+    end
+
+    post
+    end
+  end
+end
+
+l = financial_conversions();
+println "";
+println l;

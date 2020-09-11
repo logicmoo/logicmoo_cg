@@ -1,0 +1,326 @@
+#!/home/david/cgp/pCG
+
+// Simple pCG tests.
+
+println 5;
+println 5+2*3-(3+3);
+println 1+2+3+4;
+println 4+" hello";
+println "hello " + 5.56;
+println 10-4;
+println -2*3 > 0 or 1 == 1 and 1 == 2;
+
+println "twelve equals itself: " + ("twelve" == "twelve");
+println "{1,2,3} equals itself: " + ({1,2,3} == {1,2,3});
+println "{1,2,4} does not equal {1,2,4}: " + ({1,2,3} != {1,2,4});
+println "Empty list equals itself: " + ({} == {});
+//println 10-"foo";
+println {1,2,3, 6, {"77", 567}, "23"}[5];
+println number + " 2"; // number can be a bare keyword as it is a type name
+println 2 is number;
+
+x = {12,6};
+println "x = " + x;
+println "x[1] = " + x[1];
+x[1] = x[1]*x[1];
+println "x[1] = " + x[1];
+println "The length of x is " + x.length;
+println "x before: " + x;
+x.append(2);
+println "x after: " + x;
+y = x.merge({"x","y","z"});
+println x;
+println y;
+println "has y a member z: " + y.hasMember("z");
+println "has {1, {2}, 3} a member {2}: " + {1, {2}, 3}.hasMember({2});
+
+n = 2;
+println "n pow 3 = " + n.pow(3);
+println "sin n = " + n.sin();
+println "cos n = " + n.cos();
+println "tan n = " + n.tan();
+
+if n > 2 then 
+  println "yes"; 
+end else 
+  print "no ";
+  println "way";  
+end
+
+function cube(x)
+  println "me is " + me.name + " of type " + me.type;
+  return x*x*x;
+  println "foo " + x*x*x; // execution will never reach here!
+end
+
+println cube.type + " " + cube.name + " (" + cube + ")";
+println "The square of 4 is " + cube(4);
+
+function fact(n)
+  if n < 1 then
+    return 1;
+  end else
+    return n*fact(n-1); 
+  end
+end
+
+println "factorial 10 = " + fact(10);
+
+// While loop test.
+n = 0;
+while n < 10 do
+  println n + " factorial is " + fact(n);
+  n.inc();
+end
+
+// Foreach loop test.
+// Shows that foreach with lists is more general than C's for loop.
+foreach num in {1,2,3,4,5} do
+  println num;
+end
+
+println ({1,2,3,{777, 22}}[4])[1];
+println (x[2]).type; // yes, but it would be nice to not have to use parens
+//println (a.x).y; // ditto
+
+s = "foo";
+s1 = s.substring(1,3);
+println "The length of s1 (" + s1 + ") is " + s1.length;
+
+// Questions we can ask about concepts.
+c = concept `[Foo:3]`;
+println c;
+println c.type;
+println c.label;
+println c.designator;
+c.designator = c.designator*2;
+println c.designator;
+println c;
+
+// Some graph stuff.
+g1 = `[Number:*x 3]<sqr|?x>`;
+f2 = file "sqrActor.CGF";
+g2 = f2.readGraph();
+
+println "g1 is " + g1;
+println "g2 is " + g2;
+println "conceptual relations for g1: " + g1.relations;
+println "conceptual relations for g2: " + g2.relations;
+
+a = `[Number:*a'*x';fletch lives for sure!][Number:*b'#123'][Number:*c 0]<add?a?b|?c>`;
+println "";
+println a;
+println a.relations;
+println a.actors;
+foreach act in a.actors do
+  println act[1] + ":";	// name
+  foreach arg in act[2] do
+    println " quantifier: " + arg.quantifier;
+    println " designator: " + arg.designator;
+    println " descriptor: " + arg.descriptor;
+    println "";
+  end
+end
+
+g1 = `[Person:*a'Fred'][Age:*b 80](Chrc?a?b)`;
+g2 = `[Person:*a'Fred'][Gender:*b'Male'](Chrc?a?b)`;
+g3 = g1.join(g2);
+println g3;
+
+// Some concept stuff.
+c = concept `[Boolean: "true"]`;
+println c;
+c.designator = c.designator == true;
+println c.designator == true;
+
+c = concept `[Boolean: '#123']`;
+println c;
+println c.designator;
+
+c = concept `[Boolean: '*temp']`;
+println c;
+println c.designator;
+
+println "";
+c1 = concept `[Number: 12]`;
+c2 = concept `[Number: 12]`;
+println c1 + " equals " + c2 + ": " + (c1 == c2);
+c1 = concept `[Number]`;
+c2 = concept `[Number: 12]`;
+println c1 + " doesn't equal " + c2 + ": " + (c1 != c2);
+c1 = concept `[Number]`;
+c2 = concept `[Number]`;
+println c1 + " equals " + c2 + ": " + (c1 == c2);
+c1 = concept `[Number: [Foo:*a'*x'](bar?a)]`;
+c2 = concept `[Number: 12]`;
+println c1 + " equals " + c2 + ": " + (c1 == c2);
+c1 = concept `[Number: [Foo:*a'*x'](bar?a)]`;
+c2 = concept `[Number: [Foo:*a'*x'](bar?a)]`;
+println c1 + " equals " + c2 + ": " + (c1 == c2);
+
+// Actors. Weird actor stuff. See lambda.cgp for the Real McCoy.
+println "";
+function add(n,m)
+  return n+m;
+end
+actor add(x) is `[Number:*a'*x';fletch lives][Number:*b'#123'][Number:*c 0]<add?a?b|?c>`;
+println add;
+println add.defgraph;
+g = add.defgraph;
+println g.actors;
+((((g.actors)[1])[3])[1]).designator = 55;
+println add.defgraph;
+
+// String conversions.
+println "";
+x = "12";
+println x.toNumber();
+x = "tRue";
+println x.toBoolean(); 
+x = "blah";
+println x.toBoolean(); 
+x = "[Number:*a 2]" + "(isA?a)"; // we can now construct graphs at run-time
+println x.toGraph(); 
+
+// Function application.
+println "";
+
+println apply fact {6};
+
+function foo(stuff)
+  println stuff;
+end
+apply foo {"Hello Canon!"};
+
+function pow(n,e)
+  return n.pow(e);
+end
+
+function map(f, lists)
+  if lists.length != f.argcount then
+    exit f.name + " requires " + f.argcount + " arguments.";
+  end
+  foreach thing in lists do
+    if not (thing is list) then
+      exit "all arguments to map must be lists.";
+    end
+  end  
+  len = (lists[1]).length;
+  foreach L in lists do
+    if L.length != len then
+      exit "all lists must be of the same length.";
+    end
+  end
+  results = {};
+  n = 1;
+  while n <= len do
+    args = {};
+    foreach L in lists do
+      args.append(L[n]);
+    end
+    results.append(apply f args);
+    n = n+1;
+  end
+  return results;
+end
+
+println map(fact, {{1,2,3,4,5,6,7}});
+println map(pow, {{1,2,3}, {2,3,4}});
+
+// Lambda (as in Lisp).
+println map(function (n,e) return n.pow(e); end, {{1,2,3}, {2,3,4}});
+
+// Environment variables.
+println "";
+println "Environment variables...";
+foreach pair in _ENV do
+  println pair[1] + " -> " + pair[2]; 
+end
+
+userHomeKey = "user.home";
+println "";
+println "Looking for " + userHomeKey + "...";
+pair = _ENV.member(userHomeKey);
+if pair is list then
+  println userHomeKey + " = " + pair[2];
+end else
+  println userHomeKey + " not found.";
+end
+
+fileSep = "file.separator";
+println "";
+println "Looking for " + fileSep + "...";
+pair = _ENV.member(fileSep);
+if pair is list then
+  println fileSep + " = " + pair[2];
+end else
+  println fileSep + " not found.";
+end
+
+// Let's try a closure.
+function mkCounter(n)
+  count = n;
+  return function() count=count+1; return count; end;
+end
+
+c1 = mkCounter(3);
+c2 = mkCounter(10);
+println "";
+println c1 + " is a closure.";
+println c2 + " is a closure.";
+foreach i in {1,2,3,4,5} do
+  println c1() + " " + c2();  
+end
+
+println "count " + count;
+
+// Hey, we ought to be able to get exponential format using strings!
+// This is a way to circumvent pCG's current simple-minded numerical
+// tokens.
+s = "123.25e+4";
+println s.toNumber();
+
+// Check that overloaded operations work, at least in terms of different
+// parameter list length.
+s = "foo bar";
+println s.substring(2,4);
+println s.substring(2);
+
+// Does the replace function work?
+s = "Hello world.";
+println s + " => " + s.replace("l", "w");
+
+// Add one graph to another. Such an operation is necessary for development
+// of the rules of inference.
+
+option CGIFparser = "cgp.translators.CGIFParser";
+option CGIFgen = "cgp.translators.CGIFGenerator";
+
+println "";
+
+g = `[MyCar: (Attr [Car] [Red])]`;
+println g;
+
+desc = ((g.concepts)[1]).descriptor;
+h = desc.add(`(Attr [Engine] [V8]) (Attr [Engine] [V8]) [Start] [Start] ;fun stuff;`);
+((g.concepts)[1]).descriptor = h;
+
+println g;
+
+println "";
+
+// So is this kind of stuff...
+g = `~[ ~[[v]]]`;
+println g;
+println g.relations;
+
+function drillDown(g, n)
+  foreach con in g.concepts do
+    println n + ": " + con;
+    if con.isContext() then
+      drillDown(con.descriptor, n+1);
+    end
+  end
+end
+
+drillDown(g,1);

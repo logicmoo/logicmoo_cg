@@ -1,0 +1,55 @@
+#!/home/david/cgp/pCG
+//
+// This simple pCG program reads a CGIF stream from one file specified
+// on the command-line, prints equivalent CGIF where each concept has
+// a defining variable and top-level relations use corresponding bound 
+// variables, and prints the type of each relation and its arity. Any 
+// comments embedded in the graph (e.g. by tools such as CharGer) are 
+// omitted from the output.
+//
+// If invoked on the following graph:
+//
+// (provide[primary_market*x0][investment*x1])(attr?x1[new])
+//  (operate_with?x0[stock*x3])(attr?x3[newly_issued])
+//
+// it yields this output:
+//
+// [primary_market:*a][investment:*b][new:*c][stock:*d][newly_issued:*e]
+//  (provide?a?b)(attr?b?c)(operate_with?a?d)(attr?d?e)
+//
+// Top-level relation: provide; arity = 2.0
+// Top-level relation: attr; arity = 2.0
+// Top-level relation: operate_with; arity = 2.0
+// Top-level relation: attr; arity = 2.0
+//
+// David Benn, April,June 2001
+
+option cgifparser = "cgp.translators.CGIFParser";
+option cgifgen = "cgp.translators.CGIFGenerator";
+
+if _ARGS.length == 1 then
+  path = _ARGS[1];
+  f = file path;
+  graphs = f.readGraphStream();
+  f.close();
+
+  println "";
+
+  foreach g in graphs do
+    println g.nocomments();
+    println "";
+    foreach rel in g.relations do
+      relType = rel[1]; 
+      inArgs = rel[2]; 
+      outArgs = rel[3];
+      println " Top-level relation: " + relType + "; arity = " + 
+	      (inArgs.length + outArgs.length);
+    end
+
+    println "";
+  end
+
+  println "";
+end else
+  println "Specify a single file on the command line.";
+end

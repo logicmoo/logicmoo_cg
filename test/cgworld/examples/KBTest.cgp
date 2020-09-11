@@ -1,0 +1,25 @@
+// Simple graph assertion, retraction, type tests.
+//
+// Note that Boolean, Number, and String are always present in the concept
+// type hierarchy.
+
+relation Attr;
+
+concept Universal > Number; // not necessary, but okay (same for Absurd)
+concept Number > Integer;
+concept Number > Real > Transcendental; // not necessary, just fun
+
+function sqr(n,m)
+  // Assume n's referent is a literal number.
+  m.designator = n.designator*n.designator;
+end
+
+assert activate `[Number:*a 12][Number:*b'*y']<sqr?a|?b>`;
+println _KB;
+assert activate `[Number:*a 2][Number:*b'*y']<sqr?a|?b>`;
+retract activate `[Number:*a 12][Number:*b'*y']<sqr?a|?b>`;
+retract activate `[Number:*a 12][Number:*b'*y']<sqr?a|?b>`;
+assert `[Line:*a'#1'](to_do?a)`;
+retract `[Line:*a'#1'](to_do?a)`;
+assert `[Line:*a'#1'](to_do?a)`;
+println _KB;

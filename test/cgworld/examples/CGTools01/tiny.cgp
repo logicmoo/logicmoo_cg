@@ -1,0 +1,15 @@
+// A minimal pCG program that opens a file, reads a CG Stream from it into
+// a list and prints each graph in the list. Uses a June 2001 CG Standard
+// compliant parser and generator.
+
+option CGIFparser = "cgp.translators.CGIFParser";
+option CGIFgen = "cgp.translators.CGIFGenerator";
+
+if _ARGS.length == 1 then 
+  f = file (_ARGS[1]);
+  graphs = f.readGraphStream();
+  f.close();
+  foreach g in graphs do
+    println g;
+  end
+end

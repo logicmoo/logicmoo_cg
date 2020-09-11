@@ -1,0 +1,111 @@
+// Test of the basic process mechanism.
+//
+// Try uncommenting line marked with "***" to see how looping can be achieved.
+// Try changing "[Num:*b 144]" in rule 1's pre-condition to, say, "[Num:*b 14]"
+// to see how an incorrect actor sink concept referent can cause a match to
+// fail.
+
+// For actor in rule 1.
+function sqr(n,m)
+  // Assume n's referent is a literal number.
+  m.designator = n.designator*n.designator;
+end
+
+process p(in p1, out p1, out p2)
+  rule r1
+    pre
+      action
+	println "Entering Rule 1. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#1'](to_do?a)`;
+      `[Var:*a'n'][Num:*b'*x'][Num:*c 144](value?a?b)<sqr?b|?c>`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 1 matched";
+      end
+
+      `[ERASURE:[Line:*a'#1'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#2'](to_do?a)]`;
+    end
+  end // rule r1
+
+  rule r2
+    pre
+      action
+	println "Entering Rule 2. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#2'](to_do?a)`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 2 matched";
+      end
+
+      `[ERASURE:[Line:*a'#2'](to_do?a)]`;
+      `[PROPOSITION:[Line:*a'#3'](to_do?a)]`;
+      //`[PROPOSITION:[Line:*a'#1'](to_do?a)]`; // *** uncomment to loop
+    end
+  end // rule r3
+
+  rule r3
+    pre
+      action
+	println "Entering Rule 3. Graphs: " + _KB.graphs;
+      end
+
+      `[Line:*a'#3'](to_do?a)`;
+    end
+
+    post
+      action
+	println "";
+        println "** Rule 3 matched";
+      end
+
+      `[ERASURE:[Line:*a'#3'](to_do?a)]`;
+    end
+  end // rule r3
+end
+
+println "**Explicit invocation**";
+assert `[Var:*a'n'][Num:*b 12](value?a?b)`;
+println "Before process p. Graphs: " + _KB.graphs;
+println "";
+x = p(concept `[PROPOSITION:[Line:*a'#1'](to_do?a)]`,
+      concept `[PROPOSITION:[Foo:'on you']]`,
+      concept `[ERASURE:[Var:*a'n'][Num:*b 12](value?a?b)]`);
+println "";
+println "After process p. Graphs: " + _KB.graphs;
+println "p returned: " + x;
+
+retract `[Foo:'on you']`;
+
+println "";
+println "**Invocation by graph activation**";
+assert `[Var:*a'n'][Num:*b 12](value?a?b)`;
+println "Before process p. Graphs: " + _KB.graphs;
+println "";
+g = `[PROPOSITION:*a[Line:*b'#1'](to_do?b)]
+     [PROPOSITION:*c[Foo:'on you']]
+     [ERASURE:*d[Var:*e'n'][Num:*f 12](value?e?f)]
+     <p?a?c|?d>`;
+println g;
+println ">>concepts:";
+foreach c in g.concepts do
+  println c;
+end
+println ">>relations:";
+foreach r in g.relations do
+  println r;
+end
+x = activate g;
+println "";
+println "After process p. Graphs: " + _KB.graphs;
+println "p returned: " + x; // doesn't return anything

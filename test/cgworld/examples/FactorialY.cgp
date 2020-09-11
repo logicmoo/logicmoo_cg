@@ -1,0 +1,128 @@
+// A test of Figure 4 (modified) from [Lukose and Mineau 1998].
+// The actor graph was drawn using CharGer. Arc ordering is not 
+// important here. This example also shows how pCG's run-time 
+// type testing can be put to good use.
+//
+// Note: The really interesting thing about this example is that
+//       the file FactorialY.CGF contains an anonymous actor such
+//   	 that when the recursive step is required, an executor node
+//       called "_self_" is found, causing the current actor's defining
+// 	 graph to be duplicated. This is essentially the CG equivalent 
+//	 of the lambda calculus Y combinator which permits recursive 
+//	 anonymous functions. Refer to any text on the lambda calculus.
+
+// ** Constants **
+DBL_QUOTE = 34;
+
+// ** Function definitions **
+function mul(x,y,z)
+  operand1 = x.designator;
+  operand2 = y.designator;
+  if not (operand1 is number) or not (operand2 is number) then 
+    exit "Operand to " + me.name + " not a number!"; 
+  end
+  z.designator = operand1 * operand2;
+end
+
+function sub1(x,y)
+  operand = x.designator;
+  if not (operand is number) then 
+    exit "Operand to " + me.name + " not a number!"; 
+  end
+  y.designator = operand - 1;
+end
+
+function add1(x,y)
+  operand = x.designator;
+  if not (operand is number) then 
+    exit "Operand to " + me.name + " not a number!"; 
+  end
+  y.designator = operand + 1;
+end
+
+function identityIfEqZero(x,y)
+  operand = x.designator;
+  if not (operand is number) then 
+    exit "Operand to " + me.name + " not a number!"; 
+  end
+  if operand == 0 then 
+    y.designator = operand;
+  end
+end
+
+function identityIfGTZero(x,y)
+  operand = x.designator;
+  if not (operand is number) then 
+    exit "Operand to " + me.name + " not a number!"; 
+  end
+  if operand > 0 then 
+    y.designator = operand;
+  end
+end
+
+function quoteNumbersForCharGer(g)
+  # Quote numeric literal referents in a graph for CharGer
+  # otherwise numbers won't be displayed for some reason.
+  # These will later have to be changed to single quotes.
+  foreach con in g.concepts do
+    value = con.designator;
+    if value is number then con.designator = "" + value; end
+  end
+  return g;
+end
+
+// ** Main Program **
+
+// Define actor.
+r = file "FactorialY.CGF";
+actor Factorial(n) is r.readGraph();
+
+println "";
+println "Sinks: " + Factorial.sinkconcepts;
+println "Sources: " + Factorial.sourceconcepts;
+
+println "";
+println "** Defining graph for " + Factorial + " is:";
+println (Factorial.defgraph).nocomments();
+
+// Invoke actor to compute factorial n.
+n = 7; // try making this a string
+println "";
+g = Factorial(n);
+println "** Resulting graph for " + "Factorial(" + n + ") is:";
+println g.nocomments();
+
+println "";
+println "Now, treat the graph as an anonymous actor and execute it...";
+println "Hey presto! The Y combinator in CG actors.";
+println "";
+r = file "FactorialY.CGF";
+g = r.readGraph();
+foreach c in g.concepts do
+  if c.designator == "*n" then c.designator = 7; last; end
+end
+h = activate g;
+println "** Resulting graph for activation of: ";
+println "";
+println g.nocomments();
+println "";
+println "is:";
+println "";
+println h.nocomments();
+
+// Write resulting graph to a file.
+h = quoteNumbersForCharGer(h);
+out_path = "FactorialYOut.cgf";
+w = file (">" + out_path);
+w.writeln((h + "").replace((DBL_QUOTE).chr(), "'"));
+w.close();
+
+println "";
+println "Note: the above graph shows the top-level recursive invocation";
+println "      after unwinding. To see other invocations, add 'option TRACE'";
+println "      to the top of this program.";
+
+println "";
+println "See " + out_path + " for CharGer-readable result graph.";
+println "";
+

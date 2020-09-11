@@ -3,7 +3,10 @@
 #  https://wiki.jenkins-ci.org/display/JENKINS/Administering+Jenkins
 
 #ignore all JENKINS_HOME except jobs directory, root xml config, and .gitignore file
-/*
+#/*
+*.jar
+*~
+*.class
 !/jobs
 !/.gitignore
 !/*.xml

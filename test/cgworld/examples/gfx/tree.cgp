@@ -1,0 +1,44 @@
+#!/home/david/cgp/pCG
+# A test of the add-on types Window and Util.
+# See cgp/runtime/newtypes for the corresponding Java classes
+# and see end of pCG Makefile.
+#
+# In pCG, you create a type instance with the "new" operator
+# then invoke operations on the instance. There is no rich
+# notion of constructor for these types.
+#
+# A recursively drawn tree using Turtle Graphics.
+#
+# Try something like this from the command line: tree.cgp 30
+
+function abs(n)
+  if n < 0 then n = -n; end
+  return n;
+end
+
+function tree(n, w)
+  if n >= 5 then
+    w.turn(30);
+    w.walk(n);
+    tree(n*3 div 4, w);
+    w.walk(-n);
+    w.turn(-60);
+    w.walk(n);
+    tree(n*3 div 4, w);
+    w.walk(-n);
+    w.turn(30);
+  end
+end
+
+# Main program.
+depth = (_ARGS[1]).toNumber(); // try 30
+colors = {{200,0,0}, {0,200,0}, {0,0,200}}; // red, green, blue
+u = new Util;
+w = new Window;
+w.open("Tree", 100, 100, 300, 300);
+w.drawText("A tree of depth " + depth, 100, 25);
+w.setColor(colors[abs(u.random(3))+1]);
+tree(depth, w);
+u.sleep(2);
+w.close();
+exit;

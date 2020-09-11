@@ -1,0 +1,67 @@
+#!/home/david/cgp/pCG
+#
+# A test of Figure 1 from [Lukose and Mineau 1998].
+# The actor graph was drawn using CharGer. Note the
+# importance of arc ordering in this example.
+#
+# Note: This shows explicit actor invocation but pCG also supports
+#       implicit actor invocation.
+
+# ** Constants **
+DBL_QUOTE = 34;
+
+# ** Function definitions **
+function plus(x,y,z)
+  z.designator = x.designator + y.designator;
+end
+
+function divide(x,y,q,r)
+  q.designator = (x.designator div y.designator).round();
+  r.designator = x.designator mod y.designator;
+end
+
+function sqrt(x,y)
+  y.designator = (x.designator).sqrt();
+end
+
+function quoteNumbersForCharGer(g)
+  # Quote numeric literal referents in a graph for CharGer
+  # otherwise numbers won't be displayed for some reason.
+  # These will later have to be changed to single quotes.
+  foreach con in g.concepts do
+    value = con.designator;
+    if value is number then con.designator = "" + value; end
+  end
+  return g;
+end
+
+# ** Main Program **
+
+# Define actor.
+r = file "Figure1.CGF";
+actor Figure1(a,b,c) is r.readGraph();
+
+println "";
+println "Sinks: " + Figure1.sinkconcepts;
+println "Sources: " + Figure1.sourceconcepts;
+
+println "";
+println "** Defining graph for " + Figure1 + " is:";
+println (Figure1.defgraph).nocomments();
+
+# Invoke actor.
+println "";
+println "** Resulting graph for " + "Figure1(9,4,144) is:";
+g = Figure1(9,4,144);
+println g.nocomments();
+
+# Write resulting graph to a file.
+g = quoteNumbersForCharGer(g);
+out_path = "Figure1Out.cgf";
+w = file (">" + out_path);
+w.writeln((g + "").replace((DBL_QUOTE).chr(), "'"));
+w.close();
+
+println "";
+println "See " + out_path + " for CharGer-readable result graph.";
+println "";
