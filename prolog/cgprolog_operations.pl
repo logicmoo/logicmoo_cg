@@ -65,7 +65,11 @@ listId(L):- findall(Id,cgc(Id,_,_,_,_),CgcL),
 	findall(Id,(cg(Id,_,_,F),member(fs(kind,reldef),F)),RL),
 	append(TL,RL,L2),append(L1,L2,L).
 
-broiId(Id):- listId(L),max_el(L,Id),asserta(broi(Id)).
+broiId(Id):- listId(L),max_el(L,Id),
+   X is (1 + '//'(Id , 10000000)) * 10000000,
+   max_el([Id,X],XId), 
+   asserta(broi(XId)).
+
 max_el(L,E):- mel(L,-1,E).
 mel([],E,E).
 mel([H|T],N,E):- ground(H),(H>=N -> mel(T,H,E));mel(T,N,E).
@@ -1320,6 +1324,8 @@ exist_params(Param,Grid):- params(Param),take_last(Param,Grid),
 not_exist_params(Param,Grid):- exist_params(Param,Grid),!,fail.
 not_exist_params(_,_).
 take_last(L,E):- append(_,[E],L).
+
+:- fixup_exports.
 
 
 

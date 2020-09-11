@@ -36,6 +36,30 @@ cg_reader_text("[Cat: ?x]-(On)->[Mat].").
 cg_reader_tests :- forall(cg_reader_text(X),assert_cg(X)).
 
 cg_demo:- !.
+ground_variables_as_atoms([],_Vars):-!.
+ground_variables_as_atoms(_,[]):-!.
+ground_variables_as_atoms(Vs,[N=V|Vars]):-
+  ground_variables_as_atoms(Vs,Vars),
+  (member_eq0(V, Vs) -> V = N ; true).
+
+term_expansion(cg(Stuff), Out):- nonvar(Stuff), nb_current(cg_term_expand,true),
+   term_variables(Stuff,Vs),
+   nb_current('$variable_names',Vars), ground_variables_as_atoms(Vs,Vars),
+   current_why(UU),
+   Out = (:- with_current_why(UU, assert_cg(Stuff))).
+
+
+begin_cg:- style_check(-singleton), nb_setval(cg_term_expand,true).
+
+:- begin_cg.
+
+cg([Man:karim]<-agnt-[Eat]-obj->[Apple]).
+
+cg([Man:imad]<-agnt-[Drive]-obj->[Car]).
+
+cg([Man:karim]<-agnt-[Drink]-obj->[Water]).
+
+
 
 end_of_file.
 
