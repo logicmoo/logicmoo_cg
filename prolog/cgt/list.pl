@@ -150,9 +150,12 @@ Description	: succeeds iff Element is the last element of List
 Notes		: 
 
 ************************************************************************/
+:- if( \+ current_predicate(last/1)).
 
 last(L, X) :-
 	conc(_, [X], L).
+
+:- endif.
 
 /* length/2 *************************************************************
 
@@ -162,10 +165,13 @@ Description	: succeeds iff Length is the number of elements of List
 Notes		: 
 
 ************************************************************************/
+:- if( \+ current_predicate(length/2)).
 
 length([_|T], Y) :-
 	length(T, X), succ(X, Y).
 length([], 0).
+
+:- endif.
 
 /* list_of/2 ************************************************************
 
@@ -187,11 +193,13 @@ Description	: succeeds iff Element unifies with a member of List
 Notes		: if -Element, generates all list members by backtracking 
 
 ************************************************************************/
-
+/*
 member(H, [H|_]).
 member(H, [_|T]) :-
 	member(H, T).
-								  
+
+*/
+
 /* nth_member/2 *********************************************************
 
 Usage		: nth_member(?Element, ?List, ?N)

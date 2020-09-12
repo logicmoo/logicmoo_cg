@@ -204,7 +204,7 @@ max_common_subtype(X, Y, Y) :-
 	subtype(Y, X).
 max_common_subtype(X, Y, Z) :-
 	common_subtype(Z, X, Y), 
-	not ( common_subtype(W, X, Y), proper_supertype(W, Z) ), !.
+	\+ (( common_subtype(W, X, Y), proper_supertype(W, Z) )), !.
 
 /* min_common_supertype/3 ***********************************************
 
@@ -217,7 +217,7 @@ Notes		:
 
 min_common_supertype(X, Y, Z) :-
 	common_supertype(Z, X, Y), 
-	not ( common_supertype(W, X, Y), proper_subtype(W, Z) ), !.
+	\+ (( common_supertype(W, X, Y), proper_subtype(W, Z) )), !.
 
 /************************************************************************
 

@@ -412,7 +412,7 @@ Notes		:
 
 free_id(Key/Id) :-
 	% recorded(mark_level, N, _), % !, 
-	recorded(cg_mark, Key/Id-N, Ref), erase(Ref),
+	recorded(cg_mark, Key/Id- _N, Ref), erase(Ref),
 	recorda(Key, Id, _), !.
 free_id(Key/Id) :-
 	recorda(Key, Id, _).

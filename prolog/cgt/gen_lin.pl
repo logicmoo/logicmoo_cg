@@ -457,7 +457,7 @@ gen_typefield(Type, VarIn, VarIn) -->
 	{ concept_type(Type, TypeName, _, _, _) }, [TypeName].
 gen_typefield(l/Id, VarIn, VarOut) --> 
 	{ l(l/Id, [CID], GIDs), succ(VarIn, TmpVar), number2var(VarIn, Var) },
-	['\', Var], gen_graph(GIDs, [CID+Var], TmpVar, VarOut).
+	['\\', Var], gen_graph(GIDs, [CID+Var], TmpVar, VarOut).
  
 /* gen_reffield/4 *******************************************************
 

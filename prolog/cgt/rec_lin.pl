@@ -527,7 +527,7 @@ Notes		:
 ************************************************************************/
 
 rec_typefield(l/Id) -->
-	['\', Var], rec_graph_list(GIDs, [], MC, _), 
+	['\\', Var], rec_graph_list(GIDs, [], MC, _), 
 	{ member(GID-CID-Var, MC), new_id(l/Id), assert( l(l/Id, [CID], GIDs) )
 	; cg_error(undef_param, Var)
 	}.

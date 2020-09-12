@@ -134,7 +134,7 @@ max_join(GIDs1, GIDs2, NewGIDs) :-
 	delete_one(G2, GIDs2, TmpGIDs), max_join(GIDs1, TmpGIDs, NewGIDs).
 max_join(GIDs, [], GIDs).
 max_join(CG1, CG2, CG1) :-
-	g(CG1, CL1, RL1), g(CG2, CL2, RL2), 
+	g(CG1, CL1, _RL1), g(CG2, CL2, _RL2), 
 	member(C1-_, CL1), member(C2-_, CL2), join_concept(C1, C2),
 	extend_join(CG1, CG2, C1, C2).
 
@@ -303,7 +303,7 @@ conform(absurd, _) :-
 conform(_, '*') :- !.
 conform(_, #) :- !.
 conform(_, every) :- !.
-conform(Type, Ref = CRL) :- 
+conform(Type, Ref = _CRL) :- 
 	conform(Type, Ref), !.
 conform(Type, set(_, Set, _)) :- 
 	conform(Type, Set), !.
@@ -447,7 +447,7 @@ copy_ref(Old, New, Ref = CRL, NewRef = NewCRL) :-
 	copy_ref(Old, New, CRL, NewCRL), copy_ref(Old, New, Ref, NewRef).
 copy_ref(Old, New, Ref = _, NewRef) :-
 	copy_ref(Old, New, Ref, NewRef).
-copy_ref(Old, New, ID, _) :-
+copy_ref(Old, _New, ID, _) :-
 	recorded(crl, _ = ID, DbRef), erase(DbRef),
 	( retract( c(Old, Type, OldRef) ),
 	  change_ref(ID, OldRef, none, NewRef),

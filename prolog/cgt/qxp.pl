@@ -74,23 +74,26 @@ If you're not using CGE please edit files 'misc.pl', 'sem_int.pl' and
 
 %%% Some miscellaneous stuff
 
+%:- use_module(cgt_swipl).
+/*
 :- op(900, fy, not).
 
-not X :- X, !, fail.
-not X.
+not(X) :- X, !, fail.
+not(X).
 
 :- op(700, xfx, \=).
 
 X \= Y :- not X = Y.
 
+*/
 succ(X, Y) :-
     nonvar(X), !, Y is X + 1.
 succ(X, Y) :-
     X is Y - 1.
 
-:- unknown(X, fail).		% calls to undefined predicates simply fail
+%:- unknown(X, fail).		% calls to undefined predicates simply fail
 
-:- leash([call,redo]).		% leash call and redo ports only
+%:- leash([call,redo]).		% leash call and redo ports only
 %:- style_check(single_var).	% check for single occurrences of variables
 
 %%% Load Portuguese semantic interpreter
@@ -108,11 +111,12 @@ portugues :-
 
 %%% Widget to make screen dumps
 
-snapshot(X) :- shell widget snapshot(ID), ID wproc window(X).
+/*snapshot(X) :- shell widget snapshot(ID), ID wproc window(X).
 
 shell widget snapshot(S) :-
 	S= transientShell / [
 		backgroundPixmap(0), width(100), height(100)].
+*/
 
 %%% Load the Conceptual Graph Tools
 
@@ -137,17 +141,23 @@ load_cge :-
     [cge_widgets],		% CGE's Window gadgets (editor's visual look)
     [dialog],			% widgets for several kinds of dialog boxes
     ['tests/choice'],		% widgets for choice dialogs
-    xt_display(D, D), 
-    xt_fetch_server_fonts(D),	% to display greek letters
-    shell widget qxp_shell(G), 	% open a new top-level shell
-    recorda(qxp_goal, G, _),	% remember the shell to make get_back possible
-    !, G.			% start at the new shell
+   % xt_display(D, D), 
+   % xt_fetch_server_fonts(D),	% to display greek letters
+   % shell widget qxp_shell(G), 	% open a new top-level shell
+    G = prolog,
+    recorda(qxp_goal, G, _)	% remember the shell to make get_back possible
+  %  !, G.			% start at the new shell
+   .
 
 %%% get_back acts as an abort for CGE: it returns control to the top-level shell
 
-get_back :- recorded(qxp_goal, G, _), !, G.
-get_back :- shell widget qxp_shell(G), recorda(qxp_goal, G, _), !, G.
+get_back :- recorded(qxp_goal, G, _), !, call(G).
+% get_back :- shell widget qxp_shell(G), recorda(qxp_goal, G, _), !, G.
 
 %%% Load the whole GET system
 
 load_get :- load_cgt, load_cge.
+
+acknowledge(Msg):- wdmsg(Msg).
+
+:- load_cgt.
