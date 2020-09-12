@@ -5,6 +5,7 @@
 :- forall(current_op(X,Y,(+)),op(X,Y,(?))).
 :- forall(current_op(X,Y,(+)),op(X,Y,(@))).
 
+:- discontiguous(cg_test_data/2). 
 :- multifile_data(cg/1).
 
 :- current_op(X,Y,'->'),push_operators([op(X,Y,'<-')]).
@@ -13,25 +14,51 @@ cg_df_to_term(In,Out):- any_to_string(In,Str),
   % replace_in_string(['('='{',')'='}'],Str,Str0),
   replace_in_string(['XXX'='XXX'],Str,Str0),
   with_only_operators(
-   [%op(900,xfy,'<-'),op(1000,yfx,'->'),op(1100,xfy,'-'),op(1110,xfx,'-'),op(1100,yfx,'-'),op(500,xfx,':'),
-    % op(1170,yfx,'<-'),op(1150,yfx,'->'),
+   [op(900,xfy,'<-'),op(1000,yfx,'->'),op(1100,xfy,'-'),op(1110,xfx,'-'),op(1100,yfx,'-'),op(500,xfx,':'),
+    /*% op(1170,yfx,'<-'),op(1150,yfx,'->'),
     % op(1000,yfx,'<-'),op(1000,yfx,'->'),    
    op(900,xfy,'<-'),
-   op(900,yfx,'<-'),
-   op(900,xfx,'<-'), 
+  % op(900,yfx,'<-'),
+  % op(900,xfx,'<-'), 
    op(900,yfx,'->'), 
-   op(900,xfy,'->'),
-   op(900,xfx,'->'), 
-    op(1000,xfx,'-'),
-    op(1100,fy,'-'),
-    
-    op(1200,xfx,':'),op(1200,xfx,'='),op(300,fx,'?'),op(300,fx,'*'),op(300,yfx,'@'),op(300,fx,'@'),op(300,yfx,'?'),op(300,yfx,'*')],
+  % op(900,xfy,'->'),
+  % op(900,xfx,'->'), 
+    op(1100,xfy,'-'),
+  %  op(1000,fy,'-'),
+
+  */
+   
+
+    op(300, fx,'?'),op(300, fx,'#'),op(300, fx,'*'),op(300, fx,'@'),
+    op(300,yfx,'?'),op(300,yfx,'#'),op(300,yfx,'*'),op(300,yfx,'@'),
+
+    op(1200,xfx,':'),op(1200,xfx,'=')],
+
      read_term_from_atom(Str0,Out,[variable_names(Vs)])), maplist(call,Vs),!.
   
 
-cg_reader_tests :- make, forall(cg_reader_text(X),(assert_cg(X))).
+% cg_test_data(call,"[M1]<-(eq)-[Mat]<-(On)-[Cat: ?x].").
+cg_test_data(reader,"[Thingy #1] <- (eq) -[Mat #1]<- (on)- [Cat: #1]").
 
-cg_demo:- !.
+cg_test_data(reader,"[Cat: #1]-(On)->[Mat #1]-(equal)->[Thingy #1].").
+
+cg_test_data(call,"[Cat: ?x]-(On)->[Mat #1]-(equal)->[Thingy #1].").
+
+cg_test_data(call,"[?x]-(On)->[Mat #1]-(equal)->[Thingy #1].").
+cg_test_data(call,"?x -(On)->[Mat #1]-(equal)->[Thingy #1].").
+cg_test_data(call,"?x -(On)->[Mat #1].").
+
+cg_test_data(call,"[Mat ?x]-(equal)->[Thingy #1].").
+cg_test_data(call,"[?x] -(equal)-> [Thingy #1].").
+cg_test_data(call,"?x -(equal)-> [Thingy #1].").
+
+
+
+% cg_test_data(reader,"[Cat: ?x]-(On)->[Mat]-(equal)->M1.").
+
+cg_reader_tests :- make, forall((cg_test_data(reader,X),!),assert_cg(X)).
+
+cg_demo :- make, forall(cg_test_data(call,X),(call_cg(X))).
 
 ground_variables_as_atoms([],_Vars):-!.
 ground_variables_as_atoms(_,[]):-!.
@@ -63,37 +90,52 @@ begin_cg:- style_check(-singleton), nb_setval(cg_term_expand,true).
 not_oper(S):-  compound(S), compound_name_arity(S,F,_),member(F,['<-','-','->']),!,fail.
 not_oper(_).
 
-assert_cg(X):- \+ compound(X),cg_df_to_term(X,Y),!,assert_cg(cg(Y)).
-assert_cg(cg(CG)):- dmsg(CG), !,newId(Id),locally(nb_setval(cgid,Id),(reop_cg(CG,New),assert_cg(New))).
-%assert_cg(Reop):- New\=@=Reop,!,assert_cg(New).
 assert_cg(X):- is_list(X),maplist(assert_cg,X).
+assert_cg(X):- \+ compound(X),cg_df_to_term(X,Y),!,assert_cg(cg(Y)).
+assert_cg(cg(CG)):- wdmsg(assert(CG)), !,newId(Id),locally(nb_setval(cgid,Id),(reop_cg(CG,New),assert_cg(New))).
 assert_cg(X):- reop_cg_post(X,Y), X\=@= Y, assert_cg(Y).
-% assert_cg(-(S,->(P,O))):- not_oper(S),not_oper(P),not_oper(O), assert_cg(spo(S,P,O)).
-% assert_cg(S->S):- 
+
 assert_cg(X):- % format("~N~p.~n",[X]),
-  nl,display(X),nl,ain(cg(X)).
+  print_cg(X),  ain(cg(X)).
+
+print_cg(X):- is_list(X),!, maplist(print_cg,X).
+print_cg(X):- nl,display(X),nl.
+
+call_cg(X):- \+ compound(X),cg_df_to_term(X,Y),!,call_cg(cg(Y)).
+call_cg(cg(CG)):- wdmsg(call(CG)), !, reop_cg(CG,New), call_cg(New).
+call_cg(X):- is_list(X),maplist(call_cg,X).
+call_cg(X):- reop_cg_post(X,Y), X\=@= Y, call_cg(Y).
+call_cg(X):- % format("~N~p.~n",[X]),
+  print_cg(X),call(cg(X)).
+
 
 reop_cg(In,Out):- reop_cg_pre(In,M1),reop_cg_mid(M1,M2),reop_cg_post(M2,Out).
 
 reop_cg_pre(In,Out):- \+ compound(In),!, Out=In.
-reop_cg_pre([Thing],Out):- !, reop_cg_pre(entity(Thing),Out).
+reop_cg_pre(['#'(Type,Numbr)],Out):- !, reop_cg_pre(type_thing(Type,'#'(Numbr)),Out).
+reop_cg_pre(['#'(Numbr)],Out):- !, reop_cg_pre(entity('#'(Numbr)),Out).
 reop_cg_pre([Type:Thing],Out):- !, reop_cg_pre(type_thing(Type,Thing),Out).
+reop_cg_pre([Thing],Out):- \+compound(Thing), !, reop_cg_pre(entity(Thing),Out).
 reop_cg_pre(In,Out):- is_list(In),!,maplist(reop_cg_pre,In,Out).
 reop_cg_pre(In,Out):- In=..[OP|AB],maplist(reop_cg_pre,AB,AABB),Out=..[OP|AABB].
-reop_cg_pre(OIn,OIn).
+% reop_cg_pre(OIn,OIn).
 
 reop_cg_mid(In,Out):- format(chars(Chars),' ~q . ',[In]),cg_df_to_term(Chars,Out),
   ignore((fail,Out\=@=In, with_no_operators((nl,display(bf(In)),nl,display(af(Out)),nl)))),!.
 
-reop_cg_post(In,Out):- is_entity(In),!,Out=In.
+reop_cg_post(In,Out):-  is_entity(In),!,Out=In.
 reop_cg_post(In,Out):- \+ compound(In),!, Out=In.
-reop_cg_post(In,Out):- is_list(In),!,Out=In.
-reop_cg_post(In,Out):- is_list(In),!,maplist(reop_cg_post,In,Out).
+%reop_cg_post(In,Out):- is_list(In),!,Out=In.
+reop_cg_post(In,Out):- is_list(In), !,maplist(reop_cg_post,In,Out).
 reop_cg_post(-(S,->(P,O)),SPO):- not_oper(S),not_oper(P),not_oper(O),!, SPO = (spo(S,P,O)).
 reop_cg_post(-(<-(O,P),S),SPO):- not_oper(S),not_oper(P),not_oper(O),!, SPO = (spo(S,P,O)).
 
-reop_cg_post(-(SPOS,->(P,O)),[SPOS,SPO]):- right_side(SPOS,S), SPO = (spo(S,P,O)).
+reop_cg_post(-(SPOS,->(P,O)),[SPOS,SPO]):-  right_side(SPOS,S), SPO = (spo(S,P,O)).
+reop_cg_post(->(-(SPOS,P),O),[SPOS,SPO]):-  right_side(SPOS,S), SPO = (spo(S,P,O)).
+
 reop_cg_post(-(<-(O,P), SPOS),[SPOS,SPO]):- left_side(SPOS,S), SPO = (spo(S,P,O)).
+
+reop_cg_post(<-(-(OPOS,P),S),[OPOS,SPO]):- left_side(OPOS,O), SPO = (spo(S,P,O)).
 
 %reop_cg_post(-(<-(O,P),SPOS),[SPOS,SPO]):- left_side(SPOS,S), SPO = (spo(S,P,O)).
 reop_cg_post(In,Out):- In=..[OP|AB],maplist(reop_cg_post,AB,AABB),Out=..[OP|AABB].
@@ -159,7 +201,13 @@ tokenize_cg_list(L,`[Begin]-        -obj->[Session],
 */
 :- begin_cg.
 
-cg_reader_text("
+%cg_test_data(reader,"[Cat: ?x]-(equal)->M1-(On)->[Mat].").
+cg_test_data(reader,"[Cat: ?x]-(On)->[Mat].").
+cg_test_data(reader,"[Mat]<-(On)-[Cat: ?x].").
+
+
+
+no_cg_test_data(reader,"
 [Begin]-
         -obj->[Session],
         -srce->[Proposition = [Press] -
@@ -168,16 +216,9 @@ cg_reader_text("
         -agnt->[Person : John]").
 
 
-cg_reader_text("[Cat: ?x]-(On)->[Mat].").
-cg_reader_text("[Mat]<-(On)-[Cat: ?x].").
-%cg_reader_text("[Cat: ?x]-(On)->[Mat]-(equal)->M1.").
+%cg_test_data(reader,"[Man:karim]<-agnt-[Drink]-obj->[Water]").
 
-cg_reader_text("M1<-(eq)-[Mat]<-(On)-[Cat: ?x].").
-
-%cg_reader_text("[Cat: ?x]-(equal)->M1-(On)->[Mat].").
-%cg_reader_text("[Man:karim]<-agnt-[Drink]-obj->[Water]").
-
-%cg_reader_text("[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->table").
+%cg_test_data(reader,"[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->table").
 
 %cg([Man:karim]<-agnt-[Eat]-obj->[Apple]).
 
@@ -194,14 +235,14 @@ cg([Man:imad]<-agnt-[Drive]-obj->[Car]).
 cg([Cat: ?x]-(On)->[Mat]).
 
 
-cg_reader_text("
+cg_test_data(reader,"
 [Person: Tom]<-(Expr)<-[Believe]->(Thme)-
      [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]].
 ").
 
-cg_reader_text("[Cat: @every]->(On)->[Mat]").
-cg_reader_text("
+cg_test_data(reader,"[Cat: @every]->(On)->[Mat]").
+cg_test_data(reader,"
 
 [Go]-
    (Agnt)->[Person: John] -
