@@ -72,9 +72,11 @@ If you're not using CGE please edit files 'misc.pl', 'sem_int.pl' and
 
 ************************************************************************/
 
+
 %%% Some miscellaneous stuff
 
-%:- use_module(cgt_swipl).
+:- use_module(library(logicmoo_common)).
+
 /*
 :- op(900, fy, not).
 
@@ -134,8 +136,8 @@ load_cgt :-
 %%% Load the Conceptual Graph Editor
 
 load_cge :-
-    load_set(xgraph),		% load the graph widget
-    language(L, [[unlp,wdl]|L]),% CGE is written in UNL Prolog and WDL
+   % load_set(xgraph),		% load the graph widget
+   % language(L, [[unlp,wdl]|L]),% CGE is written in UNL Prolog and WDL
     [wdl_ext],			% extensions to the Widget Description Language
     [cge_actions], 		% actions performed by the editor
     [cge_widgets],		% CGE's Window gadgets (editor's visual look)
@@ -159,5 +161,7 @@ get_back :- recorded(qxp_goal, G, _), !, call(G).
 load_get :- load_cgt, load_cge.
 
 acknowledge(Msg):- wdmsg(Msg).
+
+:- dynamic(defined/3).
 
 :- load_cgt.

@@ -190,7 +190,7 @@ Notes		:
 ************************************************************************/
 
 abstraction_args([Var|T], Marked, [CID|T1]) :-
-	member(GID-CID-Var, Marked), abstraction_args(T, Marked, T1).
+	member(_GID-CID-Var, Marked), abstraction_args(T, Marked, T1).
 abstraction_args([Var|_], _, _) :-
 	cg_error(undef_param, Var).
 abstraction_args([], _, []).
@@ -595,7 +595,7 @@ Notes		: this predicate is bidirectional
 referent(set(dist, L, C)) --> ['Dist', '{'], set(L), ['}'], card(C).
 referent(set(resp, L, C)) --> ['Resp', '<'], set(L), ['>'], card(C).
 referent(set(coll, L, C)) -->         ['{'], set(L), ['}'], card(C).
-referent(set(disj, L, C)) -->     ['{'], disjset(L), ['}'], card(C).
+referent(set(disj, L, C)) -->     ['{'], disj_set(L), ['}'], card(C).
 referent(meas(M))    	  --> ['@'], set_element(name(M)).
 referent(every)	     	  --> ['V'].
 referent(R)	    	  --> set_element(R).
