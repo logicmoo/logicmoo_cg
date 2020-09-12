@@ -20,6 +20,7 @@ multifile_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
 :- dynamic(top/1).
 :- dynamic(bottom/1).
 :- dynamic(u_conc/3).
+:- expects_dialect(sicstus).
 :- use_module(library(lists)).
 :- dynamic(params/1).
 
@@ -134,11 +135,13 @@ super(A, B, S):- suptype(A, B, S), !;
     waste(S1, S2, S).
 
 /*path_up(X, Y, P) path from X to Y climbing up*/
+
 path_up(X, X, [X]).
-path_up(X, Y, P):- isa_cg(X, Z), path_up(Z, Y, L), append([X], L, P).
+path_up(X, Y, P) :-  
+  isa_cg(X, Z), path_up(Z, Y, L), append([X], L, P).
 
 path_up_len(_, _, 0, []).
-path_up_len(X, Y, N, P):- isa_cg(X, Z), N1 is N-1,
+path_up_len(X, Y, N, P):- isa_cg(X, Z), N1 is (N-1),
     path_up_len(Z, Y, N1, P1), append([X], P1, P).
 paths_up_len(X, Y, N, P):-
     findall(P1, path_up_len(X, Y, N, P1), P).

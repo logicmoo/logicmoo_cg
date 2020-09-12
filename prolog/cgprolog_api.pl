@@ -44,5 +44,8 @@ id_type(ID,C):-
 	isRelDefGraph(ID),C=reldef;
         isConcept(ID),C=concept),!.
 
+
 :- fixup_exports.
+
+
 
