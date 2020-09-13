@@ -28,8 +28,8 @@ pred_cg(Pred, Error):- var(Error),!, trace_or_throw(pred_cg(Pred, Error)).
 pred_cg(Pred, X):- is_list(X),maplist(pred_cg(Pred),X).
 pred_cg(Pred, cg(CG)):- !, pred_cg(Pred, CG).
 pred_cg(Pred, cg(CG)):- wdmsg(pred_cg(Pred, CG)), !, call(Pred,CG).
-%pred_cg(Pred, toks(Toks)):- catch(parse_cg(CG,Toks,[]),_,fail),pred_cg(Pred, cg(CG)),!.
-pred_cg(Pred, toks(Toks)):- parse_cg(CG,Toks,[]),pred_cg(Pred, cg(CG)),!.
+%pred_cg(Pred, tOkS(Toks)):- catch(parse_cg(CG,Toks,[]),_,fail),pred_cg(Pred, cg(CG)),!.
+pred_cg(Pred, tOkS(Toks)):- parse_cg(CG,Toks,[]),pred_cg(Pred, cg(CG)),!.
 pred_cg(Pred, X):- wdmsg(pred_cg(Pred, X)), fail.
 pred_cg(Pred, xtext(X)):- cg_df_to_term(X,Y),!, pred_cg(Pred, Y),!.
 pred_cg(_, _):- !.
@@ -127,41 +127,35 @@ concept0(crel(C))--> rel(C),!.
 concept_innerds_1(all(C))--> cw(C), ci('@'),  ci('every'),!.
 concept_innerds_1(n(C,'#'(V))) --> cw(C),        ci('#'), cw(V).
 concept_innerds_1(n(C,'#'(V))) --> cw(C),ci(':'),ci('#'), cw(V).
-concept_innerds_1(cg(C, Grph)) --> cw(C),ci(':'), dcg_peek(['[']), parse_cg(Grph).
-concept_innerds_1(c(C, OP, V)) --> cw(C),ci(':'), [OP], cw(V).
+concept_innerds_1(cg(C, Grph)) --> cw(C),ci(':'), dcg_peek(ci('[')), parse_cg(Grph).
 concept_innerds_1(cg01(C,Grph))--> cw(C),ci('='), parse_cg(Grph).
-concept_innerds_1(cot(C,OP,V)) --> cw(C),quant(OP) ,{nonword_tok(OP)},cw(V),!.
+concept_innerds_1(c(C, OP, V)) --> cw(C),ci(':'), [OP], cw(V).
 concept_innerds_1(ct(C,V))--> cw(C), ci(':'), cw(V).
+concept_innerds_1(cot(C,OP,V)) --> cw(C),quant(OP) ,{nonword_tok(OP)},cw(V),!.
 concept_innerds_1(ct(C,V))--> cw(C), cw(V).
-concept_innerds_1(itype(C,V))--> [ C ], !, concept_innerds_cont(V).
-concept_innerds_1(type(C,V))--> [ C, ':' ], !, concept_innerds_cont(V).
+concept_innerds_1(etype(C,V))-->  cw(C), ci(':'), !, concept_innerds_cont(V).
+concept_innerds_1(utype(C,V))--> [ C ], !, concept_innerds_cont(V).
 concept_innerds_1(v(V))   --> cw(V),!.
 
-concept_innerds_3a(P1,']',entity(C))--> !,[P1,']'],!,{cw(C,[P1],[])}.
-concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),[']'].
+concept_innerds_3a(P1,']',entity(C))--> [P1,']'],{C=P1},!.
+concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),ci(']').
 
-concept_innerds_3b(_P1,':',ct4(C,V))--> cw(C),[':'],cw(V),!.
+concept_innerds_3b(_P1,':',ct4(C,V))--> cw(C), ci(':'),cw(V),!.
 concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
-concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),['='], parse_cg(SubGraph),!.
+concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),ci('='), parse_cg(SubGraph),!.
 concept_innerds_3b(_P1,_P2,entity(C))-->  cw(C),!.
 
 sent_op_chars(Op,Chars):- sent_op(Op),atom_codes(Op,Chars).
 
 % these must be before:
-sent_op('::'). sent_op(':-').
-sent_op('->'). sent_op('<-').
+sent_op('::'). sent_op(':-'). sent_op('->'). sent_op('<-').
 % these
-sent_op('-').  sent_op(':').
-sent_op('<').  sent_op('>').
+sent_op('-').  sent_op(':').  sent_op('<').  sent_op('>').
 % then..
-sent_op('{').  sent_op('}').
-sent_op('[').  sent_op(']').
-sent_op('(').  sent_op(')').
-sent_op(',').  sent_op(';').
-sent_op('.').  sent_op('=').
-sent_op('@').  sent_op('#').
-sent_op('^').  sent_op('*').
-sent_op('~').  sent_op('$').
+sent_op('{').  sent_op('}'). sent_op('[').  sent_op(']').
+sent_op('(').  sent_op(')'). sent_op(',').  sent_op(';').
+sent_op('.').  sent_op('='). sent_op('@').  sent_op('#').
+sent_op('^').  sent_op('*'). sent_op('~').  sent_op('$').
 
 cw(H,[H|T],T):- \+ sent_op(H).
 
@@ -175,7 +169,7 @@ cg_df_to_term(In,Out):- any_to_string(In,Str),
   replace_in_string(['\r'='\n'],Str,Str0),
   atom_codes(Str0,Codes),
   must_or_rtrace(tokenize_cg(Toks,Codes,[])),
-  Out = toks(Toks).
+  Out = tOkS(Toks).
 
 
 :- set_dcg_meta_reader_options(file_comment_reader, cg_comment_expr).
