@@ -9,14 +9,12 @@
 %:- current_op(X,Y,'->'),push_operators([op(X,Y,'<-')]).
 
 
-cg_reader_tests :- make, forall((cg_test_data(Attribs,X), \+ memberchk(failing,Attribs)),do_cg_test(Attribs,X)).
-cg_reader_tests_all :- make, forall(cg_test_data(Attribs,X),do_cg_test(Attribs,X)).
+cg_demo :- make, forall((cg_test_data(Attribs,X), \+ memberchk(failing,Attribs)),do_cg_test(Attribs,X)).
+cg_reader_tests :- make, forall(cg_test_data(Attribs,X),do_cg_test(Attribs,X)).
 
 do_cg_test( Attribs,_):- memberchk(skip,Attribs),!.
 do_cg_test( Attribs,X):- memberchk(xcall,Attribs),!, call_cg(xtext(X)).
 do_cg_test(_Attribs,X):- assert_cg(xtext(X)).
-
-cg_demo :- make, forall(cg_test_data([xcall,level(0)],X),(call_cg(X))).
 
 
 assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)).
@@ -54,14 +52,7 @@ tokenize_cg_w(HT)--> blank,!,tokenize_cg_w(HT).
 
 tokenize_cg_w(Name) --> dcg_peek(`'`),!,single_quoted_string(Str),{atom_codes(Name,Str)}.
 tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
-tokenize_cg_w('::')--> `::`,!.
-tokenize_cg_w(':-')--> `:-`,!.
-tokenize_cg_w(';')--> `;`,!.
-tokenize_cg_w('[')--> `[`,!.
-tokenize_cg_w('<-')--> `<-`,!.
-tokenize_cg_w('->')--> `->`,!.
-tokenize_cg_w(Name)--> [C], {member(C,`[()]*@-=:<>,.$#`)},!,{ atom_codes(Name, [C])}.
-%tokenize_cg_w(Name)--> dcg_used_chars(((`[` ; `(` ;`)` ; `]` ; `*`; `@`; `=`; `,`; `.`)), CL),!,{ atom_codes(Name, CL)}.
+tokenize_cg_w(Op)--> {sent_op_chars(Op,Chars)},Chars,!.
 tokenize_cg_w('?'(UNAME)) --> `?`,!,prolog_id_conted(CL),{ atom_codes(Name, CL)},!,{upcase_atom(Name,UNAME)}.
 tokenize_cg_w(T)--> dcg_basics:number(T),!.
 tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{ atom_codes(Name, CL)},!.
@@ -72,22 +63,20 @@ tokenize_cg([],S,E):- S=[],!,E=[].
 tokenize_cg([H|T])--> tokenize_cg_w(H),!,tokenize_cg(T).
 tokenize_cg([])-->[],!.                                             
 
-dcg_look(Grammar,List,List):- (var(Grammar)->((N=2;N=1;between(3,20,N)),length(Grammar,N)); true),phrase(Grammar,List,_),!.
-
 parse_cg(List) --> concept(S),!, post_concept(S,S,List).
 
-post_concept(Sticky,S,List) --> ['-'],
-  dcg_look(['<-'];['-'];['->']),!,graph_listnode(Sticky,S,List).
+post_concept(Sticky,S,List) --> ci('-'),
+  dcg_peek(ci('<-');ci('-');ci('->')),!,graph_listnode(Sticky,S,List).
 post_concept(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel),!,concept(Obj),graph_listnode(Sticky,Obj,List).
 post_concept(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Sticky,Subj,List).
 post_concept(Sticky,Obj, [t(Rel,Subj,Obj)|List]) --> rel_left2(Rel),!,concept(Subj),graph_listnode(Sticky,Obj,List).
 post_concept(Sticky,Obj, [t(Rel,Subj,Obj)|List]) --> rel_left(Rel),!,concept(Subj),graph_listnode(Sticky,Subj,List).
 
-graph_listnode(_Sticky,_Subj,[]) --> dcg_peek([']']),!.
-graph_listnode(_Sticky,_Subj,[]) --> ['.'],!.
-graph_listnode(Sticky,_Subj,List) --> [','],!,graph_listnode(Sticky,Sticky,List).
+graph_listnode(_Sticky,_Subj,[]) --> dcg_peek(ci(']')),!.
+graph_listnode(_Sticky,_Subj,[]) --> ci('.'),!.
+graph_listnode(Sticky,_Subj,List) --> ci(','),!,graph_listnode(Sticky,Sticky,List).
 graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), 
-  ([','];dcg_look(['-'])) ,!, graph_listnode(Sticky,Subj,List).
+  (ci(',');dcg_peek(ci('-'))) ,!, graph_listnode(Sticky,Subj,List).
 
 graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), graph_listnode(Sticky,Obj,List).
 graph_listnode(Sticky,Obj,[t(Rel,Subj,Obj)|List]) --> rel_left(Rel), concept(Subj), graph_listnode(Sticky,Subj,List).
@@ -97,10 +86,10 @@ graph_listnode(Sticky,Obj,[t(Rel,Subj,Obj)|List]) --> rel_left2(Rel), concept(Su
 
 graph_listnode(_Sticky,_,[])--> ((\+ [_]);['.']).
 
-rel_right(Rel)-->['-'],rel(Rel),['->'].
-rel_right2(Rel)-->['->'],rel(Rel),['->'].
-rel_left(Rel)-->['<-'],rel(Rel),['-'].
-rel_left2(Rel)-->['<-'],rel(Rel),['<-'].
+rel_right(Rel)-->ci('-'),rel(Rel),ci('->').
+rel_right2(Rel)-->ci('->'),rel(Rel),ci('->').
+rel_left(Rel)-->ci('<-'),rel(Rel),ci('-').
+rel_left2(Rel)-->ci('<-'),rel(Rel),ci('<-').
 
 rel(C)--> ['('],word_tok_loose(C),[')'].
 rel(C)--> ['<'],word_tok_loose(C),['>'].
@@ -123,7 +112,6 @@ word_tok(X)--> [X], !, {atom(X), \+ nonword_tok(X)}.
 quant(X) --> [X], {nonword_tok(X)}.
 
                                                   
-
 concept('*')--> [*], !.
 concept(?(Var)) --> [?(Var)],!.
 concept(C)-->concept0(C0),(([I],{integer(I)})->{C=n(C0,'#'(I))};{C=C0}),!.
@@ -155,11 +143,27 @@ concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!
 concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),['='], parse_cg(SubGraph),!.
 concept_innerds_3b(_P1,_P2,entity(C))-->  cw(C),!.
 
+sent_op_chars(Op,Chars):- sent_op(Op),atom_codes(Op,Chars).
 
+% these must be before:
+sent_op('::'). sent_op(':-').
+sent_op('->'). sent_op('<-').
+% these
+sent_op('-').  sent_op(':').
+sent_op('<').  sent_op('>').
+% then..
+sent_op('{').  sent_op('}').
+sent_op('[').  sent_op(']').
+sent_op('(').  sent_op(')').
+sent_op(',').  sent_op(';').
+sent_op('.').  sent_op('=').
+sent_op('@').  sent_op('#').
+sent_op('^').  sent_op('*').
+sent_op('~').  sent_op('$').
 
-cw(H,[H|T],T).
+cw(H,[H|T],T):- \+ sent_op(H).
 
-ci(CI)-->[C],{atom(C),downcase_atom(CI,DCI),downcase_atom(C,DC),DC==DCI}.
+ci(CI)-->[C],{atom(C),upcase_atom(C,UC),CI=UC}.
 
 concept_innerds_cont(C)--> concept_innerds_1(C).
 
@@ -187,8 +191,8 @@ cmt_until_eoln(`%`).
 
 :- fixup_exports.
 
+cg_test_data([reader, level(0), sowa], "[Mat]1-(equal)->[Thingy #1]").
 cg_test_data([reader, level(0)], "[Cat: @every]-(On)->[Mat]").
-cg_test_data([reader, level(0)], "[Mat]1-(equal)->[Thingy #1]").
 cg_test_data([reader, level(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
 cg_test_data([reader, level(1)], "[Cat#1]-(On)->[Mat #1]-(equal)->[Thingy #1]").
 cg_test_data([reader, level(1)], "[Cat: ?x]-(equal)->M1-(On)->[Mat]").
