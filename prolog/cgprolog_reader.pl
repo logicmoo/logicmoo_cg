@@ -68,18 +68,24 @@ dcg_look(Grammar,List,List):- (var(Grammar)->((N=2;N=1;between(3,20,N)),length(G
 parse_cg(List) --> concept(S),!, post_concept(S,List).
 
 post_concept(S,List) --> ['-'], dcg_look(['-']),!,graph_listnode(S,List).
-post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> ['-'], rel(Rel),['->'],!,concept(Obj),graph_listnode(Obj,List).
-post_concept(Obj, [t(Rel,Subj,Obj)|List]) --> ['<-'], rel(Rel),['-'],!,concept(Subj),graph_listnode(Subj,List).
+post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Obj,List).
+post_concept(Obj, [t(Rel,Subj,Obj)|List]) --> rel_left(Rel),!,concept(Subj),graph_listnode(Subj,List).
 
 graph_listnode(Subj,List) --> [','],!,graph_listnode(Subj,List).
-graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> ['-'],rel(Rel),['->'], concept(Obj), 
+graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), 
   ([','];dcg_look(['-'])) ,!, graph_listnode(Subj,List).
-graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> ['-'],rel(Rel),['->'], concept(Obj), graph_listnode(Obj,List).
-graph_listnode(Obj,[t(Rel,Subj,Obj)|List]) --> ['<-'],rel(Rel),['-'], concept(Subj), graph_listnode(Subj,List).
+graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), graph_listnode(Obj,List).
+graph_listnode(Obj,[t(Rel,Subj,Obj)|List]) --> rel_left(Rel), concept(Subj), graph_listnode(Subj,List).
 graph_listnode(_,[])--> ((\+ [_]);['.']).
 
-rel(C)--> ['(',C,')'].
-rel(C)--> [C].
+rel_right(Rel)-->['-'],rel(Rel),['->'].
+rel_left(Rel)-->['<-'],rel(Rel),['-'].
+
+rel(C)--> ['('],word_tok_loose(C),[')'].
+rel(C)--> word_tok_loose(C).
+
+word_tok_loose(DC)-->[C],{atom(C),downcase_atom(C,DC)}.
+
 
 concept(entity(C))--> ['[',C,']'],!.
 concept(ct(Type,Word))--> ['[',Type,':',Word,']'],!.
