@@ -90,18 +90,68 @@ word_tok_loose(DC)-->[C],{atom(C),downcase_atom(C,DC)}.
 
 nonword_tok(X):- atom(X),upcase_atom(X,UC),downcase_atom(X,DC),!,UC==DC. 
 
+word_tok('#'(X))--> ['#'],word_tok(X),!.
+word_tok('#')--> ['#'], !.
+word_tok('*'(X))--> ['*'],word_tok(X),!.
+word_tok('*')--> ['*'], !.
+word_tok(?(Var)) --> [?(Var)],!.
+word_tok(Num) --> [Num],{number(Num)},!.
+word_tok(*)--> [*], !.
+word_tok(?(Var)) --> [?(Var)],!.
+word_tok(X)--> [X], !, {atom(X), \+ nonword_tok(X)}.
+
+quant(X) --> [X], {nonword_tok(X)}.
+
                                                   
 
-concept(co(Type,'#'(Num)))--> ['[', Type, ':', '#', Num, ']'],!.
-concept(co(Type,'#'(Num)))--> ['[', Type, '#', Num, ']'],!.
-concept(all(Type))--> ['[', Type, ':', '@', 'every', ']'],!.
+concept('*')--> [*], !.
+concept(?(Var)) --> [?(Var)],!.
+
+
+concept(n(Type,'#'(Num)))--> ['[', Type, ':', '#', Num, ']'],!.
+concept(n(Type,'#'(Num)))--> ['[', Type,      '#', Num, ']'],!.
+concept(cg(Concept,SubGraph))--> ['[',Concept,'='], parse_cg(SubGraph), [']'],!.
+concept(ct(Type, Num))--> ['[', Type, ':', Num, ']'],!.
+concept(ct(Type, OP, Num))--> ['[', Type,  ':',  OP, Num, ']'],!.
 concept(entity(C))--> ['[',C,']'],!.
 concept(ct(Type,Word))--> ['[',Type,':',Word,']'],!.
 concept(cot(Type,OP,Word))--> ['[',Type,':',OP,Word,']'],!.
 concept(cot(Type,OP,Word))--> ['[',Type,OP,Word,']'],!.
 concept(ct(Type,Word))--> ['[',Type,Word,']'],!.
-concept(cg(Concept,SubGraph))--> ['[',Concept,'='], parse_cg(SubGraph), [']'],!.
-concept(?(Var)) --> [?(Var)].
+concept(C)--> ['['], !, concept_innerds_1(C), [']'],!.
+concept(C)--> word_tok(C),!.
+concept(C)--> word_tok_loose(C),!.
+% concept(?(Var)) --> [?(Var)].
+
+concept(ct(Type, Num))--> ['[', Type, ':', Num, ']'],!.
+concept(cot(Type,'#'(Num)))--> ['[', Type, ':', '#', Num, ']'],!.
+concept(ct(Type, OP, Num))--> ['[', Type,  ':',  OP, Num, ']'],!.
+concept(cot(Type,'#'(Num)))--> ['[', Type,      '#', Num, ']'],!.
+concept(C)--> ['['], !, concept_innerds_1(C), [']'],!.
+concept(C)--> ['['], !, dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
+
+ci(CI)-->[C],{downcase_atom(CI,DCI),downcase_atom(C,DC),DC==DCI}.
+
+concept_innerds_cont(C)--> concept_innerds_1(C).
+
+concept_innerds_1(type(Type,C))--> [ Type, ':' ], !, concept_innerds_cont(C).
+concept_innerds_1(itype(Type,C))--> [ Type ], !, concept_innerds_cont(C).
+
+concept_innerds_1(all(Type))--> [ Type, '@', ci('every')],!.
+concept_innerds_1(ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
+concept_innerds_1(ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
+concept_innerds_1(cot(Type,OP,Word))--> word_tok(Type),quant(OP) ,{nonword_tok(OP)},word_tok(Word),!.
+concept_innerds_1(cg(Concept,SubGraph))--> word_tok(Concept),['='], parse_cg(SubGraph),!.
+concept_innerds_1(entity(C))-->  word_tok(C),!.
+
+concept_innerds_3a(P1,']',entity(C))--> !,[P1,']'],!,{word_tok(C,[P1],[])}.
+concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),[']'].
+
+concept_innerds_3b(P1,':',ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
+concept_innerds_3b(P1,P2,cot(Type,OP,Word))--> word_tok(Type),[OP],{nonword_tok(OP)},word_tok(Word),!.
+concept_innerds_3b(P1,'=',cg(Concept,SubGraph))--> word_tok(Concept),['='], parse_cg(SubGraph),!.
+concept_innerds_3b(P1,P2,entity(C))-->  word_tok(C),!.
+
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),
   % replace_in_string(['('='{',')'='}'],Str,Str0),
@@ -136,7 +186,7 @@ cg_test_data([reader, level(2)], "[Cat #1]-(On)->[Mat #1]-(equal)->[Thingy #1]")
 cg_test_data([reader, level(2)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
 cg_test_data([reader, level(2)], "[Thingy #1] <- (equal) -[Mat #1]<- (on)- [Cat#1]").
 cg_test_data([reader, level(3)], "[Cat: @every]->(On)->[Mat]").
-cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
+%cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
 cg_test_data([xcall, level(0), funky_syntax], "?x -(equal)-> [Thingy #1]").
 
 cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]-(equal)->[Thingy #1]").
@@ -154,7 +204,7 @@ cg_test_data([reader, level(4)], "
    (Inst)->[Bus]").
 
 
-cg_test_data([reader, level(3)], "
+cg_test_data_hide([reader, level(3)], "
  [a] - (belives) -> 
  [statement = [Go2]
    - (Agnt)->[Person: John2]
@@ -180,7 +230,8 @@ skip_cg_test_data([reader, level(4)], "
 [Person: Tom]<-(Expr)<-[Believe]->(Thme)-
      [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
-     skip_cg_test_data([reader, level(4)], "
+
+skip_cg_test_data([reader, level(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
 [Eat #0] -
    - obj->[Apple],
