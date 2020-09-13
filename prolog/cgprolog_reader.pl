@@ -115,10 +115,12 @@ quant(X) --> [X], {nonword_tok(X)}.
 concept('*')--> [*], !.
 concept(?(Var)) --> [?(Var)],!.
 concept(C)-->concept0(C0),(([I],{integer(I)})->{C=n(C0,'#'(I))};{C=C0}),!.
-% concept(crel(C))--> rel(C),!.
 
-concept0(C)--> ['['], dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
-concept0(C)--> ['['], concept_innerds_1(C), [']'],!.
+
+concept0(C)--> ci('['), dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
+concept0(C)--> ci('['), concept_innerds_1(C), ci(']'),!.
+concept0(crel(C))--> rel(C),!.
+
 %concept0(C)--> word_tok(C),!.
 %concept0(C)--> word_tok_loose(C),!.
 
