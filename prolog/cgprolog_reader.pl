@@ -3,6 +3,7 @@
 :- use_module(library(logicmoo/dcg_meta)).
 
 :- multifile_data(cg_test_data/2). 
+:- multifile_data(skip_cg_test_data/2). 
 :- multifile_data(cg/2).
 
 :- current_op(X,Y,'->'),push_operators([op(X,Y,'<-')]).
@@ -71,7 +72,7 @@ dcg_look(Grammar,List,List):- (var(Grammar)->((N=2;N=1;between(3,20,N)),length(G
 
 parse_cg(List) --> concept(S),!, post_concept(S,List).
 
-post_concept(S,List) --> ['-'], 
+post_concept(S,List) --> ['-'],
   dcg_look(['<-'];['-'];['->']),!,graph_listnode(S,List).
 post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel),!,concept(Obj),graph_listnode(Obj,List).
 post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Subj,List).
