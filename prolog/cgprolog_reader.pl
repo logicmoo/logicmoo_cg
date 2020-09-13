@@ -3,14 +3,18 @@
 :- use_module(library(logicmoo/dcg_meta)).
 
 :- multifile_data(cg_test_data/2). 
-:- multifile_data(skip_cg_test_data/2). 
+%:- multifile_data(skip_cg_test_data/2). 
 :- multifile_data(cg/2).
 
-:- current_op(X,Y,'->'),push_operators([op(X,Y,'<-')]).
+%:- current_op(X,Y,'->'),push_operators([op(X,Y,'<-')]).
 
 
-cg_reader_tests :- make, forall(cg_test_data(_,X),assert_cg(xtext(X))).
-cg_reader_tests2 :- make, forall((cg_test_data([reader,level(0)],X)),assert_cg(xtext(X))).
+cg_reader_tests :- make, forall((cg_test_data(Attribs,X), \+ memberchk(failing,Attribs)),do_cg_test(Attribs,X)).
+cg_reader_tests_all :- make, forall(cg_test_data(Attribs,X),do_cg_test(Attribs,X)).
+
+do_cg_test( Attribs,_):- memberchk(skip,Attribs),!.
+do_cg_test( Attribs,X):- memberchk(xcall,Attribs),!, call_cg(xtext(X)).
+do_cg_test(_Attribs,X):- assert_cg(xtext(X)).
 
 cg_demo :- make, forall(cg_test_data([xcall,level(0)],X),(call_cg(X))).
 
@@ -70,25 +74,28 @@ tokenize_cg([])-->[],!.
 
 dcg_look(Grammar,List,List):- (var(Grammar)->((N=2;N=1;between(3,20,N)),length(Grammar,N)); true),phrase(Grammar,List,_),!.
 
-parse_cg(List) --> concept(S),!, post_concept(S,List).
+parse_cg(List) --> concept(S),!, post_concept(S,S,List).
 
-post_concept(S,List) --> ['-'],
-  dcg_look(['<-'];['-'];['->']),!,graph_listnode(S,List).
-post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel),!,concept(Obj),graph_listnode(Obj,List).
-post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Subj,List).
-post_concept(Obj, [t(Rel,Subj,Obj)|List]) --> rel_left2(Rel),!,concept(Subj),graph_listnode(Obj,List).
-post_concept(Obj, [t(Rel,Subj,Obj)|List]) --> rel_left(Rel),!,concept(Subj),graph_listnode(Subj,List).
+post_concept(Sticky,S,List) --> ['-'],
+  dcg_look(['<-'];['-'];['->']),!,graph_listnode(Sticky,S,List).
+post_concept(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel),!,concept(Obj),graph_listnode(Sticky,Obj,List).
+post_concept(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Sticky,Subj,List).
+post_concept(Sticky,Obj, [t(Rel,Subj,Obj)|List]) --> rel_left2(Rel),!,concept(Subj),graph_listnode(Sticky,Obj,List).
+post_concept(Sticky,Obj, [t(Rel,Subj,Obj)|List]) --> rel_left(Rel),!,concept(Subj),graph_listnode(Sticky,Subj,List).
 
-graph_listnode(Subj,List) --> [','],!,graph_listnode(Subj,List).
-graph_listnode(_Subj,[]) --> ['.'],!.
-graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), 
-  ([','];dcg_look(['-'])) ,!, graph_listnode(Subj,List).
+graph_listnode(_Sticky,_Subj,[]) --> dcg_peek([']']),!.
+graph_listnode(_Sticky,_Subj,[]) --> ['.'],!.
+graph_listnode(Sticky,_Subj,List) --> [','],!,graph_listnode(Sticky,Sticky,List).
+graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), 
+  ([','];dcg_look(['-'])) ,!, graph_listnode(Sticky,Subj,List).
 
-graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), graph_listnode(Obj,List).
-graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel), concept(Obj), graph_listnode(Obj,List).
-graph_listnode(Obj,[t(Rel,Subj,Obj)|List]) --> rel_left(Rel), concept(Subj), graph_listnode(Subj,List).
-graph_listnode(Obj,[t(Rel,Subj,Obj)|List]) --> rel_left2(Rel), concept(Subj), graph_listnode(Obj,List).
-graph_listnode(_,[])--> ((\+ [_]);['.']).
+graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), graph_listnode(Sticky,Obj,List).
+graph_listnode(Sticky,Obj,[t(Rel,Subj,Obj)|List]) --> rel_left(Rel), concept(Subj), graph_listnode(Sticky,Subj,List).
+
+graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel), concept(Obj), graph_listnode(Sticky,Sticky,List).
+graph_listnode(Sticky,Obj,[t(Rel,Subj,Obj)|List]) --> rel_left2(Rel), concept(Subj), graph_listnode(Sticky,Sticky,List).
+
+graph_listnode(_Sticky,_,[])--> ((\+ [_]);['.']).
 
 rel_right(Rel)-->['-'],rel(Rel),['->'].
 rel_right2(Rel)-->['->'],rel(Rel),['->'].
@@ -119,47 +126,42 @@ quant(X) --> [X], {nonword_tok(X)}.
 
 concept('*')--> [*], !.
 concept(?(Var)) --> [?(Var)],!.
-concept(n(Type,'#'(Value)))--> ['[', Type, ':', '#', Value, ']'],!.
-concept(n(Type,'#'(Value)))--> ['[', Type,      '#', Value, ']'],!.
-
 concept(C)-->concept0(C0),(([I],{integer(I)})->{C=n(C0,'#'(I))};{C=C0}),!.
-concept(crel(C))--> rel(C),!.
+% concept(crel(C))--> rel(C),!.
 
-concept0(cg(Concept,SubGraph))--> ['[',Concept,'='], parse_cg(SubGraph), [']'],!.
-concept0(cg(Concept,SubGraph))--> ['[',Concept,':'], dcg_peek(['[']), parse_cg(SubGraph), [']'],!.
-concept0(ct(Type, Value))--> ['[', Type, ':', Value, ']'],!.
-concept0(c(Type, OP, Value))--> ['[', Type,  ':',  OP, Value, ']'],!.
-concept0(ct(Type,Value))--> ['[',Type, Value,']'],!.
-concept0(entity(C))--> ['[',C,']'],!.
-concept0(C)--> ['['], !, dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
-concept0(C)--> ['['], !, concept_innerds_1(C), [']'],!.
-concept0(C)--> word_tok(C),!.
-concept0(C)--> word_tok_loose(C),!.
+concept0(C)--> ['['], dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
+concept0(C)--> ['['], concept_innerds_1(C), [']'],!.
+%concept0(C)--> word_tok(C),!.
+%concept0(C)--> word_tok_loose(C),!.
 
+concept_innerds_1(all(C))--> cw(C), ci('@'),  ci('every'),!.
+concept_innerds_1(n(C,'#'(V))) --> cw(C),        ci('#'), cw(V).
+concept_innerds_1(n(C,'#'(V))) --> cw(C),ci(':'),ci('#'), cw(V).
+concept_innerds_1(cg(C, Grph)) --> cw(C),ci(':'), dcg_peek(['[']), parse_cg(Grph).
+concept_innerds_1(c(C, OP, V)) --> cw(C),ci(':'), [OP], cw(V).
+concept_innerds_1(cg01(C,Grph))--> cw(C),ci('='), parse_cg(Grph).
+concept_innerds_1(cot(C,OP,V)) --> cw(C),quant(OP) ,{nonword_tok(OP)},cw(V),!.
+concept_innerds_1(ct(C,V))--> cw(C), ci(':'), cw(V).
+concept_innerds_1(ct(C,V))--> cw(C), cw(V).
+concept_innerds_1(itype(C,V))--> [ C ], !, concept_innerds_cont(V).
+concept_innerds_1(type(C,V))--> [ C, ':' ], !, concept_innerds_cont(V).
+concept_innerds_1(v(V))   --> cw(V),!.
 
-
-
-ci(CI)-->[C],{downcase_atom(CI,DCI),downcase_atom(C,DC),DC==DCI}.
-
-concept_innerds_cont(C)--> concept_innerds_1(C).
-
-concept_innerds_1(type(Type,C))--> [ Type, ':' ], !, concept_innerds_cont(C).
-concept_innerds_1(itype(Type,C))--> [ Type ], !, concept_innerds_cont(C).
-
-concept_innerds_1(all(Type))--> [ Type, '@', ci('every')],!.
-concept_innerds_1(ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
-concept_innerds_1(ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
-concept_innerds_1(cot(Type,OP,Word))--> word_tok(Type),quant(OP) ,{nonword_tok(OP)},word_tok(Word),!.
-concept_innerds_1(cg(Concept,SubGraph))--> word_tok(Concept),['='], parse_cg(SubGraph),!.
-concept_innerds_1(entity(C))-->  word_tok(C),!.
-
-concept_innerds_3a(P1,']',entity(C))--> !,[P1,']'],!,{word_tok(C,[P1],[])}.
+concept_innerds_3a(P1,']',entity(C))--> !,[P1,']'],!,{cw(C,[P1],[])}.
 concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),[']'].
 
-concept_innerds_3b(_P1,':',ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
-concept_innerds_3b(_P1,_P2,cot(Type,OP,Word))--> word_tok(Type),[OP],{nonword_tok(OP)},word_tok(Word),!.
-concept_innerds_3b(_P1,'=',cg(Concept,SubGraph))--> word_tok(Concept),['='], parse_cg(SubGraph),!.
-concept_innerds_3b(_P1,_P2,entity(C))-->  word_tok(C),!.
+concept_innerds_3b(_P1,':',ct4(C,V))--> cw(C),[':'],cw(V),!.
+concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
+concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),['='], parse_cg(SubGraph),!.
+concept_innerds_3b(_P1,_P2,entity(C))-->  cw(C),!.
+
+
+
+cw(H,[H|T],T).
+
+ci(CI)-->[C],{atom(C),downcase_atom(CI,DCI),downcase_atom(C,DC),DC==DCI}.
+
+concept_innerds_cont(C)--> concept_innerds_1(C).
 
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),
@@ -181,6 +183,9 @@ cmt_until_eoln(`//`).
 cmt_until_eoln(`;;`).
 cmt_until_eoln(`%`).
 
+%:- pop_operators.
+
+:- fixup_exports.
 
 cg_test_data([reader, level(0)], "[Cat: @every]-(On)->[Mat]").
 cg_test_data([reader, level(0)], "[Mat]1-(equal)->[Thingy #1]").
@@ -198,10 +203,6 @@ cg_test_data([reader, level(2)], "[Thingy #1] <- (equal) -[Mat #1]<- (on)- [Cat#
 cg_test_data([reader, level(3)], "[Cat: @every]->(On)->[Mat]").
 cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
 cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
-skip_cg_test_data([reader, level(3)], "
-[CEILING]1->(BETWEEN)-
-              2<-[FLOOR]
-              3->[MAT],.").
 
 cg_test_data([reader, level(3)], "
 [SIT]-
@@ -209,7 +210,6 @@ cg_test_data([reader, level(3)], "
   ->(LOC)->[MAT],.").
 
 
-%cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
 cg_test_data([xcall, level(0), funky_syntax], "?x -(equal)-> [Thingy #1]").
 
 cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]-(equal)->[Thingy #1]").
@@ -219,6 +219,9 @@ cg_test_data([xcall, level(0), funky_syntax], "[?x]-(On)->[Mat #1]-(equal)->[Thi
 cg_test_data([xcall, level(0), funky_syntax], "[Mat ?x]-(equal)->[Thingy #1]").
 cg_test_data([xcall, level(0)], "[Cat: ?x]-(On)->[Mat #1]-(equal)->[Thingy #2]").
 
+cg_test_data([reader, level(3)], "[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
+cg_test_data([reader, level(3)], "[a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]").
+
 cg_test_data([reader, level(4)], "
 
 [Go]-
@@ -226,43 +229,51 @@ cg_test_data([reader, level(4)], "
    (Dest)->[City: Boston] -
    (Inst)->[Bus]").
 
+cg_test_data([reader, level(4)], "
+   [Person: John2] <- (Agnt) - 
+   [City: Boston2] <- (Dest) -
+   [Bus2] <- (Inst) - [Go2]").
 
-cg_test_data_hide([reader, level(3)], "
+
+cg_test_data([reader, level(3)], "
+[Begin]-
+        -obj->[Session],
+        -srce->[Proposition = 
+                   [Press] -
+                      -obj -> [Key : enter] -partOf-> [Keyboard],
+                      -agnt -> [Person : John] 
+               ],
+        -agnt->[Person : John]").
+
+
+cg_test_data([reader, level(3)], "
  [a] - (belives) -> 
  [statement = [Go2]
    - (Agnt)->[Person: John2]
    - (Dest)->[City: Boston2]
    - (Inst)->[Bus2]  ]").
 
-cg_test_data([reader, level(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->table").
 
-skip_cg_test_data([reader, level(3)], "
-[Begin]-
-        -obj->[Session],
-        -srce->[Proposition = [Press] -
-       -obj -> [Key : enter]-partOf->[Keyboard],
-       -agnt -> [Person : John] ],
-        -agnt->[Person : John]").
+cg_test_data([failing, reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
 
-skip_cg_test_data([reader, level(4)], "
-   [Person: John2] <- (Agnt) - 
-   [City: Boston2] <- (Dest) -
-   [Bus2] <- (Inst) - [Go2])").
-
-skip_cg_test_data([reader, level(4)], "
-[Person: Tom]<-(Expr)<-[Believe]->(Thme)-
-     [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
-     [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
-
-skip_cg_test_data([reader, level(4)], "
+cg_test_data([skip, reader, level(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
 [Eat #0] -
    - obj->[Apple],
    - manr->[Fast],
    - agnt->[Man]").
 
+cg_test_data([failing,reader, level(3)], "
+[CEILING]1->(BETWEEN)-
+              2<-[FLOOR]
+              3->[MAT],.").
 
-:- pop_operators.
+cg_test_data([failing,reader, level(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->table").
 
-:- fixup_exports.
+cg_test_data([failing,reader, level(4)], "
+[Person: Tom]1111111111<-(Expr)<-[Believe]->(Thme)-
+     [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
+     [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
+
+
 
