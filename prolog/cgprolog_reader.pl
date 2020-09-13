@@ -46,14 +46,18 @@ prolog_id_conted([])--> dcg_peek(end_symbol),!.
 prolog_id_conted([C|T])--> [C], !,prolog_id_conted(T).
 
 tokenize_cg_w(HT)--> blank,!,tokenize_cg_w(HT).
+
+tokenize_cg_w(Name) --> dcg_peek(`'`),!,single_quoted_string(Str),{atom_codes(Name,Str)}.
+tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
+tokenize_cg_w('::')--> `::`,!.
+tokenize_cg_w(':-')--> `:-`,!.
+tokenize_cg_w(';')--> `;`,!.
 tokenize_cg_w('[')--> `[`,!.
 tokenize_cg_w('<-')--> `<-`,!.
 tokenize_cg_w('->')--> `->`,!.
 tokenize_cg_w(Name)--> [C], {member(C,`[()]*@-=:<>,.$#`)},!,{ atom_codes(Name, [C])}.
 %tokenize_cg_w(Name)--> dcg_used_chars(((`[` ; `(` ;`)` ; `]` ; `*`; `@`; `=`; `,`; `.`)), CL),!,{ atom_codes(Name, CL)}.
 tokenize_cg_w('?'(UNAME)) --> `?`,!,prolog_id_conted(CL),{ atom_codes(Name, CL)},!,{upcase_atom(Name,UNAME)}.
-tokenize_cg_w(Name) --> dcg_peek(`'`),!,single_quoted_string(Str),{atom_codes(Name,Str)}.
-tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
 tokenize_cg_w(T)--> dcg_basics:number(T),!.
 tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{ atom_codes(Name, CL)},!.
 tokenize_cg_w(Name)--> [C],{ atom_codes(Name, [C])},!.
@@ -70,8 +74,10 @@ parse_cg(List) --> concept(S),!, post_concept(S,List).
 post_concept(S,List) --> ['-'], dcg_look(['-']),!,graph_listnode(S,List).
 post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel),!,concept(Obj),graph_listnode(Obj,List).
 post_concept(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Subj,List).
+post_concept(Obj, [t(Rel,Subj,Obj)|List]) --> rel_left2(Rel),!,concept(Subj),graph_listnode(Obj,List).
 post_concept(Obj, [t(Rel,Subj,Obj)|List]) --> rel_left(Rel),!,concept(Subj),graph_listnode(Subj,List).
 
+graph_listnode(_Subj,[]) --> ['.'],!.
 graph_listnode(Subj,List) --> [','],!,graph_listnode(Subj,List).
 graph_listnode(Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), 
   ([','];dcg_look(['-'])) ,!, graph_listnode(Subj,List).
@@ -82,8 +88,10 @@ graph_listnode(_,[])--> ((\+ [_]);['.']).
 rel_right(Rel)-->['-'],rel(Rel),['->'].
 rel_right2(Rel)-->['->'],rel(Rel),['->'].
 rel_left(Rel)-->['<-'],rel(Rel),['-'].
+rel_left2(Rel)-->['<-'],rel(Rel),['<-'].
 
 rel(C)--> ['('],word_tok_loose(C),[')'].
+rel(C)--> ['<'],word_tok_loose(C),['>'].
 rel(C)--> word_tok_loose(C).
 
 word_tok_loose(DC)-->[C],{atom(C),downcase_atom(C,DC)}.
@@ -147,10 +155,10 @@ concept_innerds_1(entity(C))-->  word_tok(C),!.
 concept_innerds_3a(P1,']',entity(C))--> !,[P1,']'],!,{word_tok(C,[P1],[])}.
 concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),[']'].
 
-concept_innerds_3b(P1,':',ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
-concept_innerds_3b(P1,P2,cot(Type,OP,Word))--> word_tok(Type),[OP],{nonword_tok(OP)},word_tok(Word),!.
-concept_innerds_3b(P1,'=',cg(Concept,SubGraph))--> word_tok(Concept),['='], parse_cg(SubGraph),!.
-concept_innerds_3b(P1,P2,entity(C))-->  word_tok(C),!.
+concept_innerds_3b(_P1,':',ct(Type,Word))--> word_tok(Type),[':'],word_tok(Word),!.
+concept_innerds_3b(_P1,_P2,cot(Type,OP,Word))--> word_tok(Type),[OP],{nonword_tok(OP)},word_tok(Word),!.
+concept_innerds_3b(_P1,'=',cg(Concept,SubGraph))--> word_tok(Concept),['='], parse_cg(SubGraph),!.
+concept_innerds_3b(_P1,_P2,entity(C))-->  word_tok(C),!.
 
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),
@@ -159,6 +167,7 @@ cg_df_to_term(In,Out):- any_to_string(In,Str),
   atom_codes(Str0,Codes),
   must_or_rtrace(tokenize_cg(Toks,Codes,[])),
   Out = toks(Toks).
+
 
 :- set_dcg_meta_reader_options(file_comment_reader, cg_comment_expr).
 cg_comment_expr(X) --> cspace,!,cg_comment_expr(X).
@@ -173,7 +182,7 @@ cmt_until_eoln(`%`).
 
 
 cg_test_data([reader, level(0)], "[Cat: @every]-(On)->[Mat]").
-cg_test_data([reader, level(0)], "[Mat #1]-(equal)->[Thingy #1]").
+cg_test_data([reader, level(0)], "[Mat]1-(equal)->[Thingy #1]").
 cg_test_data([reader, level(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
 cg_test_data([reader, level(1)], "[Cat#1]-(On)->[Mat #1]-(equal)->[Thingy #1]").
 cg_test_data([reader, level(1)], "[Cat: ?x]-(equal)->M1-(On)->[Mat]").
@@ -186,6 +195,19 @@ cg_test_data([reader, level(2)], "[Cat #1]-(On)->[Mat #1]-(equal)->[Thingy #1]")
 cg_test_data([reader, level(2)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
 cg_test_data([reader, level(2)], "[Thingy #1] <- (equal) -[Mat #1]<- (on)- [Cat#1]").
 cg_test_data([reader, level(3)], "[Cat: @every]->(On)->[Mat]").
+cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
+cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
+cg_test_data([reader, level(3)], "
+[CEILING]1->(BETWEEN)-
+              2<-[FLOOR]
+              3->[MAT],.").
+
+cg_test_data([reader, level(3)], "
+[SIT]-
+  <-(STAT)<-[CAT]
+  ->(LOC)->[MAT],.").
+
+
 %cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
 cg_test_data([xcall, level(0), funky_syntax], "?x -(equal)-> [Thingy #1]").
 
