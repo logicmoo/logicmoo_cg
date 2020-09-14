@@ -39,6 +39,8 @@ pred_cg(Pred, Error):- trace_or_throw(pred_cg(Pred, Error)).
 print_cg(X):- is_list(X),!, maplist(print_cg,X).
 print_cg(X):- nl,wdmsg(display(X)),nl.
 
+recase_atom(Name,NameR):- upcase_atom(Name,Name),!,downcase_atom(Name,NameR).
+recase_atom(Name,Name).
 
 :- use_module(library(dcg/basics)).
 
@@ -55,7 +57,7 @@ tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
 tokenize_cg_w(Op)--> {sent_op_chars(Op,Chars)},Chars,!.
 tokenize_cg_w('?'(UNAME)) --> `?`,!,prolog_id_conted(CL),{ atom_codes(Name, CL)},!,{upcase_atom(Name,UNAME)}.
 tokenize_cg_w(T)--> dcg_basics:number(T),!.
-tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{ atom_codes(Name, CL)},!.
+tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{atom_codes(NameR, CL),recase_atom(NameR,Name)},!.
 tokenize_cg_w(Name)--> [C],{ atom_codes(Name, [C])},!.
 
 tokenize_cg(HT)--> blank,!,tokenize_cg(HT).
@@ -326,13 +328,95 @@ cg_test_data([failing,reader, level(4)], "
      [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
 
+%%Date: Thu, 28 May 92 08:45:26 -0500
+%%From: esch%email.sp.unisys.com@metro.ucc.su.OZ.AU (John Esch)
+%%To: cg@cs.umn.edu
+%%Subject: CG TEST4, individuals
+
+%%The following is used for regression testing of CONSTRUCT.
+
+%%It contains the first set of type and individual examples from Conceptual Structures 
+%%page 119 & 120.
+
+%%CANON RESERVATIONS-AND-ELEPHANTS .
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE ARRIVAL-DATE(a) IS [UNIV:*a].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE CIRCUS(c) IS [UNIV:*c].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE CIRCUS(c) IS [UNIV:*c]").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE CIRCUS-ELEPHANT(C) IS
+ [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
+
 /*
 
+cg_test_data([sowa,reader, level(4)], 
+"TYPE DEPARTURE-DATE(d) IS [UNIV:*d].").
 
+cg_test_data([sowa,reader, level(4)], 
+"TYPE ELEPHANT(e) IS [UNIV:*e].").
 
-cg_test_data([reader, level(3)], "
-[Proposition:  [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
-     [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
+cg_test_data([sowa,reader, level(4)], 
+"TYPE HOTEL(h) IS [UNIV:*h].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE HOTEL-RESERVATION(RESERVATION-NO) IS
+[RESERVATION:*RESERVATION-NO]-
+  ->(RCPT)->[PERSON]
+  ->(OBJ)->[ROOM]->(LOC)->[HOTEL]
+  ->(DUR)->[TIME-PERIOD]-
+             ->(STRT)->[ARRIVAL-DATE]
+             ->(UNTL)->[DEPARTURE-DATE],,.").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE PERFORM(p) IS [UNIV:*p].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE PERSON(p) IS [UNIV:*p].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE PROPOSITION(p) IS [UNIV:*p].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE RESERVATION(r) IS [UNIV:*r].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE ROOM(r) IS [UNIV:*r].").
+
+cg_test_data([sowa,reader, level(4)], 
+"TYPE TIME-PERIOD(t) IS [UNIV:*t].").
+*/
+cg_test_data([sowa,reader, level(4)], "
+INDIVIDUAL HOTEL-RESERVATION(#316209) IS
+[RESERVATION:#316209]-
+  ->(RCPT)->[PERSON:JOHN SOWA]
+  ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
+  ->(DUR)->[TIME-PERIOD:@4 NIGHTS]-
+             ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
+             ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983],,.").
+/*
+cg_test_data([sowa,reader, level(4)], "
+INDIVIDUAL HOTEL-RESERVATION(#316210) IS
+[RESERVATION:#316210]-
+  ->(RCPT)->[PERSON:JOHN ESCH]
+  ->(OBJ)->[ROOM:Q3]->(LOC)->[HOTEL:Sidney]
+  ->(DUR)->[TIME-PERIOD:@7 NIGHTS]-
+             ->(STRT)->[ARRIVAL-DATE:MARCH 12 1983]
+             ->(UNTL)->[DEPARTURE-DATE:MARCH 19 1983],,.").
+
+cg_test_data([sowa,reader, level(4)], "
+INDIVIDUAL CIRCUS-ELEPHANT(#BUMBO) IS
+[ELEPHANT:#BUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Flying Tigers].").
+
+cg_test_data([sowa,reader, level(4)], "
+INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
+[ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].").
+
 
 
 
