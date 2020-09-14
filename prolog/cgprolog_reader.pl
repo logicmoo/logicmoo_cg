@@ -64,15 +64,17 @@ tokenize_cg([H|T])--> tokenize_cg_w(H),!,tokenize_cg(T).
 tokenize_cg([])-->[],!.                                             
 
 parse_cg(List) --> parse_rel(H), parse_cg(List2),{append([H],List2,List)}.
+parse_cg(List) --> concept(S), post_concept(S,S,List),!.
 parse_cg(List) --> parse_var_concept(V,C),!, parse_cg(T),{subst(T,'?'(V),C,List)}.
-parse_cg(List) --> concept(S),!, post_concept(S,S,List),!.
+parse_cg(List) --> concept(List).
+% parse_cg(List) --> concept(S),!, (post_concept(S,S,List) -> [] ; {List = [S]}).
 %parse_cg(List) --> concept(S),!, post_concept(S,S,List1),parse_cg(List2),{append(List1,List2,List)},!.
 parse_cg([]) --> [].
 
 find_var(V)--> ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
 parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
 
-parse_rel(reL(Rel,List)) -->  ci('('),ci(Rel),dcg_list_of(cw,List), ci(')'),!.
+parse_rel(reL(RelD,List)) -->  ci('('),ci(Rel),dcg_list_of(cw,List), ci(')'),!,{downcase_atom(Rel,RelD)}.
 
 dcg_list_of( Cw,[H|List]) --> {append_term(Cw,H,CwH)}, CwH, !, dcg_list_of(Cw,List).
 dcg_list_of(_Cw,[]) --> [].
@@ -119,6 +121,7 @@ graph_listnode(_Sticky,_,[])--> ((\+ [_]);['.']).
 
 rel_right(Rel)-->ci('-'),rel(Rel),ci('->').
 rel_right2(Rel)-->ci('->'),rel(Rel),ci('->').
+rel_right2(Rel)-->ci('->'),rel(Rel),ci('-').
 rel_left(Rel)-->ci('<-'),rel(Rel),ci('-').
 rel_left2(Rel)-->ci('<-'),rel(Rel),ci('<-').
 
@@ -145,6 +148,7 @@ quant(X) --> [X], {nonword_tok(X)}.
                                                   
 concept('*')--> [*], !.
 concept(?(Var)) --> [?(Var)],!.
+concept(vc(V, C))-->parse_var_concept(V,C),!.
 concept(C)-->concept0(C0),(([I],{integer(I)})->{C=n(C0,'#'(I))};{C=C0}),!.
 
 
@@ -168,8 +172,8 @@ concept_innerds_1(v(V))   --> cw(V),!.
 concept_innerds_3a(P1,']',entity(C))--> [P1,']'],{C=P1},!.
 concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),ci(']').
 
-%concept_innerds_3b(_P1,':',etype(C,V))--> cw(C), ci(':'),cw(V),!.
-%concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
+concept_innerds_3b(_P1,':',etype(C,V))--> cw(C), ci(':'),cw(V),!.
+% concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
 concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),ci('='), parse_cg(SubGraph),!.
 concept_innerds_3b(_P1,_P2,entity(C))-->  cw(C),!.
 
@@ -302,10 +306,34 @@ cg_test_data([skip, reader, level(4)], "
 
 cg_test_data([reader, level(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]").
 
+cg_test_data([reader, level(3)], "[?x]<-(Agnt)-[Marry]-(Thme)->[Sailor]").
+
+cg_test_data([reader, level(3)], "
+[Person: Mary *x]<-(Expr)-[Want]-(Thme)->
+     [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]").
+
+cg_test_data([reader, level(3)], "
+[Proposition: [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
+     [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
+
+cg_test_data([reader, level(4)], "
+[Person: Tom]<-(Expr)-[Believe]-(Thme)->
+     [Proposition:  [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
+     [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
+
 cg_test_data([failing,reader, level(4)], "
-[Person: Tom]1111111111<-(Expr)<-[Believe]->(Thme)-
+[Person: Tom]<-(Expr)<-[Believe]->(Thme)-
      [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
 
+/*
 
 
+
+cg_test_data([reader, level(3)], "
+[Proposition:  [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
+     [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
+
+
+
+*/
