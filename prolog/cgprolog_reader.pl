@@ -65,6 +65,7 @@ tokenize_cg([],S,E):- S=[],!,E=[].
 tokenize_cg([H|T])--> tokenize_cg_w(H),!,tokenize_cg(T).
 tokenize_cg([])-->[],!.                                             
 
+parse_cg(List) --> is_expr(List),!.
 parse_cg(List) --> parse_rel(H), parse_cg(List2),{append([H],List2,List)}.
 parse_cg(List) --> concept(S), post_concept(S,S,List),!.
 parse_cg(List) --> parse_var_concept(V,C),!, parse_cg(T),{subst(T,'?'(V),C,List)}.
@@ -73,10 +74,22 @@ parse_cg(List) --> concept(List).
 %parse_cg(List) --> concept(S),!, post_concept(S,S,List1),parse_cg(List2),{append(List1,List2,List)},!.
 parse_cg([]) --> [].
 
+
+is_expr([decl(NPLO)])--> cw(type), 
+  prolog_expr(PL), cw(is), parse_var_concept(V,C), dcgOptional(ci('.')),
+  {downcase_atom(V,VD),subst(PL,(V),C,NPL),subst(NPL,(VD),C,NPLO)},!.
+
+is_expr([decl(Type,PL,List)])--> {member(Type,[type,individual])}, cw(Type), 
+  prolog_expr(PL), cw(is), parse_cg(List), optional(ci('.')),!.
+
+prolog_expr(rEL(Rel,List))--> cw(Rel),ci('('),dcg_list_of(cw,List), ci(')'),!.
+
 find_var(V)--> ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
+
+parse_var_concept(V,typeof(Rel, ?(V)))-->  ci('['), cw(Rel), ci(':'),ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
 parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
 
-parse_rel(reL(RelD,List)) -->  ci('('),ci(Rel),dcg_list_of(cw,List), ci(')'),!,{downcase_atom(Rel,RelD)}.
+parse_rel(reL(RelD,List)) -->  ci('('),ci(Rel),dcg_list_of(cw,List), ci(')'),!,{downcase_atom(Rel,RelD)},!.
 
 dcg_list_of( Cw,[H|List]) --> {append_term(Cw,H,CwH)}, CwH, !, dcg_list_of(Cw,List).
 dcg_list_of(_Cw,[]) --> [].
@@ -94,7 +107,7 @@ ballance([H|T],State):- sent_op_pair(S,E),S\==E, H=S, can_incr(State,S), !, push
 ballance([H|T],State):- sent_op_pair(S,E),S\==E, H=E, can_incr(State,S), !, push_incr(State,S,-1),ballance(T,State).
 ballance([_|T],State):- ballance(T,State).
 
-ballanced(L):- ballance(L,R),\+ ( get_incrs(R,_,V),V\=0).
+ballanced(L):- notrace((ballance(L,R),\+ ( get_incrs(R,_,V),V\=0))).
 
 dcg_beforeSeq(Skipped,Mid,S,E):-
   append(Skipped,MidS,S),ballanced(Skipped), phrase(Mid,MidS,E).
@@ -165,9 +178,9 @@ concept_innerds_1(cg(C, Grph)) --> cw(C),ci(':'), dcg_peek(ci('[')), parse_cg(Gr
 concept_innerds_1(cg01(C,Grph))--> cw(C),ci('='), parse_cg(Grph).
 concept_innerds_1(c(C, OP, V)) --> cw(C),ci(':'), [OP], cw(V).
 concept_innerds_1(ct(C,V))--> cw(C), ci(':'), cw(V).
+concept_innerds_1(etype(C,V))-->  cw(C), ci(':'), concept_innerds_cont(V),!.
 concept_innerds_1(cot(C,OP,V)) --> cw(C),quant(OP) ,{nonword_tok(OP)},cw(V),!.
 concept_innerds_1(ct(C,V))--> cw(C), cw(V).
-concept_innerds_1(etype(C,V))-->  cw(C), ci(':'), !, concept_innerds_cont(V).
 concept_innerds_1(utype(C,V))--> [ C ], !, concept_innerds_cont(V).
 concept_innerds_1(v(V))   --> cw(V),!.
 
@@ -200,11 +213,12 @@ sent_op_pair('"','"').
 sent_op_pair('\'','\''). 
 
 
-cw(H,[H|T],T):- \+ sent_op(H).
+cw(H,[H|T],T):- notrace(( \+ sent_op(H))).
 
-ci(CI)-->[C],{atom(C),upcase_atom(C,UC),CI=UC}.
+ci(CI)-->[C],{notrace((atom(C),upcase_atom(C,UC),(CI=UC->true; upcase_atom(CI,UC))))}.
 
 concept_innerds_cont(C)--> concept_innerds_1(C).
+concept_innerds_cont(*)-->[].
 
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),
