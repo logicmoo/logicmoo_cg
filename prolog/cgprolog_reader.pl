@@ -63,7 +63,38 @@ tokenize_cg([],S,E):- S=[],!,E=[].
 tokenize_cg([H|T])--> tokenize_cg_w(H),!,tokenize_cg(T).
 tokenize_cg([])-->[],!.                                             
 
-parse_cg(List) --> concept(S),!, post_concept(S,S,List).
+parse_cg(List) --> parse_rel(H), parse_cg(List2),{append([H],List2,List)}.
+parse_cg(List) --> parse_var_concept(V,C),!, parse_cg(T),{subst(T,'?'(V),C,List)}.
+parse_cg(List) --> concept(S),!, post_concept(S,S,List),!.
+%parse_cg(List) --> concept(S),!, post_concept(S,S,List1),parse_cg(List2),{append(List1,List2,List)},!.
+parse_cg([]) --> [].
+
+find_var(V)--> ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
+parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
+
+parse_rel(reL(Rel,List)) -->  ci('('),ci(Rel),dcg_list_of(cw,List), ci(')'),!.
+
+dcg_list_of( Cw,[H|List]) --> {append_term(Cw,H,CwH)}, CwH, !, dcg_list_of(Cw,List).
+dcg_list_of(_Cw,[]) --> [].
+
+push_incr(State,Type,Amount):- (get_attr(State,Type,Prev);Prev=0),New is Amount+ Prev,!, put_attr(State,Type,New).
+get_incrs(State,Type,Amount):- sent_op_pair(Type,_), get_attr(State,Type,Amount).
+unbalanced_incr(State):- sent_op_pair(S,S),get_incrs(State,S,V),V>0.
+can_incr(State,_S):- \+ unbalanced_incr(State), !. % sent_op_pair(S,S), O\==S, get_incrs(State,S,V),V>0.
+
+ballance([],_):-!.
+ballance([H|T],State):- sent_op_pair(S,S),H=S,!,
+ ((get_incrs(State,S,V),V>0) -> push_incr(State,S,-1);push_incr(State,S,+1)),
+ ballance(T,State).
+ballance([H|T],State):- sent_op_pair(S,E),S\==E, H=S, can_incr(State,S), !, push_incr(State,S,+1),ballance(T,State).
+ballance([H|T],State):- sent_op_pair(S,E),S\==E, H=E, can_incr(State,S), !, push_incr(State,S,-1),ballance(T,State).
+ballance([_|T],State):- ballance(T,State).
+
+ballanced(L):- ballance(L,R),\+ ( get_incrs(R,_,V),V\=0).
+
+dcg_beforeSeq(Skipped,Mid,S,E):-
+  append(Skipped,MidS,S),ballanced(Skipped), phrase(Mid,MidS,E).
+
 
 post_concept(Sticky,S,List) --> ci('-'),
   dcg_peek(ci('<-');ci('-');ci('->')),!,graph_listnode(Sticky,S,List).
@@ -121,9 +152,6 @@ concept0(C)--> ci('['), dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
 concept0(C)--> ci('['), concept_innerds_1(C), ci(']'),!.
 concept0(crel(C))--> rel(C),!.
 
-%concept0(C)--> word_tok(C),!.
-%concept0(C)--> word_tok_loose(C),!.
-
 concept_innerds_1(all(C))--> cw(C), ci('@'),  ci('every'),!.
 concept_innerds_1(n(C,'#'(V))) --> cw(C),        ci('#'), cw(V).
 concept_innerds_1(n(C,'#'(V))) --> cw(C),ci(':'),ci('#'), cw(V).
@@ -140,8 +168,8 @@ concept_innerds_1(v(V))   --> cw(V),!.
 concept_innerds_3a(P1,']',entity(C))--> [P1,']'],{C=P1},!.
 concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),ci(']').
 
-concept_innerds_3b(_P1,':',ct4(C,V))--> cw(C), ci(':'),cw(V),!.
-concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
+%concept_innerds_3b(_P1,':',etype(C,V))--> cw(C), ci(':'),cw(V),!.
+%concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
 concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),ci('='), parse_cg(SubGraph),!.
 concept_innerds_3b(_P1,_P2,entity(C))-->  cw(C),!.
 
@@ -150,12 +178,21 @@ sent_op_chars(Op,Chars):- sent_op(Op),atom_codes(Op,Chars).
 % these must be before:
 sent_op('::'). sent_op(':-'). sent_op('->'). sent_op('<-').
 % these
-sent_op('-').  sent_op(':').  sent_op('<').  sent_op('>').
+sent_op('-').  sent_op(':').  
 % then..
-sent_op('{').  sent_op('}'). sent_op('[').  sent_op(']').
-sent_op('(').  sent_op(')'). sent_op(',').  sent_op(';').
+sent_op(A):- sent_op_pair(A,_).
+sent_op(A):- sent_op_pair(_,A).
+sent_op(',').  sent_op(';').
 sent_op('.').  sent_op('='). sent_op('@').  sent_op('#').
 sent_op('^').  sent_op('*'). sent_op('~').  sent_op('$').
+
+sent_op_pair('<','>').
+sent_op_pair('{','}'). 
+sent_op_pair('[',']').
+sent_op_pair('(',')'). 
+sent_op_pair('"','"'). 
+sent_op_pair('\'','\''). 
+
 
 cw(H,[H|T],T):- \+ sent_op(H).
 
@@ -254,7 +291,7 @@ cg_test_data([reader, level(3)], "
    - (Inst)->[Bus2]  ]").
 
 
-cg_test_data([failing, reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
+cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
 
 cg_test_data([skip, reader, level(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
@@ -263,12 +300,7 @@ cg_test_data([skip, reader, level(4)], "
    - manr->[Fast],
    - agnt->[Man]").
 
-cg_test_data([failing,reader, level(3)], "
-[CEILING]1->(BETWEEN)-
-              2<-[FLOOR]
-              3->[MAT],.").
-
-cg_test_data([failing,reader, level(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->table").
+cg_test_data([reader, level(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]").
 
 cg_test_data([failing,reader, level(4)], "
 [Person: Tom]1111111111<-(Expr)<-[Believe]->(Thme)-
