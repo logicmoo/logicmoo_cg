@@ -15,7 +15,7 @@ cginput:is_module.
 :- ensure_loaded(cgprolog_translator).
 :- ensure_loaded(cgprolog_operations).
 :- ensure_loaded(cgprolog_reader).
-:- cginput:ensure_loaded('cgprolog_fwd.pfc').
+%:- cginput:ensure_loaded('cgprolog_fwd.pfc').
 
 %:- break.
 % :- kb_shared(cg_isa/2).

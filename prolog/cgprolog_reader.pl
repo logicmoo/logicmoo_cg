@@ -8,16 +8,30 @@
 
 %:- current_op(X,Y,'->'),push_operators([op(X,Y,'<-')]).
 
+debug_fvar(N,_):- (\+ ground(N) ; number(N)),!.
 
-cg_demo :- make, forall((cg_test_data(Attribs,X), \+ memberchk(failing,Attribs)),do_cg_test(Attribs,X)).
-cg_reader_tests :- make, forall(cg_test_data(Attribs,X),do_cg_test(Attribs,X)).
+debug_fvar(N,V):- debug_var(N,V).
+
+push_frame_info(Info,Frame):-atom(Frame),nb_current(Frame,CG),!,push_frame_info(Info,CG).
+push_frame_info(Info,Frame):-push_frame(Info,Frame).
+push_frame_info(Info,Frame,S,S):-push_frame(Info,Frame).
+push_frame_concept(C,Frame):-atom(Frame),nb_current(Frame,CG),!,push_frame_concept(C,CG).
+push_frame_concept(C,Frame):-nop(push_frame(C,Frame)).
+push_frame_concept(C,Frame,S,S):-push_frame_concept(C,Frame).
+nb_set_add(X,Y,S,S):- nb_set_add(X,Y).
+
+
+cg_demo :- make, forall((cg_test_data(Attribs,X), \+ memberchk(failing,Attribs)),must(do_cg_test(Attribs,X))).
+cg_reader_tests :- make, forall(cg_test_data(Attribs,X), must(do_cg_test(Attribs,X))).
 
 do_cg_test( Attribs,_):- memberchk(skip,Attribs),!.
-do_cg_test( Attribs,X):- memberchk(xcall,Attribs),!, call_cg(xtext(X)).
-do_cg_test(_Attribs,X):- assert_cg(xtext(X)).
+do_cg_test( Attribs,X):- memberchk(xcall,Attribs),!, must(ignore(call_cg(xtext(X)))).
+do_cg_test(_Attribs,X):- must(ignore(assert_cg(xtext(X)))).
 
 
-assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)).
+assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)),!.
+assert_cg_real(X):- is_list(X),list_to_conjuncts(X,J),!,wdmsg(J).
+assert_cg_real(X):-!,  frmprint(X).
 assert_cg_real(X):- nb_current(cgid,Id), print_cg(Id:X),  ain(cg(Id,X)).
 
 call_cg(X):- pred_cg(call_cg_real,X).
@@ -25,22 +39,28 @@ call_cg_real(X):- print_cg(X),call(cg(_,X)).
 
 
 pred_cg(Pred, Error):- var(Error),!, trace_or_throw(pred_cg(Pred, Error)).
-pred_cg(Pred, X):- is_list(X),maplist(pred_cg(Pred),X).
-pred_cg(Pred, cg(CG)):- !, pred_cg(Pred, CG).
-pred_cg(Pred, cg(CG)):- wdmsg(pred_cg(Pred, CG)), !, call(Pred,CG).
+pred_cg(Pred, X):- string(X),!,pred_cg(Pred, xtext(X)).
+pred_cg(Pred, [Int|Codes]):- notrace(catch(text_to_string([Int|Codes],X),_,fail)),pred_cg(Pred, xtext(X)).
+pred_cg(Pred, X):- is_list(X), !, maplist(pred_cg(Pred),X).
+pred_cg(Pred, cg(CG)):- nop(wdmsg(call(Pred,CG))), !, call(Pred,CG).
+pred_cg(Pred, xtext(X)):- format('~N~n~n~n===========================================~n~w~n===========================================~n~n',[X]), cg_df_to_term(X,Y), !, pred_cg(Pred, Y),!.
+pred_cg(Pred, tOkS(Toks)):- !, (parse_cg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("~n?- rtrace( 
+    ~q  
+   ). ~n",[pred_cg(Pred, tOkS(Toks))]))).
+%pred_cg(Pred, cg(CG)):- !, pred_cg(Pred, CG).
+
 %pred_cg(Pred, tOkS(Toks)):- catch(parse_cg(CG,Toks,[]),_,fail),pred_cg(Pred, cg(CG)),!.
-pred_cg(Pred, tOkS(Toks)):- parse_cg(CG,Toks,[]),pred_cg(Pred, cg(CG)),!.
 pred_cg(Pred, X):- wdmsg(pred_cg(Pred, X)), fail.
-pred_cg(Pred, xtext(X)):- cg_df_to_term(X,Y),!, pred_cg(Pred, Y),!.
+%pred_cg(Pred, X):- term_to_cg(X, Y),!, pred_cg(Pred, Y),!.
 pred_cg(_, _):- !.
 pred_cg(Pred, Error):- trace_or_throw(pred_cg(Pred, Error)).
 
-
+print_cg(X):- !, frmprint(X).
 print_cg(X):- is_list(X),!, maplist(print_cg,X).
 print_cg(X):- nl,wdmsg(display(X)),nl.
 
-recase_atom(Name,NameR):- upcase_atom(Name,Name),!,downcase_atom(Name,NameR).
-recase_atom(Name,Name).
+fixcase_atom(Name,NameR):- atom(Name), upcase_atom(Name,Name),!,to_titlecase(Name,NameR).
+fixcase_atom(Name,Name).
 
 :- use_module(library(dcg/basics)).
 
@@ -57,7 +77,7 @@ tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
 tokenize_cg_w(Op)--> {sent_op_chars(Op,Chars)},Chars,!.
 tokenize_cg_w('?'(UNAME)) --> `?`,!,prolog_id_conted(CL),{ atom_codes(Name, CL)},!,{upcase_atom(Name,UNAME)}.
 tokenize_cg_w(T)--> dcg_basics:number(T),!.
-tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{atom_codes(NameR, CL),recase_atom(NameR,Name)},!.
+tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{atom_codes(NameR, CL),fixcase_atom(NameR,Name)},!.
 tokenize_cg_w(Name)--> [C],{ atom_codes(Name, [C])},!.
 
 tokenize_cg(HT)--> blank,!,tokenize_cg(HT).
@@ -65,33 +85,23 @@ tokenize_cg([],S,E):- S=[],!,E=[].
 tokenize_cg([H|T])--> tokenize_cg_w(H),!,tokenize_cg(T).
 tokenize_cg([])-->[],!.                                             
 
-parse_cg(List) --> is_expr(List),!.
-parse_cg(List) --> parse_rel(H), parse_cg(List2),{append([H],List2,List)}.
-parse_cg(List) --> concept(S), post_concept(S,S,List),!.
-parse_cg(List) --> parse_var_concept(V,C),!, parse_cg(T),{subst(T,'?'(V),C,List)}.
-parse_cg(List) --> concept(List).
-% parse_cg(List) --> concept(S),!, (post_concept(S,S,List) -> [] ; {List = [S]}).
-%parse_cg(List) --> concept(S),!, post_concept(S,S,List1),parse_cg(List2),{append(List1,List2,List)},!.
-parse_cg([]) --> [].
 
 
-is_expr([decl(NPLO)])--> cw(type), 
-  prolog_expr(PL), cw(is), parse_var_concept(V,C), dcgOptional(ci('.')),
-  {downcase_atom(V,VD),subst(PL,(V),C,NPL),subst(NPL,(VD),C,NPLO)},!.
+%find_var(V)--> ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
+%parse_var_concept(V,typeof(Rel, ?(V)))-->  ci('['), cw(Rel), ci(':'),ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
+%parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
 
-is_expr([decl(Type,PL,List)])--> {member(Type,[type,individual])}, cw(Type), 
-  prolog_expr(PL), cw(is), parse_cg(List), optional(ci('.')),!.
+parse_rel(reL(RelD,Frame)) -->  ci('('),carg(Rel),dcg_list_of(carg,Frame), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
+prolog_expr(rEL(RelD,Frame)) -->  carg(Rel), ci('('),dcg_list_of(carg,Frame), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
 
-prolog_expr(rEL(Rel,List))--> cw(Rel),ci('('),dcg_list_of(cw,List), ci(')'),!.
+carg(W)-->dcg_peek(ci('[')),concept(W),!.
+carg(W)-->dcg_peek(ci('(')),parse_rel(W),!.
+%carg(_)-->[CI],{sent_op(CI)},!,{fail}.
+carg(W)-->cw(W),!.
+carg(V)-->cvalue(W),{concept_var(V,W)}.
 
-find_var(V)--> ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
 
-parse_var_concept(V,typeof(Rel, ?(V)))-->  ci('['), cw(Rel), ci(':'),ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
-parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
-
-parse_rel(reL(RelD,List)) -->  ci('('),ci(Rel),dcg_list_of(cw,List), ci(')'),!,{downcase_atom(Rel,RelD)},!.
-
-dcg_list_of( Cw,[H|List]) --> {append_term(Cw,H,CwH)}, CwH, !, dcg_list_of(Cw,List).
+dcg_list_of( Cw,[H|Frame]) --> dcgOptional(ci('|')),{append_term(Cw,H,CwH)}, CwH, dcgOptional(ci(',')), !, dcg_list_of(Cw,Frame).
 dcg_list_of(_Cw,[]) --> [].
 
 push_incr(State,Type,Amount):- (get_attr(State,Type,Prev);Prev=0),New is Amount+ Prev,!, put_attr(State,Type,New).
@@ -112,27 +122,69 @@ ballanced(L):- notrace((ballance(L,R),\+ ( get_incrs(R,_,V),V\=0))).
 dcg_beforeSeq(Skipped,Mid,S,E):-
   append(Skipped,MidS,S),ballanced(Skipped), phrase(Mid,MidS,E).
 
+codes_to_tokens(S,Toks):- length(S,Len), Len> 2, notrace(catch(atom_codes(_,S),_,fail)), tokenize_cg(Toks,S,[]),!.
 
-post_concept(Sticky,S,List) --> ci('-'),
-  dcg_peek(ci('<-');ci('-');ci('->')),!,graph_listnode(Sticky,S,List).
-post_concept(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel),!,concept(Obj),graph_listnode(Sticky,Obj,List).
-post_concept(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel),!,concept(Obj),graph_listnode(Sticky,Subj,List).
-post_concept(Sticky,Obj, [t(Rel,Subj,Obj)|List]) --> rel_left2(Rel),!,concept(Subj),graph_listnode(Sticky,Obj,List).
-post_concept(Sticky,Obj, [t(Rel,Subj,Obj)|List]) --> rel_left(Rel),!,concept(Subj),graph_listnode(Sticky,Subj,List).
+parse_cg(CG) --> codes_to_tokens,!,parse_cg(CG).
+parse_cg(CG)-->parse_cg0(CG0), {resolve_frame_constants(CG0,CG)},!,dcgOptional(ci('.')).
 
-graph_listnode(_Sticky,_Subj,[]) --> dcg_peek(ci(']')),!.
-graph_listnode(_Sticky,_Subj,[]) --> ci('.'),!.
-graph_listnode(Sticky,_Subj,List) --> ci(','),!,graph_listnode(Sticky,Sticky,List).
-graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), 
-  (ci(',');dcg_peek(ci('-'))) ,!, graph_listnode(Sticky,Subj,List).
+resolve_frame_constants(CG0,CG):-
+ resolve_frame_constants(CG0,CG0,CG1),
+ correct_frame_preds(CG1,CG).
 
-graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right(Rel), concept(Obj), graph_listnode(Sticky,Obj,List).
-graph_listnode(Sticky,Obj,[t(Rel,Subj,Obj)|List]) --> rel_left(Rel), concept(Subj), graph_listnode(Sticky,Subj,List).
+resolve_frame_constants([],IO,IO):-!.
+resolve_frame_constants([DoConst|More],Props,Out):- !, 
+  resolve_frame_constants(DoConst,Props,Mid),
+  resolve_frame_constants(More,Mid,Out).
+resolve_frame_constants(frame_var(Var, RealVar),Props,Out):-
+  downcase_atom(Var,VarD),
+  upcase_atom(Var,VarU),
+  subst(Props,frame_var(Var, RealVar),[],Mid),
+  subst_each(Mid,[Var=RealVar,VarU=RealVar,VarD=RealVar,?(RealVar)=RealVar],Out),!.
+resolve_frame_constants(_,Mid,Mid).
+  
 
-graph_listnode(Sticky,Subj,[t(Rel,Subj,Obj)|List]) --> rel_right2(Rel), concept(Obj), graph_listnode(Sticky,Sticky,List).
-graph_listnode(Sticky,Obj,[t(Rel,Subj,Obj)|List]) --> rel_left2(Rel), concept(Subj), graph_listnode(Sticky,Sticky,List).
+event_frame_pred('agnt').
+event_frame_pred('inst').
 
-graph_listnode(_Sticky,_,[])--> ((\+ [_]);['.']).
+correct_frame_preds([H|CG1],CG):- !, 
+  correct_frame_preds(H,H1),!,
+  correct_frame_preds(CG1,CG2),
+  flatten([H1,CG2],CG).
+
+correct_frame_preds(FrameP,FramePO):- compound(FrameP),
+  compound_name_arguments(FrameP,F,[A,B|C]),
+  downcase_atom(F,DC),
+  compound_name_arguments(FramePO,DC,[A,B|C]), !,  
+  ignore((event_frame_pred(DC) -> debug_var('_Event',A), nop(debug_var('Doer',B)))).
+correct_frame_preds(CG,CG).
+
+
+parse_cg0(CG,S,E) :- var(CG), \+ attvar(CG),push_frame_info([], CG),!,locally_setval(cgframe,CG,parse_cg0(CG,S,E)).
+parse_cg0(CG)--> ci('Type'), prolog_expr(RExpr), ci(is), 
+  {push_frame_info([decl(type, RExpr)],CG)},
+  concept(C), 
+  {push_frame_concept(C,CG)}.
+parse_cg0(CG)--> ci(individual), prolog_expr(RExpr), ci(is), 
+  {push_frame_info([decl(inst, RExpr)],CG)},
+  concept(C), 
+  {push_frame_concept(C,CG)},
+  parse_cg0(CG).
+parse_cg0(CG) --> parse_rel(H), {push_frame_info([H],CG)}, parse_cg0(CG).
+parse_cg0(CG) --> concept(S), cont_graph(S,S,CG),!,parse_cg0(CG).
+parse_cg0(_) --> ci('.'),!.
+parse_cg0(_) --> \+ [_],!.
+
+
+cont_graph(Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(t(Rel,Subj,Obj),CG),cont_graph(Parent,Obj,CG).
+cont_graph(Parent,Subj,CG) --> rel_right(Rel),!,concept(Obj),push_frame_info(t(Rel,Subj,Obj),CG),cont_graph(Parent,Parent,CG).
+cont_graph(Parent,Obj,CG) --> rel_left2(Rel),!,concept(Subj),push_frame_info(t(Rel,Subj,Obj),CG),cont_graph(Parent,Subj,CG).
+cont_graph(Parent,Obj,CG) --> rel_left(Rel),!,concept(Subj),push_frame_info(t(Rel,Subj,Obj),CG),cont_graph(Parent,Subj,CG).
+cont_graph(Parent,_Subj,CG) --> ci(','),!,cont_graph(Parent,Parent,CG).
+cont_graph(Parent,_Subj,CG) --> ci('-'),!,cont_graph(Parent,Parent,CG).
+cont_graph(_Parent,_Subj,_) --> dcg_peek(ci(']')),!.
+cont_graph(_Parent,_Subj,_) --> ci('.'),!.
+cont_graph(_Parent,_,_)--> \+ [_],!.
+cont_graph(_Parent,_Subj,CG) --> parse_cg0(CG).
 
 rel_right(Rel)-->ci('-'),rel(Rel),ci('->').
 rel_right2(Rel)-->ci('->'),rel(Rel),ci('->').
@@ -144,7 +196,7 @@ rel(C)--> ['('],word_tok_loose(C),[')'].
 rel(C)--> ['<'],word_tok_loose(C),['>'].
 rel(C)--> word_tok_loose(C).
 
-word_tok_loose(DC)-->[C],{atom(C),downcase_atom(C,DC)}.
+word_tok_loose(DC)-->[C],{atom(C),fixcase_atom(C,DC)}.
 
 nonword_tok(X):- atom(X),upcase_atom(X,UC),downcase_atom(X,DC),!,UC==DC. 
 
@@ -161,36 +213,75 @@ word_tok(X)--> [X], !, {atom(X), \+ nonword_tok(X)}.
 quant(X) --> [X], {nonword_tok(X)}.
 
                                                   
-concept('*')--> [*], !.
-concept(?(Var)) --> [?(Var)],!.
-concept(vc(V, C))-->parse_var_concept(V,C),!.
-concept(C)-->concept0(C0),(([I],{integer(I)})->{C=n(C0,'#'(I))};{C=C0}),!.
+concept(CG) --> codes_to_tokens,!,concept(CG).
+concept(V,S,E):- concept0(C,S,E),concept_var(V,C).
+
+% concept0('*')--> [*], !.
+concept0([?(Var)]) --> [?(Var)],!.
+% concept(vc(V, C))-->parse_var_concept(V,C),!.
+
+concept0(C)-->concept2(C),(([I],{integer(I)})->{nb_set_add(C,'#'(I))};[]).
+
+%concept1(C)--> ci('['), dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
+concept2(C)--> ci('['), concept_innerds(C), ci(']'),!.
+concept2(C)--> word_tok(C),!.
+
+concept_var(V,C):- \+ is_list(C),concept_var(V,[C]).
+concept_var(V,C):- maplist(concept_var(V,C),C).
+
+% val(X_Cat, [?('X')])
+concept_var(V, _Props,      Var  ):- var(Var),!, V=Var.
+concept_var(_, _Props,       []  ):- !.
+concept_var(V,  Props,    '#'(N) ):-  atomic(N), member(isa(Type),Props),!,atomic_list_concat([Type,'#',N],Val),!,
+  concept_var(V,  Props,   =(Val)).
+concept_var(V, _Props,        M  ):- atomic(M),!,V=M.
+%concept_var(V, Props, '$VAR'(N),'$VAR'(N) ):- !.
+concept_var(V, Props, '$VAR'(N) ):-  !,concept_var(V, Props, '?'(N) ).
+concept_var(V, _Props,    '?'(N) ):- !,upcase_atom(N,U),debug_fvar(N,V),!,!,V='$VAR'(U).
+concept_var(V, _Props,    '@'(E) ):- !,debug_fvar(E,V), push_frame_info(quantz(E,V),cgframe).
+concept_var(V, _Props,    '*'(N) ):- !,debug_fvar(N,V),upcase_atom(N,NU),push_frame_info(frame_var(NU,V),cgframe),!.
+%concept_var(V, _Props,   = ):- atomic_list_concat([Type,'_'],M),gensym(M,V),
+%  push_frame_info(isa(V,Type),cgframe),push_frame_info(same_values(V,Value),cgframe).
+
+concept_var(V, _Props,    IZA ):- compound(IZA),compound_name_arguments(IZA,I,[Z|A]),compound_name_arguments(IZAOUT,I,[V,Z|A]),!,
+  push_frame_info(IZAOUT,cgframe),debug_fvar(Z,V).
+concept_var(_, _Props, _):-!.
 
 
-concept0(C)--> ci('['), dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
-concept0(C)--> ci('['), concept_innerds_1(C), ci(']'),!.
-concept0(crel(C))--> rel(C),!.
 
-concept_innerds_1(all(C))--> cw(C), ci('@'),  ci('every'),!.
-concept_innerds_1(n(C,'#'(V))) --> cw(C),        ci('#'), cw(V).
-concept_innerds_1(n(C,'#'(V))) --> cw(C),ci(':'),ci('#'), cw(V).
-concept_innerds_1(cg(C, Grph)) --> cw(C),ci(':'), dcg_peek(ci('[')), parse_cg(Grph).
-concept_innerds_1(cg01(C,Grph))--> cw(C),ci('='), parse_cg(Grph).
-concept_innerds_1(c(C, OP, V)) --> cw(C),ci(':'), [OP], cw(V).
-concept_innerds_1(ct(C,V))--> cw(C), ci(':'), cw(V).
-concept_innerds_1(etype(C,V))-->  cw(C), ci(':'), concept_innerds_cont(V),!.
-concept_innerds_1(cot(C,OP,V)) --> cw(C),quant(OP) ,{nonword_tok(OP)},cw(V),!.
-concept_innerds_1(ct(C,V))--> cw(C), cw(V).
-concept_innerds_1(utype(C,V))--> [ C ], !, concept_innerds_cont(V).
-concept_innerds_1(v(V))   --> cw(V),!.
+cvalue_cont(W)--> cw(V), ((\+[_];dcg_peek(sent_op);ci('.')) -> {flatten([V],W)} ;  cvalue(W2), {flatten([V|W2],W)}).
 
-concept_innerds_3a(P1,']',entity(C))--> [P1,']'],{C=P1},!.
-concept_innerds_3a(P1,P2,C)--> concept_innerds_3b(P1,P2,C),ci(']').
+cvalue('GRAPH'(W))--> dcg_peek(ci('[')), parse_cg(W).
+cvalue(=(REL))--> dcg_peek(ci('(')), parse_rel(REL),!.
+cvalue(=(REL))--> dcg_peek((cw(_),ci('('))), prolog_expr(REL),!.
+cvalue(textOf(String))--> [String], {string(String)},!.
+cvalue('='(W))--> ci('='), cvalue(W).
+cvalue('^'(W))--> ci('^'), cvalue(W).
+cvalue('~'(W))--> ci('~'), cvalue(W).
+cvalue('*'(W))--> ci('*'), cw(W).
+cvalue('?'(W))--> [?(W)],!.
+% #?Quotient
+cvalue('='(W))--> ci('#'), [?(W)], {atomic(W)}.
+cvalue('#'(W))--> ci('#'), cw(W).
+% cvalue(countOf(W,W))--> ci('@'), [W], { number(W) },!.
+cvalue('@'(W))--> ci('@'), cw(W).
+cvalue(countOf(0,0))--> ci('{'),  ci('}'),!.
+cvalue(named(W))--> cw(V), ((\+[_];dcg_peek(sent_op)) -> {flatten([V],W)} ;  cvalue_cont(W2), {flatten([V|W2],W)}).
+cvalue(Attrs)--> ci('{'), {Attrs=['@'(set)]}, 
+  (['*'] 
+      -> (['}'],nb_set_add(Attrs,[countOf(1,_)])) 
+      ; ( (dcg_list_of(cw,List),nb_set_add(Attrs,[each_of(List)])),
+          (([',','*'])
+             -> nb_set_add(Attrs,[countOf(1,_)]) 
+             ; []), ci('}'))), !.
 
-concept_innerds_3b(_P1,':',etype(C,V))--> cw(C), ci(':'),cw(V),!.
-% concept_innerds_3b(_P1,_P2,cot4(C,OP,V))--> cw(C),[OP],{nonword_tok(OP)},cw(V),!.
-concept_innerds_3b(_P1,'=',cg4(C,SubGraph))--> cw(C),ci('='), parse_cg(SubGraph),!.
-concept_innerds_3b(_P1,_P2,entity(C))-->  cw(C),!.
+concept_innerds([isa(C)|Cont]) --> cw(C), dcgOptional(ci(':')),!,concept_innerds_cont(Cont).
+concept_innerds(Cont) --> concept_innerds_cont(Cont).
+
+concept_innerds_cont([])--> dcg_peek(ci(']')) ,!.
+concept_innerds_cont([])--> \+ [ ].
+concept_innerds_cont(HT) --> cvalue(H), !, concept_innerds_cont(T),{flatten([H,T],HT)}.
+
 
 sent_op_chars(Op,Chars):- sent_op(Op),atom_codes(Op,Chars).
 
@@ -201,9 +292,12 @@ sent_op('-').  sent_op(':').
 % then..
 sent_op(A):- sent_op_pair(A,_).
 sent_op(A):- sent_op_pair(_,A).
-sent_op(',').  sent_op(';').
+sent_op(',').  sent_op(';'). 
+sent_op('|').
 sent_op('.').  sent_op('='). sent_op('@').  sent_op('#').
 sent_op('^').  sent_op('*'). sent_op('~').  sent_op('$').
+
+sent_op --> [C],{sent_op(C)}.
 
 sent_op_pair('<','>').
 sent_op_pair('{','}'). 
@@ -216,9 +310,6 @@ sent_op_pair('\'','\'').
 cw(H,[H|T],T):- notrace(( \+ sent_op(H))).
 
 ci(CI)-->[C],{notrace((atom(C),upcase_atom(C,UC),(CI=UC->true; upcase_atom(CI,UC))))}.
-
-concept_innerds_cont(C)--> concept_innerds_1(C).
-concept_innerds_cont(*)-->[].
 
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),
@@ -242,24 +333,62 @@ cmt_until_eoln(`%`).
 
 %:- pop_operators.
 
+%:- ensure_loaded(library(cgprolog_inline_reader)).
+      
 :- fixup_exports.
 
-cg_test_data([reader, level(0), sowa], "[Mat]1-(equal)->[Thingy #1]").
+cg_test_data([reader, level(0), sowa], "[Mat]1-(Attrib)->[Color #1]").
+cg_test_data([reader, level(0), sowa], "[Mat]1-(Attrib)->[Color]2").
 cg_test_data([reader, level(0)], "[Cat: @every]-(On)->[Mat]").
 cg_test_data([reader, level(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
-cg_test_data([reader, level(1)], "[Cat#1]-(On)->[Mat #1]-(equal)->[Thingy #1]").
-cg_test_data([reader, level(1)], "[Cat: ?x]-(equal)->M1-(On)->[Mat]").
+cg_test_data([reader, level(1)], "[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([reader, level(1)], "[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
 cg_test_data([reader, level(1)], "[Cat: ?x]-(On)->[Mat]").
+cg_test_data([reader, level(1)], "[Cat: ?x]-(On)->[*MatC]").
+cg_test_data([reader, level(1)], "[Cat: ?x]-(On)->[Mat: *MatC]").
 cg_test_data([reader, level(1)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
 cg_test_data([reader, level(1)], "[Mat #1]<- (on)- [Cat #1]").
 cg_test_data([reader, level(1)], "[Mat]<-(On)-[Cat: ?x]").
-cg_test_data([reader, level(1)], "[Thingy #1]<-(equal)-[Mat #1]").
-cg_test_data([reader, level(2)], "[Cat #1]-(On)->[Mat #1]-(equal)->[Thingy #1]").
+cg_test_data([reader, level(1)], "[Color #1]<-(Attrib)-[Mat #1]").
+cg_test_data([reader, level(2)], "[Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
 cg_test_data([reader, level(2)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
-cg_test_data([reader, level(2)], "[Thingy #1] <- (equal) -[Mat #1]<- (on)- [Cat#1]").
+cg_test_data([reader, level(2)], "[Color #1] <- (Attrib) -[Mat #1]<- (on)- [Cat#1]").
 cg_test_data([reader, level(3)], "[Cat: @every]->(On)->[Mat]").
 cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
-cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
+cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT]").
+
+cg_test_data([reader, level(3)], "
+   [Drive *x] [Person: Bob] [City: \"St. Louis\"] [Chevy *y]
+   (Agnt ?x Bob) (Dest ?x \"St. Louis\") (Thme ?x ?y) (Poss Bob ?y)").
+
+cg_test_data([reader, level(3)], "  
+   [A_CAT] -> (KnowsAbout) ->
+   [THE_CAT: #666]  -> (KnowsAbout) ->
+   [NAMED_CAT: Moris]  -> (KnowsAbout) ->
+   [LENGTH: @ 5ft]").
+
+cg_test_data([reader, level(3)], "  
+   [A_CAT] -> (KnowsAbout) ->
+   [THE_CAT: #666]  -> (KnowsAbout) ->
+   [NAMED_CAT: Moris]  -> (KnowsAbout) ->
+   [LENGTH: @ 5ft]  -> (KnowsAbout) ->
+   [CAT_SET:{*}]  -> (KnowsAbout) ->
+   [CAT5:{*} @ 5 ]  -> (KnowsAbout) -> 
+   [CATS_TWO:{Moris, Felix}]  -> (KnowsAbout) ->
+   [CATS_ONE_OR_MORE:{Moris,*}]").
+
+
+cg_test_data([skip,reader, level(3)], "(IntegerDivide [Integer: *x] [Integer: 7] | [*u] [*v])").
+
+cg_test_data([skip,reader, level(3)], "
+[Function: *Quotient] [Function: *Remainder]
+[[@every*x1] [@every*x2] [@every*x3] [@every*x4]
+[Equiv: [Iff: (IntegerDivide ?x1 ?x2 | ?x3 ?x4)]
+        [Iff: (#?Quotient ?x1 ?x2 | ?x3) (#?Remainder ?x1 ?x2 | ?x4)]]]").
+
+cg_test_data([reader, level(3)], "[Relation: *r] (Familial ?r) (#?r Bob Sue)").
+
+cg_test_data([skip,reader, level(3)], "(exists ((r Relation)) (and (Familial r) (r Bob Sue)))").
 
 cg_test_data([reader, level(3)], "
 [SIT]-
@@ -267,24 +396,32 @@ cg_test_data([reader, level(3)], "
   ->(LOC)->[MAT],.").
 
 
-cg_test_data([xcall, level(0), funky_syntax], "?x -(equal)-> [Thingy #1]").
+cg_test_data([xcall, level(0), funky_syntax], "?x -(Attrib)-> [Color #1]").
 
-cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]-(equal)->[Thingy #1]").
+cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
 cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]").
-cg_test_data([xcall, level(0), funky_syntax], "[?x] -(equal)-> [Thingy #1]").
-cg_test_data([xcall, level(0), funky_syntax], "[?x]-(On)->[Mat #1]-(equal)->[Thingy #1]").
-cg_test_data([xcall, level(0), funky_syntax], "[Mat ?x]-(equal)->[Thingy #1]").
-cg_test_data([xcall, level(0)], "[Cat: ?x]-(On)->[Mat #1]-(equal)->[Thingy #2]").
+cg_test_data([xcall, level(0), funky_syntax], "[?x] -(Attrib)-> [Color #1]").
+cg_test_data([xcall, level(0), funky_syntax], "[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([xcall, level(0), funky_syntax], "[Mat ?x]-(Attrib)->[Color #1]").
+cg_test_data([xcall, level(0)], "[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]").
 
 cg_test_data([reader, level(3)], "[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
 cg_test_data([reader, level(3)], "[a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]").
 
 cg_test_data([reader, level(4)], "
 
-[Go]-
+[Go]- -
    (Agnt)->[Person: John] -
    (Dest)->[City: Boston] -
    (Inst)->[Bus]").
+
+cg_test_data([skip, reader, level(4)], "
+// ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
+[Eat #0] -
+   - obj->[Apple],
+   - manr->[Fast],
+   - agnt->[Man]").
+
 
 cg_test_data([reader, level(4)], "
    [Person: John2] <- (Agnt) - 
@@ -311,7 +448,7 @@ cg_test_data([reader, level(3)], "
    - (Inst)->[Bus2]  ]").
 
 
-cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?z)").
+cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?w)").
 
 cg_test_data([skip, reader, level(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
@@ -364,10 +501,19 @@ cg_test_data([sowa,reader, level(4)],
 "TYPE CIRCUS(c) IS [UNIV:*c]").
 
 cg_test_data([sowa,reader, level(4)], 
+"[ELEPHANT:*c]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS]").                              
+                              
+cg_test_data([sowa,reader, level(4)], "
+[Go *x] (Agnt ?x [Person: John]) (Dest ?x [City: Boston]) (Inst ?x [Bus]) 
+").
+
+cg_test_data([sowa,reader, level(4)], 
 "TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
 
-/*
+cg_test_data([sowa,reader, level(4)], 
+"TYPE CIRCUS-ELEPHANT(C) IS
+ [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
 
 cg_test_data([sowa,reader, level(4)], 
 "TYPE DEPARTURE-DATE(d) IS [UNIV:*d].").
@@ -404,7 +550,23 @@ cg_test_data([sowa,reader, level(4)],
 
 cg_test_data([sowa,reader, level(4)], 
 "TYPE TIME-PERIOD(t) IS [UNIV:*t].").
-*/
+
+cg_test_data([sowa,reader, level(4)], "
+[RESERVATION #316209]-
+  ->(RCPT)->[PERSON:JOHN SOWA]
+  ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
+  ->(DUR)->[TIME-PERIOD:@4 NIGHTS]-
+             ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
+             ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]").
+
+cg_test_data([sowa,reader, level(4)], "
+[RESERVATION:#316209]-
+  ->(RCPT)->[PERSON:JOHN SOWA]
+  ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
+  ->(DUR)->[TIME-PERIOD:@4 NIGHTS]-
+             ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
+             ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]").
+
 cg_test_data([sowa,reader, level(4)], "
 INDIVIDUAL HOTEL-RESERVATION(#316209) IS
 [RESERVATION:#316209]-
@@ -413,7 +575,7 @@ INDIVIDUAL HOTEL-RESERVATION(#316209) IS
   ->(DUR)->[TIME-PERIOD:@4 NIGHTS]-
              ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983],,.").
-/*
+
 cg_test_data([sowa,reader, level(4)], "
 INDIVIDUAL HOTEL-RESERVATION(#316210) IS
 [RESERVATION:#316210]-
@@ -427,11 +589,7 @@ cg_test_data([sowa,reader, level(4)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#BUMBO) IS
 [ELEPHANT:#BUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Flying Tigers].").
 
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([skip,sowa,reader, level(4)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
 [ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].").
 
-
-
-
-*/

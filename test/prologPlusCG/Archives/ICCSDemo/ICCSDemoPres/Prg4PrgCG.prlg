@@ -7,9 +7,11 @@ COUNTRY = "Oz".
 
 [CITIZEN : x]<-MEMB-[COUNTRY : "Oz"] :- 
      [PERSON: x]<-AGNT-[BORN]-LOC->[COUNTRY : "Oz"].
+
 [CITIZEN : x]<-MEMB-[COUNTRY : "Oz"] :- 
      [PERSON: x]<-CHLD-[PERSON: y], 
      [CITIZEN : y]<-MEMB-[COUNTRY : "Oz"].
+
 [CITIZEN : x]<-MEMB-[COUNTRY : "Oz"] :- 
      [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : "Oz"].
 

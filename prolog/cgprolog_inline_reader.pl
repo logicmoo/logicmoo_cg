@@ -1,16 +1,19 @@
 
 :- multifile_data(cg/1).
 
-inline_reader_ops(OPS),
-:- current_op(X,Y,'->'),current_op(X1,Y1,'+'),
-   OPS=([op(X,Y,'<-'), 
-   op(X1,Y1,(*)),op(X1,Y1,(?)),op(X1,Y1,(@))
-   op(900,xfy,'<-'),op(1000,yfx,'->'),op(1100,xfy,'-'),op(1110,xfx,'-'),op(1100,yfx,'-'),op(500,xfx,':'),
-   op(300, fx,'?'),op(300, fx,'#'),op(300, fx,'*'),op(300, fx,'@'),
-   op(300,yfx,'?'),op(300,yfx,'#'),op(300,yfx,'*'),op(300,yfx,'@'),
-   op(1200,xfx,':'),op(1200,xfx,'=')]).
+inline_reader_ops(OPS):-
+ 
+ current_op(X1,Y1,('+')),
+ current_op(X,Y,('->')),
+ =(OPS,
+  ([op(X,Y,('<-')), 
+   op(X1,Y1,('*')),op(X1,Y1,('?')),op(X1,Y1,('@')),
+   op(900,xfy,('<-')),op(1000,yfx,('->')),op(1100,xfy,('-')),op(1110,xfx,('-')),op(1100,yfx,('-')),op(500,xfx,(':')),
+   op(300, fx,('?')),op(300, fx,('#')),op(300, fx,('*')),op(300, fx,('@')),
+   op(300,yfx,('?')),op(300,yfx,('#')),op(300,yfx,('*')),op(300,yfx,('@')),
+   op(1200,xfx,(':')),op(1200,xfx,('='))])).
 
-:- inline_reader_ops(OPS), push_operators(OPS).
+% :- inline_reader_ops(OPS), push_operators(OPS).
 
 /*
 reader_df_to_term(In,Out):- any_to_string(In,Str),
@@ -23,7 +26,7 @@ reader_df_to_term(In,Out):- any_to_string(In,Str),
 
 term_to_cg(In,Out):-
   format(chars(Chars),' ~q. ',[In]),
-  any_to_string(In,Str),
+  any_to_string(Chars,Str),
   % replace_in_string(['('='{',')'='}'],Str,Str0),
   replace_in_string(['\r'='\n'],Str,Str0),
   atom_codes(Str0,Codes),
@@ -37,21 +40,24 @@ ground_variables_as_atoms(Vs,[N=V|Vars]):-
   ground_variables_as_atoms(Vs,Vars),
   (member_eq0(V, Vs) -> V = N ; true).
 
-term_expansion(In,IS, Out,OS):- notrace((compound(In), In= cg(Stuff), nonvar(Stuff),nb_current(cg_term_expand,true))),
+term_expansion(In,IS,Out,OS) :- 
+   ((notrace((compound(In), In= cg(Stuff), nonvar(Stuff),nb_current(cg_term_expand,true))),
    prolog_load_context('term',Term), % dmsg(Term=In),
    Term=@=In,    
    nb_current('$variable_names',Vars), 
    term_variables(Stuff,Vs),!,
    ground_variables_as_atoms(Vs,Vars),
    term_to_cg(Term,CG),
-   current_why(UU),IS=OS,
-   Out = (:- with_current_why(UU, assert_cg(cg(CG)))).
+   current_why(UU),
+   =(IS, OS),
+   Out = (:- with_current_why(UU, assert_cg(cg(CG)))))).
 
 
 begin_cg:- style_check(-singleton), nb_setval(cg_term_expand,true),inline_reader_ops(OPS), push_operators(OPS).
 
 :- fixup_exports.
 
+end_of_file.
 
 cg([Cat: @every]-(On)->[Mat]).
 cg([Mat #1]-(equal)->[Thingy #1]).
