@@ -21,12 +21,24 @@ push_frame_concept(C,Frame,S,S):-push_frame_concept(C,Frame).
 nb_set_add(X,Y,S,S):- nb_set_add(X,Y).
 
 
-cg_demo :- make, forall((cg_test_data(Attribs,X), \+ memberchk(failing,Attribs)),must(do_cg_test(Attribs,X))).
-cg_reader_tests :- make, forall(cg_test_data(Attribs,X), must(do_cg_test(Attribs,X))).
+cg_demo :- make, forall((cg_test_data(TstAtts,X), \+ memberchk(failing,TstAtts)),must(do_cg_test(TstAtts,X))).
+cg_reader_tests :- make, forall(cg_test_data(TstAtts,X), must(do_cg_test(TstAtts,X))).
 
-do_cg_test( Attribs,_):- memberchk(skip,Attribs),!.
-do_cg_test( Attribs,X):- memberchk(xcall,Attribs),!, must(ignore(call_cg(xtext(X)))).
-do_cg_test(_Attribs,X):- must(ignore(assert_cg(xtext(X)))).
+do_cg_test( TstAtts,_):- memberchk(skip,TstAtts),!.
+do_cg_test( TstAtts,X):- select(cg_dialect(What),TstAtts,NewTstAtts),!, 
+  locally_setval(cg_dialect,What,do_cg_test( NewTstAtts,X)).
+do_cg_test( TstAtts,X):- memberchk(xcall,TstAtts),!, must(ignore(call_cg(xtext(X)))).
+do_cg_test(_TstAtts,X):- must(ignore(assert_cg(xtext(X)))).
+
+subset_loose(S1,S2):- \+ is_list(S2),!,member(S2,S1),!.
+subset_loose(S1,S2):- subset(S1,S2).
+
+cg_test_data(TstAtts,X):- nonvar(TstAtts), var(X), !,
+  forall((cg_test_data(WasTstAtts,X),subset_loose(WasTstAtts,TstAtts)),
+     cg_test_data( WasTstAtts,X)).
+cg_test_data(TstAtts,X):- nonvar(TstAtts), nonvar(X), !, 
+   exclude(=(skip),TstAtts,NTstAtts),
+   do_cg_test(NTstAtts,X).
 
 
 assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)),!.
@@ -42,14 +54,14 @@ pred_cg(Pred, Error):- var(Error),!, trace_or_throw(pred_cg(Pred, Error)).
 pred_cg(Pred, X):- string(X),!,pred_cg(Pred, xtext(X)).
 pred_cg(Pred, [Int|Codes]):- notrace(catch(text_to_string([Int|Codes],X),_,fail)),pred_cg(Pred, xtext(X)).
 pred_cg(Pred, X):- is_list(X), !, maplist(pred_cg(Pred),X).
-pred_cg(Pred, cg(CG)):- nop(wdmsg(call(Pred,CG))), !, call(Pred,CG).
-pred_cg(Pred, xtext(X)):- format('~N~n~n~n===========================================~n~w~n===========================================~n~n',[X]), cg_df_to_term(X,Y), !, pred_cg(Pred, Y),!.
-pred_cg(Pred, tOkS(Toks)):- !, (parse_cg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("~n?- rtrace( 
+pred_cg(Pred, xtext(X)):- locally_setval(cg_text,X,(( format('~N~n~n~n===========================================~n~w~n===========================================~n~n',[X]), cg_df_to_term(X,Y), !, pred_cg(Pred, Y)))),!.
+pred_cg(Pred, tOkS(Toks)):- !, (parse_cg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("
+% Failed Parse
+?- rtrace( 
     ~q  
    ). ~n",[pred_cg(Pred, tOkS(Toks))]))).
-%pred_cg(Pred, cg(CG)):- !, pred_cg(Pred, CG).
 
-%pred_cg(Pred, tOkS(Toks)):- catch(parse_cg(CG,Toks,[]),_,fail),pred_cg(Pred, cg(CG)),!.
+pred_cg(Pred, cg(CG)):- nop(wdmsg(call(Pred,CG))), !, call(Pred,CG).
 pred_cg(Pred, X):- wdmsg(pred_cg(Pred, X)), fail.
 %pred_cg(Pred, X):- term_to_cg(X, Y),!, pred_cg(Pred, Y),!.
 pred_cg(_, _):- !.
@@ -267,12 +279,12 @@ cvalue('#'(W))--> ci('#'), cw(W).
 cvalue('@'(W))--> ci('@'), cw(W).
 cvalue(countOf(0,0))--> ci('{'),  ci('}'),!.
 cvalue(named(W))--> cw(V), ((\+[_];dcg_peek(sent_op)) -> {flatten([V],W)} ;  cvalue_cont(W2), {flatten([V|W2],W)}).
-cvalue(Attrs)--> ci('{'), {Attrs=['@'(set)]}, 
+cvalue(TstAtts)--> ci('{'), {TstAtts=['@'(set)]}, 
   (['*'] 
-      -> (['}'],nb_set_add(Attrs,[countOf(1,_)])) 
-      ; ( (dcg_list_of(cw,List),nb_set_add(Attrs,[each_of(List)])),
+      -> (['}'],nb_set_add(TstAtts,[countOf(1,_)])) 
+      ; ( (dcg_list_of(cw,List),nb_set_add(TstAtts,[each_of(List)])),
           (([',','*'])
-             -> nb_set_add(Attrs,[countOf(1,_)]) 
+             -> nb_set_add(TstAtts,[countOf(1,_)]) 
              ; []), ci('}'))), !.
 
 concept_innerds([isa(C)|Cont]) --> cw(C), dcgOptional(ci(':')),!,concept_innerds_cont(Cont).
@@ -320,7 +332,7 @@ cg_df_to_term(In,Out):- any_to_string(In,Str),
   Out = tOkS(Toks).
 
 
-:- set_dcg_meta_reader_options(file_comment_reader, cg_comment_expr).
+:- set_dcg_meta_reader_options(file_comment_dialect=cg_lf, cg_comment_expr).
 cg_comment_expr(X) --> cspace,!,cg_comment_expr(X).
 cg_comment_expr('$COMMENT'(Expr,I,CP)) --> comment_expr_5(Expr,I,CP),!.
 comment_expr_5(T,N,CharPOS) --> `/*`, !, my_lazy_list_location(file(_,_,N,CharPOS)),!, zalwayz(read_string_until_no_esc(S,`*/`)),!,
@@ -331,43 +343,72 @@ cmt_until_eoln(`//`).
 cmt_until_eoln(`;;`).
 cmt_until_eoln(`%`).
 
+
+  
 %:- pop_operators.
 
 %:- ensure_loaded(library(cgprolog_inline_reader)).
       
 :- fixup_exports.
 
-cg_test_data([reader, level(0), sowa], "[Mat]1-(Attrib)->[Color #1]").
-cg_test_data([reader, level(0), sowa], "[Mat]1-(Attrib)->[Color]2").
-cg_test_data([reader, level(0)], "[Cat: @every]-(On)->[Mat]").
-cg_test_data([reader, level(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
-cg_test_data([reader, level(1)], "[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
-cg_test_data([reader, level(1)], "[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
-cg_test_data([reader, level(1)], "[Cat: ?x]-(On)->[Mat]").
-cg_test_data([reader, level(1)], "[Cat: ?x]-(On)->[*MatC]").
-cg_test_data([reader, level(1)], "[Cat: ?x]-(On)->[Mat: *MatC]").
-cg_test_data([reader, level(1)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
-cg_test_data([reader, level(1)], "[Mat #1]<- (on)- [Cat #1]").
-cg_test_data([reader, level(1)], "[Mat]<-(On)-[Cat: ?x]").
-cg_test_data([reader, level(1)], "[Color #1]<-(Attrib)-[Mat #1]").
-cg_test_data([reader, level(2)], "[Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
-cg_test_data([reader, level(2)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
-cg_test_data([reader, level(2)], "[Color #1] <- (Attrib) -[Mat #1]<- (on)- [Cat#1]").
-cg_test_data([reader, level(3)], "[Cat: @every]->(On)->[Mat]").
-cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
-cg_test_data([reader, level(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT]").
+cg_test_data([dialect=prlg], "
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
+     [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
 
-cg_test_data([reader, level(3)], "
+
+cg_test_data([dialect=prlg], "
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
+     [PERSON: x]<-childOf-[PERSON: y], 
+     [CITIZEN : y]<-memberOf-[COUNTRY : Oz].").
+
+
+cg_test_data([dialect=prlg], "
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
+     [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].").
+
+
+cg_test_data([dialect=prlg], "
+[PERSON : Tinman]-
+	      -childOf->[GIRL : Dorothy],
+	      <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
+
+
+cg_test_data([cg_dialect([lf,sowa])], "[Mat]1-(Attrib)->[Color #1]").
+cg_test_data([cg_dialect([lf,sowa])], "[Mat]1-(Attrib)->[Color]2").
+cg_test_data([cg_dialect([df]), group(0)], "[Cat: @every]-(On)->[Mat]").
+cg_test_data([cg_dialect([df]), group(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
+cg_test_data([cg_dialect([df]), group(1)], "[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
+cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(On)->[Mat]").
+cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(On)->[*MatC]").
+cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(On)->[Mat: *MatC]").
+cg_test_data([cg_dialect([df]), group(1)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
+cg_test_data([cg_dialect([df]), group(1)], "[Mat #1]<- (on)- [Cat #1]").
+cg_test_data([cg_dialect([df]), group(1)], "[Mat]<-(On)-[Cat: ?x]").
+cg_test_data([cg_dialect([df]), group(1)], "[Color #1]<-(Attrib)-[Mat #1]").
+cg_test_data([cg_dialect([df]), group(2)], "[Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([cg_dialect([df]), group(2)], "[Man:karim]<-agnt-[Drink]-obj->[Water]").
+cg_test_data([cg_dialect([df]), group(2)], "[Color #1] <- (Attrib) -[Mat #1]<- (on)- [Cat#1]").
+cg_test_data([cg_dialect([df]), group(3)], "[Cat: @every]->(On)->[Mat]").
+cg_test_data([cg_dialect([df]), group(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
+cg_test_data([cg_dialect([df]), group(3)], "[CAT]->(STAT)->[SIT]->(LOC)->[MAT]").
+
+cg_test_data([cg_dialect([df]), group(3)], "
    [Drive *x] [Person: Bob] [City: \"St. Louis\"] [Chevy *y]
    (Agnt ?x Bob) (Dest ?x \"St. Louis\") (Thme ?x ?y) (Poss Bob ?y)").
 
-cg_test_data([reader, level(3)], "  
+cg_test_data([cg_dialect([df]), group(3)], "  
    [A_CAT] -> (KnowsAbout) ->
    [THE_CAT: #666]  -> (KnowsAbout) ->
    [NAMED_CAT: Moris]  -> (KnowsAbout) ->
-   [LENGTH: @ 5ft]").
+   [LENGTH: @ 5ft]  -> (KnowsAbout) ->
+   [CAT_SET:{*}]  -> (KnowsAbout) ->
+   [CAT_M:{Morris}]  -> (KnowsAbout) ->
+   [CAT_FM:{Morris,Felix}]  -> (KnowsAbout) ->
+   [CAT5:{*} @ 5 ]  -> (KnowsAbout) -> 
+").
 
-cg_test_data([reader, level(3)], "  
+cg_test_data([cg_dialect([df]), group(3)], "  
    [A_CAT] -> (KnowsAbout) ->
    [THE_CAT: #666]  -> (KnowsAbout) ->
    [NAMED_CAT: Moris]  -> (KnowsAbout) ->
@@ -378,44 +419,44 @@ cg_test_data([reader, level(3)], "
    [CATS_ONE_OR_MORE:{Moris,*}]").
 
 
-cg_test_data([skip,reader, level(3)], "(IntegerDivide [Integer: *x] [Integer: 7] | [*u] [*v])").
+cg_test_data([skip,cg_dialect([df]), group(3)], "(IntegerDivide [Integer: *x] [Integer: 7] | [*u] [*v])").
 
-cg_test_data([skip,reader, level(3)], "
+cg_test_data([skip,cg_dialect([df]), group(3)], "
 [Function: *Quotient] [Function: *Remainder]
 [[@every*x1] [@every*x2] [@every*x3] [@every*x4]
 [Equiv: [Iff: (IntegerDivide ?x1 ?x2 | ?x3 ?x4)]
         [Iff: (#?Quotient ?x1 ?x2 | ?x3) (#?Remainder ?x1 ?x2 | ?x4)]]]").
 
-cg_test_data([reader, level(3)], "[Relation: *r] (Familial ?r) (#?r Bob Sue)").
+cg_test_data([cg_dialect([df]), group(3)], "[Relation: *r] (Familial ?r) (#?r Bob Sue)").
 
-cg_test_data([skip,reader, level(3)], "(exists ((r Relation)) (and (Familial r) (r Bob Sue)))").
+cg_test_data([skip,cg_dialect([df]), group(3)], "(exists ((r Relation)) (and (Familial r) (r Bob Sue)))").
 
-cg_test_data([reader, level(3)], "
+cg_test_data([cg_dialect([df]), group(3)], "
 [SIT]-
   <-(STAT)<-[CAT]
   ->(LOC)->[MAT],.").
 
 
-cg_test_data([xcall, level(0), funky_syntax], "?x -(Attrib)-> [Color #1]").
+cg_test_data([xcall, group(0), cg_dialect([df])], "?x -(Attrib)-> [Color #1]").
 
-cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
-cg_test_data([xcall, level(0), funky_syntax], "?x -(On)->[Mat #1]").
-cg_test_data([xcall, level(0), funky_syntax], "[?x] -(Attrib)-> [Color #1]").
-cg_test_data([xcall, level(0), funky_syntax], "[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
-cg_test_data([xcall, level(0), funky_syntax], "[Mat ?x]-(Attrib)->[Color #1]").
-cg_test_data([xcall, level(0)], "[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]").
+cg_test_data([xcall, group(0), cg_dialect([df])], "?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([xcall, group(0), cg_dialect([df])], "?x -(On)->[Mat #1]").
+cg_test_data([xcall, group(0), cg_dialect([df])], "[?x] -(Attrib)-> [Color #1]").
+cg_test_data([xcall, group(0), cg_dialect([df])], "[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([xcall, group(0), cg_dialect([df])], "[Mat ?x]-(Attrib)->[Color #1]").
+cg_test_data([xcall, group(0)], "[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]").
 
-cg_test_data([reader, level(3)], "[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
-cg_test_data([reader, level(3)], "[a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]").
+cg_test_data([cg_dialect([df]), group(3)], "[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
+cg_test_data([cg_dialect([df]), group(3)], "[a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]").
 
-cg_test_data([reader, level(4)], "
+cg_test_data([cg_dialect([df]), group(4)], "
 
 [Go]- -
    (Agnt)->[Person: John] -
    (Dest)->[City: Boston] -
    (Inst)->[Bus]").
 
-cg_test_data([skip, reader, level(4)], "
+cg_test_data([skip, cg_dialect([df]), group(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
 [Eat #0] -
    - obj->[Apple],
@@ -423,13 +464,13 @@ cg_test_data([skip, reader, level(4)], "
    - agnt->[Man]").
 
 
-cg_test_data([reader, level(4)], "
+cg_test_data([cg_dialect([df]), group(4)], "
    [Person: John2] <- (Agnt) - 
    [City: Boston2] <- (Dest) -
    [Bus2] <- (Inst) - [Go2]").
 
 
-cg_test_data([reader, level(3)], "
+cg_test_data([cg_dialect([df]), group(3)], "
 [Begin]-
         -obj->[Session],
         -srce->[Proposition = 
@@ -440,7 +481,7 @@ cg_test_data([reader, level(3)], "
         -agnt->[Person : John]").
 
 
-cg_test_data([reader, level(3)], "
+cg_test_data([cg_dialect([df]), group(3)], "
  [a] - (belives) -> 
  [statement = [Go2]
    - (Agnt)->[Person: John2]
@@ -448,33 +489,33 @@ cg_test_data([reader, level(3)], "
    - (Inst)->[Bus2]  ]").
 
 
-cg_test_data([reader, level(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?w)").
+cg_test_data([cg_dialect([df]), group(3)], "[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?w)").
 
-cg_test_data([skip, reader, level(4)], "
+cg_test_data([skip, cg_dialect([df]), group(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
 [Eat #0] -
    - obj->[Apple],
    - manr->[Fast],
    - agnt->[Man]").
 
-cg_test_data([reader, level(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]").
+cg_test_data([cg_dialect([df]), group(3)], "[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]").
 
-cg_test_data([reader, level(3)], "[?x]<-(Agnt)-[Marry]-(Thme)->[Sailor]").
+cg_test_data([cg_dialect([df]), group(3)], "[?x]<-(Agnt)-[Marry]-(Thme)->[Sailor]").
 
-cg_test_data([reader, level(3)], "
+cg_test_data([cg_dialect([df]), group(3)], "
 [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]").
 
-cg_test_data([reader, level(3)], "
+cg_test_data([cg_dialect([df]), group(3)], "
 [Proposition: [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
 
-cg_test_data([reader, level(4)], "
+cg_test_data([cg_dialect([df]), group(4)], "
 [Person: Tom]<-(Expr)-[Believe]-(Thme)->
      [Proposition:  [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
 
-cg_test_data([failing,reader, level(4)], "
+cg_test_data([failing,cg_dialect([df]), group(4)], "
 [Person: Tom]<-(Expr)<-[Believe]->(Thme)-
      [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
@@ -491,40 +532,40 @@ cg_test_data([failing,reader, level(4)], "
 
 %%CANON RESERVATIONS-AND-ELEPHANTS .
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE ARRIVAL-DATE(a) IS [UNIV:*a].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE CIRCUS(c) IS [UNIV:*c].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE CIRCUS(c) IS [UNIV:*c]").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "[ELEPHANT:*c]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS]").                              
                               
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 [Go *x] (Agnt ?x [Person: John]) (Dest ?x [City: Boston]) (Inst ?x [Bus]) 
 ").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE DEPARTURE-DATE(d) IS [UNIV:*d].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE ELEPHANT(e) IS [UNIV:*e].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE HOTEL(h) IS [UNIV:*h].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE HOTEL-RESERVATION(RESERVATION-NO) IS
 [RESERVATION:*RESERVATION-NO]-
   ->(RCPT)->[PERSON]
@@ -533,25 +574,25 @@ cg_test_data([sowa,reader, level(4)],
              ->(STRT)->[ARRIVAL-DATE]
              ->(UNTL)->[DEPARTURE-DATE],,.").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE PERFORM(p) IS [UNIV:*p].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE PERSON(p) IS [UNIV:*p].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE PROPOSITION(p) IS [UNIV:*p].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE RESERVATION(r) IS [UNIV:*r].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE ROOM(r) IS [UNIV:*r].").
 
-cg_test_data([sowa,reader, level(4)], 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], 
 "TYPE TIME-PERIOD(t) IS [UNIV:*t].").
 
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 [RESERVATION #316209]-
   ->(RCPT)->[PERSON:JOHN SOWA]
   ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
@@ -559,7 +600,7 @@ cg_test_data([sowa,reader, level(4)], "
              ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]").
 
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 [RESERVATION:#316209]-
   ->(RCPT)->[PERSON:JOHN SOWA]
   ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
@@ -567,7 +608,7 @@ cg_test_data([sowa,reader, level(4)], "
              ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]").
 
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 INDIVIDUAL HOTEL-RESERVATION(#316209) IS
 [RESERVATION:#316209]-
   ->(RCPT)->[PERSON:JOHN SOWA]
@@ -576,7 +617,7 @@ INDIVIDUAL HOTEL-RESERVATION(#316209) IS
              ->(STRT)->[ARRIVAL-DATE:MARCH 14 1983]
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983],,.").
 
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 INDIVIDUAL HOTEL-RESERVATION(#316210) IS
 [RESERVATION:#316210]-
   ->(RCPT)->[PERSON:JOHN ESCH]
@@ -585,11 +626,11 @@ INDIVIDUAL HOTEL-RESERVATION(#316210) IS
              ->(STRT)->[ARRIVAL-DATE:MARCH 12 1983]
              ->(UNTL)->[DEPARTURE-DATE:MARCH 19 1983],,.").
 
-cg_test_data([sowa,reader, level(4)], "
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#BUMBO) IS
 [ELEPHANT:#BUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Flying Tigers].").
 
-cg_test_data([skip,sowa,reader, level(4)], "
+cg_test_data([skip,cg_dialect([lf,sowa]), group(1)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
 [ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].").
 
