@@ -362,13 +362,13 @@ cg_test_data([cg_dialect([df])],"[THE_CAT:#666]->(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[NAMED_CAT:Moris]->(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[LENGTH:@5ft]<-(SizeOf)-[Mat]").
 cg_test_data([cg_dialect([df])],"[LENGTH:@5ft.]<-(SizeOf)-[Mat]").
-cg_test_data([cg_dialect([df])],"[CAT_SET:{*}]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_SET_NONE:{}]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CATS_ONE_OR_MORE:{*}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_FIVE:{*}@5]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_M:{Moris}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_FM:{Felix,Moris}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
-cg_test_data([cg_dialect([df])],"[CAT_SET_NONE:{}]-(On)->[Mat]").
 
 cg_test_data([cg_dialect([df,plcg])], "
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
