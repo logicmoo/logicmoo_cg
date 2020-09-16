@@ -643,3 +643,4 @@ cg_test_data([skip,cg_dialect([lf,sowa]), group(1)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
 [ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].").
 
+
