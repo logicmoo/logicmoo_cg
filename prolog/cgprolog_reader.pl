@@ -54,7 +54,11 @@ pred_cg(Pred, Error):- var(Error),!, trace_or_throw(pred_cg(Pred, Error)).
 pred_cg(Pred, X):- string(X),!,pred_cg(Pred, xtext(X)).
 pred_cg(Pred, [Int|Codes]):- notrace(catch(text_to_string([Int|Codes],X),_,fail)),pred_cg(Pred, xtext(X)).
 pred_cg(Pred, X):- is_list(X), !, maplist(pred_cg(Pred),X).
-pred_cg(Pred, xtext(X)):- locally_setval(cg_text,X,(( format('~N~n~n~n===========================================~n~w~n===========================================~n~n',[X]), cg_df_to_term(X,Y), !, pred_cg(Pred, Y)))),!.
+pred_cg(Pred, xtext(X)):- locally_setval(cg_text,X,(( 
+  format('~N~n~n```~n% ===========================================~n~w~n% ===========================================~n~n',[X]),
+  cg_df_to_term(X,Y), !, pred_cg(Pred, Y), format("~N```~n",[])))),!.
+
+
 pred_cg(Pred, tOkS(Toks)):- !, (parse_cg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("
 % Failed Parse
 ?- rtrace( 
@@ -278,7 +282,7 @@ cvalue('#'(W))--> ci('#'), cw(W).
 % cvalue(countOf(W,W))--> ci('@'), [W], { number(W) },!.
 cvalue('@'(W))--> ci('@'), cw(W).
 cvalue(countOf(0,0))--> ci('{'),  ci('}'),!.
-cvalue(named(W))--> cw(V), ((\+[_];dcg_peek(sent_op)) -> {flatten([V],W)} ;  cvalue_cont(W2), {flatten([V|W2],W)}).
+cvalue(cg_name(W))--> cw(V), ((\+[_];dcg_peek(sent_op)) -> {flatten([V],W)} ;  cvalue_cont(W2), {flatten([V|W2],W)}).
 cvalue(TstAtts)--> ci('{'), {TstAtts=['@'(set)]}, 
   (['*'] 
       -> (['}'],nb_set_add(TstAtts,[countOf(1,_)])) 
@@ -365,7 +369,7 @@ cg_test_data([cg_dialect([df])],"[LENGTH:@5ft.]<-(SizeOf)-[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_NONE:{}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CATS_ONE_OR_MORE:{*}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_FIVE:{*}@5]-(On)->[Mat]").
-cg_test_data([cg_dialect([df])],"[CAT_M:{Moris}]-(On)->[Mat]").
+clacg_test_data([cg_dialect([df])],"[CAT_M:{Moris}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_FM:{Felix,Moris}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
