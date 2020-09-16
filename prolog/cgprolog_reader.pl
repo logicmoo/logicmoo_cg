@@ -351,31 +351,46 @@ cmt_until_eoln(`%`).
       
 :- fixup_exports.
 
-cg_test_data([dialect=prlg], "
+
+
+cg_test_data([cg_dialect([lf,sowa])],"[Mat]1-(Attrib)->[Color #1]").
+cg_test_data([cg_dialect([lf,sowa])],"[Mat]1-(Attrib)->[Color]2").
+
+cg_test_data([cg_dialect([df])],"[CAT_QUANT:@every]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[A_CAT]->(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[THE_CAT:#666]->(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[NAMED_CAT:Moris]->(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[LENGTH:@5ft]<-(SizeOf)-[Mat]").
+cg_test_data([cg_dialect([df])],"[LENGTH:@5ft.]<-(SizeOf)-[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_SET:{*}]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_FIVE:{*}@5]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_M:{Moris}]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_FM:{Felix,Moris}]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
+cg_test_data([cg_dialect([df])],"[CAT_SET_NONE:{}]-(On)->[Mat]").
+
+cg_test_data([cg_dialect([df,plcg])], "
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
      [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
 
 
-cg_test_data([dialect=prlg], "
+cg_test_data([cg_dialect([df,plcg])], "
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
      [PERSON: x]<-childOf-[PERSON: y], 
      [CITIZEN : y]<-memberOf-[COUNTRY : Oz].").
 
 
-cg_test_data([dialect=prlg], "
+cg_test_data([cg_dialect([df,plcg])], "
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
      [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].").
 
 
-cg_test_data([dialect=prlg], "
+cg_test_data([cg_dialect([df,plcg])], "
 [PERSON : Tinman]-
 	      -childOf->[GIRL : Dorothy],
 	      <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
 
-
-cg_test_data([cg_dialect([lf,sowa])], "[Mat]1-(Attrib)->[Color #1]").
-cg_test_data([cg_dialect([lf,sowa])], "[Mat]1-(Attrib)->[Color]2").
-cg_test_data([cg_dialect([df]), group(0)], "[Cat: @every]-(On)->[Mat]").
 cg_test_data([cg_dialect([df]), group(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
 cg_test_data([cg_dialect([df]), group(1)], "[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
 cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
@@ -397,16 +412,6 @@ cg_test_data([cg_dialect([df]), group(3)], "
    [Drive *x] [Person: Bob] [City: \"St. Louis\"] [Chevy *y]
    (Agnt ?x Bob) (Dest ?x \"St. Louis\") (Thme ?x ?y) (Poss Bob ?y)").
 
-cg_test_data([cg_dialect([df]), group(3)], "  
-   [A_CAT] -> (KnowsAbout) ->
-   [THE_CAT: #666]  -> (KnowsAbout) ->
-   [NAMED_CAT: Moris]  -> (KnowsAbout) ->
-   [LENGTH: @ 5ft]  -> (KnowsAbout) ->
-   [CAT_SET:{*}]  -> (KnowsAbout) ->
-   [CAT_M:{Morris}]  -> (KnowsAbout) ->
-   [CAT_FM:{Morris,Felix}]  -> (KnowsAbout) ->
-   [CAT5:{*} @ 5 ]  -> (KnowsAbout) -> 
-").
 
 cg_test_data([cg_dialect([df]), group(3)], "  
    [A_CAT] -> (KnowsAbout) ->
@@ -437,13 +442,13 @@ cg_test_data([cg_dialect([df]), group(3)], "
   ->(LOC)->[MAT],.").
 
 
-cg_test_data([xcall, group(0), cg_dialect([df])], "?x -(Attrib)-> [Color #1]").
+cg_test_data([xcall,easy,cg_dialect([df])], "?x -(Attrib)-> [Color #1]").
 
-cg_test_data([xcall, group(0), cg_dialect([df])], "?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
-cg_test_data([xcall, group(0), cg_dialect([df])], "?x -(On)->[Mat #1]").
-cg_test_data([xcall, group(0), cg_dialect([df])], "[?x] -(Attrib)-> [Color #1]").
-cg_test_data([xcall, group(0), cg_dialect([df])], "[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
-cg_test_data([xcall, group(0), cg_dialect([df])], "[Mat ?x]-(Attrib)->[Color #1]").
+cg_test_data([xcall,easy,cg_dialect([df])], "?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([xcall,easy,cg_dialect([df])], "?x -(On)->[Mat #1]").
+cg_test_data([xcall,easy,cg_dialect([df])], "[?x] -(Attrib)-> [Color #1]").
+cg_test_data([xcall,easy,cg_dialect([df])], "[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([xcall,easy,cg_dialect([df])], "[Mat ?x]-(Attrib)->[Color #1]").
 cg_test_data([xcall, group(0)], "[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]").
 
 cg_test_data([cg_dialect([df]), group(3)], "[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
