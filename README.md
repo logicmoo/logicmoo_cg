@@ -675,7 +675,8 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_type(X, ?('X')).
   cg_equal(Color, 'Color#1').
   lbl(frame47).
-% pred_cg(call_cg_real, xtext("[?x] -(Attrib)-> [Color #1]")).
+```
+
 
 
 ```
