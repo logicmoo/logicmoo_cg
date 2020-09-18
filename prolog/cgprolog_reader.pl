@@ -1,6 +1,9 @@
 
 
 :- use_module(library(logicmoo/dcg_meta)).
+:- use_module(library(logicmoo/util_bb_frame)).
+
+:- ensure_loaded(library(cgprolog_swipl)).
 
 :- multifile_data(cg_test_data/2). 
 %:- multifile_data(skip_cg_test_data/2). 
@@ -12,13 +15,14 @@ debug_fvar(N,_):- (\+ ground(N) ; number(N)),!.
 
 debug_fvar(N,V):- debug_var(N,V).
 
-push_frame_info(Info,Frame):-atom(Frame),nb_current(Frame,CG),!,push_frame_info(Info,CG).
-push_frame_info(Info,Frame):-push_frame(Info,Frame).
-push_frame_info(Info,Frame,S,S):-push_frame(Info,Frame).
-push_frame_concept(C,Frame):-atom(Frame),nb_current(Frame,CG),!,push_frame_concept(C,CG).
+cg_new(CG):- must(push_frame_info([], CG)),!.
+push_frame_info(Info,Frame):- atom(Frame),must(nb_current(Frame,CG)),!,push_frame_info(Info,CG).
+push_frame_info(Info,Frame):- must(push_frame(Info,Frame)).
+push_frame_info(Info,Frame,S,S):-push_frame_info(Info,Frame).
+push_frame_concept(C,Frame):-atom(Frame),must(nb_current(Frame,CG)),!,push_frame_concept(C,CG).
 push_frame_concept(C,Frame):-nop(push_frame(C,Frame)).
 push_frame_concept(C,Frame,S,S):-push_frame_concept(C,Frame).
-nb_set_add(X,Y,S,S):- nb_set_add(X,Y).
+nb_set_add(X,Y,S,S):- must(nb_set_add(X,Y)).
 
 
 cg_demo :- make, forall((cg_test_data(TstAtts,X), \+ memberchk(failing,TstAtts)),must(do_cg_test(TstAtts,X))).
@@ -43,7 +47,7 @@ cg_test_data(TstAtts,X):- nonvar(TstAtts), nonvar(X), !,
 
 assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)),!.
 assert_cg_real(X):- is_list(X),list_to_conjuncts(X,J),!,wdmsg(J).
-assert_cg_real(X):-!,  frmprint(X).
+assert_cg_real(X):- !,  frmprint(X).
 assert_cg_real(X):- nb_current(cgid,Id), print_cg(Id:X),  ain(cg(Id,X)).
 
 call_cg(X):- pred_cg(call_cg_real,X).
@@ -75,7 +79,8 @@ print_cg(X):- !, frmprint(X).
 print_cg(X):- is_list(X),!, maplist(print_cg,X).
 print_cg(X):- nl,wdmsg(display(X)),nl.
 
-fixcase_atom(Name,NameR):- atom(Name), upcase_atom(Name,Name),!,to_titlecase(Name,NameR).
+fixcase_atom(Name,NameR):- atom(Name), upcase_atom(Name,Name),to_case_break_atoms(Name,Atoms),
+ maplist(to_titlecase,Atoms,PAtoms),sUbst(PAtoms,'-','_',PSAtoms),atomic_list_concat(PSAtoms,NameR),!.
 fixcase_atom(Name,Name).
 
 :- use_module(library(dcg/basics)).
@@ -107,8 +112,10 @@ tokenize_cg([])-->[],!.
 %parse_var_concept(V,typeof(Rel, ?(V)))-->  ci('['), cw(Rel), ci(':'),ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
 %parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
 
-parse_rel(reL(RelD,Frame)) -->  ci('('),carg(Rel),dcg_list_of(carg,Frame), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
-prolog_expr(rEL(RelD,Frame)) -->  carg(Rel), ci('('),dcg_list_of(carg,Frame), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
+parse_rel(tN(RelD,Args)) -->  ci('('),carg(Rel),dcg_list_of(carg,Args), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
+
+parse_decl(Type, t(Type,RelD,Arg)) -->  cw(Rel), ci('('), carg(Arg), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
+
 
 carg(W)-->dcg_peek(ci('[')),concept(W),!.
 carg(W)-->dcg_peek(ci('(')),parse_rel(W),!.
@@ -122,15 +129,15 @@ dcg_list_of(_Cw,[]) --> [].
 
 push_incr(State,Type,Amount):- (get_attr(State,Type,Prev);Prev=0),New is Amount+ Prev,!, put_attr(State,Type,New).
 get_incrs(State,Type,Amount):- sent_op_pair(Type,_), get_attr(State,Type,Amount).
-unbalanced_incr(State):- sent_op_pair(S,S),get_incrs(State,S,V),V>0.
+unbalanced_incr(State):- sent_op_pair_q(S),get_incrs(State,S,V),V>0.
 can_incr(State,_S):- \+ unbalanced_incr(State), !. % sent_op_pair(S,S), O\==S, get_incrs(State,S,V),V>0.
 
 ballance([],_):-!.
-ballance([H|T],State):- sent_op_pair(S,S),H=S,!,
+ballance([H|T],State):- sent_op_pair_q(S),H=S,!,
  ((get_incrs(State,S,V),V>0) -> push_incr(State,S,-1);push_incr(State,S,+1)),
  ballance(T,State).
-ballance([H|T],State):- sent_op_pair(S,E),S\==E, H=S, can_incr(State,S), !, push_incr(State,S,+1),ballance(T,State).
-ballance([H|T],State):- sent_op_pair(S,E),S\==E, H=E, can_incr(State,S), !, push_incr(State,S,-1),ballance(T,State).
+ballance([H|T],State):- sent_op_pair(S,_), H=S, can_incr(State,S), !, push_incr(State,S,+1),ballance(T,State).
+ballance([H|T],State):- sent_op_pair(S,E), H=E, can_incr(State,S), !, push_incr(State,S,-1),ballance(T,State).
 ballance([_|T],State):- ballance(T,State).
 
 ballanced(L):- notrace((ballance(L,R),\+ ( get_incrs(R,_,V),V\=0))).
@@ -140,56 +147,24 @@ dcg_beforeSeq(Skipped,Mid,S,E):-
 
 codes_to_tokens(S,Toks):- length(S,Len), Len> 2, notrace(catch(atom_codes(_,S),_,fail)), tokenize_cg(Toks,S,[]),!.
 
+
 parse_cg(CG) --> codes_to_tokens,!,parse_cg(CG).
-parse_cg(CG)-->parse_cg0(CG0), {resolve_frame_constants(CG0,CG)},!,dcgOptional(ci('.')).
+parse_cg(CG)--> parse_cg0(CG0), {must(var(CG)),resolve_frame_constants(CG0,CG)},!,dcgOptional(ci('.')).
 
-resolve_frame_constants(CG0,CG):-
- resolve_frame_constants(CG0,CG0,CG1),
- correct_frame_preds(CG1,CG).
+parse_cg0(CG,S,E) :- var(CG), \+ attvar(CG),cg_new(CG),!,locally_setval(cgframe,CG,parse_cg0(CG,S,E)).
 
-resolve_frame_constants([],IO,IO):-!.
-resolve_frame_constants([DoConst|More],Props,Out):- !, 
-  resolve_frame_constants(DoConst,Props,Mid),
-  resolve_frame_constants(More,Mid,Out).
-resolve_frame_constants(frame_var(Var, RealVar),Props,Out):-
-  downcase_atom(Var,VarD),
-  upcase_atom(Var,VarU),
-  subst(Props,frame_var(Var, RealVar),[],Mid),
-  subst_each(Mid,[Var=RealVar,VarU=RealVar,VarD=RealVar,?(RealVar)=RealVar],Out),!.
-resolve_frame_constants(_,Mid,Mid).
-  
+parse_cg0(CG)--> [':-'], !,parse_cg(PCG), { merge_simular_graph_vars(CG,PCG), push_frame_info(preconds(PCG),CG)}.
 
-event_frame_pred('agnt').
-event_frame_pred('inst').
+parse_cg0(CG)--> {member(Type,[type,individual])}, ci(Type), !, zalwayz(parse_decl(Type,Expr)), !, zalwayz(ci('Is')),!, 
+ zalwayz(parse_cg(CG0)),!, {push_frame_info(CG0,CG),push_frame_info(decl(Type, Expr),CG)},!.
 
-correct_frame_preds([H|CG1],CG):- !, 
-  correct_frame_preds(H,H1),!,
-  correct_frame_preds(CG1,CG2),
-  flatten([H1,CG2],CG).
-
-correct_frame_preds(FrameP,FramePO):- compound(FrameP),
-  compound_name_arguments(FrameP,F,[A,B|C]),
-  downcase_atom(F,DC),
-  compound_name_arguments(FramePO,DC,[A,B|C]), !,  
-  ignore((event_frame_pred(DC) -> debug_var('_Event',A), nop(debug_var('Doer',B)))).
-correct_frame_preds(CG,CG).
-
-
-parse_cg0(CG,S,E) :- var(CG), \+ attvar(CG),push_frame_info([], CG),!,locally_setval(cgframe,CG,parse_cg0(CG,S,E)).
-parse_cg0(CG)--> ci('Type'), prolog_expr(RExpr), ci(is), 
-  {push_frame_info([decl(type, RExpr)],CG)},
-  concept(C), 
-  {push_frame_concept(C,CG)}.
-parse_cg0(CG)--> ci(individual), prolog_expr(RExpr), ci(is), 
-  {push_frame_info([decl(inst, RExpr)],CG)},
-  concept(C), 
-  {push_frame_concept(C,CG)},
-  parse_cg0(CG).
 parse_cg0(CG) --> parse_rel(H), {push_frame_info([H],CG)}, parse_cg0(CG).
 parse_cg0(CG) --> concept(S), cont_graph(S,S,CG),!,parse_cg0(CG).
+parse_cg0(_) --> {sent_op_pair(_,R)},dcg_peek(ci(R)),!.
 parse_cg0(_) --> ci('.'),!.
 parse_cg0(_) --> \+ [_],!.
 
+s_e(S,E,S,E).
 
 cont_graph(Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(t(Rel,Subj,Obj),CG),cont_graph(Parent,Obj,CG).
 cont_graph(Parent,Subj,CG) --> rel_right(Rel),!,concept(Obj),push_frame_info(t(Rel,Subj,Obj),CG),cont_graph(Parent,Parent,CG).
@@ -249,13 +224,16 @@ concept_var(V,C):- maplist(concept_var(V,C),C).
 concept_var(V, _Props,      Var  ):- var(Var),!, V=Var.
 concept_var(_, _Props,       []  ):- !.
 concept_var(V,  Props,    '#'(N) ):-  atomic(N), member(isa(Type),Props),!,atomic_list_concat([Type,'#',N],Val),!,
-  concept_var(V,  Props,   =(Val)).
-concept_var(V, _Props,        M  ):- atomic(M),!,V=M.
+  concept_var(V,  Props,   equal(Val)).
+concept_var(V, _Props,    '@'(E) ):- !,debug_fvar(E,V), push_frame_info(quantz(E,V),cgframe).
 %concept_var(V, Props, '$VAR'(N),'$VAR'(N) ):- !.
 concept_var(V, Props, '$VAR'(N) ):-  !,concept_var(V, Props, '?'(N) ).
-concept_var(V, _Props,    '?'(N) ):- !,upcase_atom(N,U),debug_fvar(N,V),!,!,V='$VAR'(U).
-concept_var(V, _Props,    '@'(E) ):- !,debug_fvar(E,V), push_frame_info(quantz(E,V),cgframe).
+concept_var(V, Props, 'cg_name'(N) ):-  atom(N), downcase_atom(N,N),!,concept_var(V, Props, '*'(N) ).
+concept_var(V, _Props,    '?'(N) ):- !, upcase_atom(N,U),debug_fvar(N,V),!,push_frame_info(quantz(e,V),cgframe),!,V='$VAR'(U).
 concept_var(V, _Props,    '*'(N) ):- !,debug_fvar(N,V),upcase_atom(N,NU),push_frame_info(frame_var(NU,V),cgframe),!.
+
+concept_var(V, _Props,        M  ):- atomic(M),!,V=M.
+
 %concept_var(V, _Props,   = ):- atomic_list_concat([Type,'_'],M),gensym(M,V),
 %  push_frame_info(isa(V,Type),cgframe),push_frame_info(same_values(V,Value),cgframe).
 
@@ -265,11 +243,12 @@ concept_var(_, _Props, _):-!.
 
 
 
-cvalue_cont(W)--> cw(V), ((\+[_];dcg_peek(sent_op);ci('.')) -> {flatten([V],W)} ;  cvalue(W2), {flatten([V|W2],W)}).
+cvalue_cont([])--> (\+[_] ; ci('.'); dcg_peek(sent_op)),!.
+cvalue_cont([H|T]) --> cw(H), cvalue_cont(T).
 
-cvalue('GRAPH'(W))--> dcg_peek(ci('[')), parse_cg(W).
-cvalue(=(REL))--> dcg_peek(ci('(')), parse_rel(REL),!.
-cvalue(=(REL))--> dcg_peek((cw(_),ci('('))), prolog_expr(REL),!.
+cvalue('GRAPH'(W))--> dcg_peek(ci('[')), zalwayz(parse_cg(W)).
+cvalue(=(REL))--> dcg_peek(ci('(')), zalwayz(parse_rel(REL)),!.
+cvalue(=(REL))--> dcg_peek((cw(_),ci('('))), parse_decl(inst,REL),!.
 cvalue(textOf(String))--> [String], {string(String)},!.
 cvalue('='(W))--> ci('='), cvalue(W).
 cvalue('^'(W))--> ci('^'), cvalue(W).
@@ -278,11 +257,11 @@ cvalue('*'(W))--> ci('*'), cw(W).
 cvalue('?'(W))--> [?(W)],!.
 % #?Quotient
 cvalue('='(W))--> ci('#'), [?(W)], {atomic(W)}.
-cvalue('#'(W))--> ci('#'), cw(W).
+cvalue('#'(W))--> ci('#'), [W].
 % cvalue(countOf(W,W))--> ci('@'), [W], { number(W) },!.
 cvalue('@'(W))--> ci('@'), cw(W).
 cvalue(countOf(0,0))--> ci('{'),  ci('}'),!.
-cvalue(cg_name(W))--> cw(V), ((\+[_];dcg_peek(sent_op)) -> {flatten([V],W)} ;  cvalue_cont(W2), {flatten([V|W2],W)}).
+cvalue(cg_name(W))--> cw(H), cvalue_cont(T), {maplist(term_to_unquoted_atom,[H|T],HT),atomic_list_concat(HT,'_',W)}.
 cvalue(TstAtts)--> ci('{'), {TstAtts=['@'(set)]}, 
   (['*'] 
       -> (['}'],nb_set_add(TstAtts,[countOf(1,_)])) 
@@ -290,6 +269,10 @@ cvalue(TstAtts)--> ci('{'), {TstAtts=['@'(set)]},
           (([',','*'])
              -> nb_set_add(TstAtts,[countOf(1,_)]) 
              ; []), ci('}'))), !.
+
+
+term_to_unquoted_atom(Atom,Atom):- atom(Atom),!.
+term_to_unquoted_atom(Term,Atom):- term_to_atom(Term,Atom).
 
 concept_innerds([isa(C)|Cont]) --> cw(C), dcgOptional(ci(':')),!,concept_innerds_cont(Cont).
 concept_innerds(Cont) --> concept_innerds_cont(Cont).
@@ -308,6 +291,7 @@ sent_op('-').  sent_op(':').
 % then..
 sent_op(A):- sent_op_pair(A,_).
 sent_op(A):- sent_op_pair(_,A).
+sent_op(A):- sent_op_pair_q(A).
 sent_op(',').  sent_op(';'). 
 sent_op('|').
 sent_op('.').  sent_op('='). sent_op('@').  sent_op('#').
@@ -319,8 +303,9 @@ sent_op_pair('<','>').
 sent_op_pair('{','}'). 
 sent_op_pair('[',']').
 sent_op_pair('(',')'). 
-sent_op_pair('"','"'). 
-sent_op_pair('\'','\''). 
+
+sent_op_pair_q('"'). 
+sent_op_pair_q('\''). 
 
 
 cw(H,[H|T],T):- notrace(( \+ sent_op(H))).
@@ -356,6 +341,34 @@ cmt_until_eoln(`%`).
 :- fixup_exports.
 
 
+cg_test_data([cg_dialect([df,plcg])], "
+[PERSON: x] :- [CITIZEN : x].").
+
+
+cg_test_data([cg_dialect([df,plcg])], "
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
+     [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
+
+
+cg_test_data([cg_dialect([df,plcg])], "
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
+     [PERSON: ?x]<-childOf-[PERSON: y], 
+     [CITIZEN : y]<-memberOf-[COUNTRY : Oz].").
+
+
+cg_test_data([cg_dialect([df,plcg])], "
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
+     [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].").
+
+
+cg_test_data([cg_dialect([df,plcg])], "
+[PERSON : Tinman]-
+	      -childOf->[GIRL : Dorothy],
+	      <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
+
+% end_of_file.
+
+
 
 cg_test_data([cg_dialect([lf,sowa])],"[Mat]1-(Attrib)->[Color #1]").
 cg_test_data([cg_dialect([lf,sowa])],"[Mat]1-(Attrib)->[Color]2").
@@ -373,27 +386,6 @@ clacg_test_data([cg_dialect([df])],"[CAT_M:{Moris}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_FM:{Felix,Moris}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]").
 cg_test_data([cg_dialect([df])],"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
-
-cg_test_data([cg_dialect([df,plcg])], "
-[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
-     [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
-
-
-cg_test_data([cg_dialect([df,plcg])], "
-[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
-     [PERSON: x]<-childOf-[PERSON: y], 
-     [CITIZEN : y]<-memberOf-[COUNTRY : Oz].").
-
-
-cg_test_data([cg_dialect([df,plcg])], "
-[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :- 
-     [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].").
-
-
-cg_test_data([cg_dialect([df,plcg])], "
-[PERSON : Tinman]-
-	      -childOf->[GIRL : Dorothy],
-	      <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
 
 cg_test_data([cg_dialect([df]), group(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
 cg_test_data([cg_dialect([df]), group(1)], "[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
