@@ -2,18 +2,109 @@
 Conceptual Graph (CG) Libraries in Prolog
 
 
+```
+/pack/logicmoo_cg/prolog# cls ; swipl -l cgprolog.pl -t halt -g cg_reader_tests
+```
+
+
+```
+% ===========================================
+
+[PERSON: x] :- [CITIZEN : x].
+% ===========================================
+
+% preconds([frame_var('X', X_Citizen), cg_type(X_Citizen, 'Citizen'), lbl(frame2)]),
+% frame_var('X', X_Citizen),
+% cg_type(X_Citizen, 'Person'),
+% lbl(frame1).
+```
+
+
+```
+% ===========================================
+
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
+     [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].
+% ===========================================
+
+% preconds([gc_pred('Loc', Being_Born, Oz_Country7), cg_name(Oz_Country7, 'Oz'), cg_type(Oz_Country7, 'Country'), gc_pred('Agnt', Being_Born, X_Person), cg_type(Being_Born, 'Being_Born'), frame_var('X', X_Person), cg_type(X_Person, 'Person'), lbl(frame4)]),
+% gc_pred(memberOf, Oz_Country7, X_Person),
+% cg_name(Oz_Country7, 'Oz'),
+% cg_type(Oz_Country7, 'Country'),
+% frame_var('X', X_Person),
+% cg_type(X_Person, 'Citizen'),
+% lbl(frame3).
+```
+
+
+```
+% ===========================================
+
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
+     [PERSON: ?x]<-childOf-[PERSON: y],
+     [CITIZEN : y]<-memberOf-[COUNTRY : Oz].
+% ===========================================
+
+% preconds([gc_pred(memberOf, Oz_Country10, Y_Citizen8), cg_name(Oz_Country10, 'Oz'), cg_type(Oz_Country10, 'Country'), frame_var('Y', Y_Citizen8), cg_type(Y_Citizen8, 'Citizen'), gc_pred(childOf, Y_Citizen8, X_), frame_var('Y', Y_Citizen8), cg_type(Y_Citizen8, 'Person'), cg_quantz(e, X_), cg_type(X_, 'Person'), lbl(frame6)]),
+% gc_pred(memberOf, Oz_Country10, X_Citizen),
+% cg_name(Oz_Country10, 'Oz'),
+% cg_type(Oz_Country10, 'Country'),
+% frame_var('X', X_Citizen),
+% cg_type(X_Citizen, 'Citizen'),
+% lbl(frame5).
+```
+
+
+```
+% ===========================================
+
+[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
+     [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].
+% ===========================================
+
+% preconds([gc_pred('Loc', Naturalize, Oz_Country7), cg_name(Oz_Country7, 'Oz'), cg_type(Oz_Country7, 'Country'), gc_pred('Rcpt', Naturalize, X_Person), cg_type(Naturalize, 'Naturalize'), frame_var('X', X_Person), cg_type(X_Person, 'Person'), lbl(frame8)]),
+% gc_pred(memberOf, Oz_Country7, X_Person),
+% cg_name(Oz_Country7, 'Oz'),
+% cg_type(Oz_Country7, 'Country'),
+% frame_var('X', X_Person),
+% cg_type(X_Person, 'Citizen'),
+% lbl(frame7).
+```
+
+
+```
+% ===========================================
+
+[PERSON : Tinman]-
+              -childOf->[GIRL : Dorothy],
+              <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].
+% ===========================================
+
+% gc_pred('Loc', Being_Born, Oz_Country),
+% cg_name(Oz_Country, 'Oz'),
+% cg_type(Oz_Country, 'Country'),
+% gc_pred('Agnt', Being_Born, Tinman_Person),
+% cg_type(Being_Born, 'Being_Born'),
+% gc_pred(childOf, Tinman_Person, Dorothy_Girl),
+% cg_name(Dorothy_Girl, 'Dorothy'),
+% cg_type(Dorothy_Girl, 'Girl'),
+% cg_name(Tinman_Person, 'Tinman'),
+% cg_type(Tinman_Person, 'Person'),
+% lbl(frame9).
+```
+
 
 ```
 % ===========================================
 [Mat]1-(Attrib)->[Color #1]
 % ===========================================
 
-% attrib(Mat, Color),
-% Color='Color#1',
-% isa(Color, 'Color'),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% lbl(frame736).
+% gc_pred('Attrib', Mat, Color),
+% cg_equal(Color, 'Color#1'),
+% cg_type(Color, 'Color'),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% lbl(frame10).
 ```
 
 
@@ -22,12 +113,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [Mat]1-(Attrib)->[Color]2
 % ===========================================
 
-% attrib(Mat, Color),
-% Color='Color#2',
-% isa(Color, 'Color'),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% lbl(frame737).
+% gc_pred('Attrib', Mat, Color),
+% cg_equal(Color, 'Color#2'),
+% cg_type(Color, 'Color'),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% lbl(frame11).
 ```
 
 
@@ -36,11 +127,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [CAT_QUANT:@every]-(On)->[Mat]
 % ===========================================
 
-% on(Every_Cat_quant, Mat),
-% isa(Mat, 'Mat'),
-% quantz(every, Every_Cat_quant),
-% isa(Every_Cat_quant, 'Cat_quant'),
-% lbl(frame738).
+% gc_pred('On', Every_Cat_Quant, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_quantz(every, Every_Cat_Quant),
+% cg_type(Every_Cat_Quant, 'Cat_Quant'),
+% lbl(frame12).
 ```
 
 
@@ -49,10 +140,10 @@ Conceptual Graph (CG) Libraries in Prolog
 [A_CAT]->(On)->[Mat]
 % ===========================================
 
-% on(A_cat, Mat),
-% isa(Mat, 'Mat'),
-% isa(A_cat, 'A_cat'),
-% lbl(frame739).
+% gc_pred('On', A_Cat, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_type(A_Cat, 'A_Cat'),
+% lbl(frame13).
 ```
 
 
@@ -61,11 +152,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [THE_CAT:#666]->(On)->[Mat]
 % ===========================================
 
-% on(The_cat, Mat),
-% isa(Mat, 'Mat'),
-% The_cat='The_cat#666',
-% isa(The_cat, 'The_cat'),
-% lbl(frame740).
+% gc_pred('On', The_Cat, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_equal(The_Cat, 'The_Cat#666'),
+% cg_type(The_Cat, 'The_Cat'),
+% lbl(frame14).
 ```
 
 
@@ -74,11 +165,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [NAMED_CAT:Moris]->(On)->[Mat]
 % ===========================================
 
-% on(Moris_Named_cat, Mat),
-% isa(Mat, 'Mat'),
-% cg_name(Moris_Named_cat, ['Moris']),
-% isa(Moris_Named_cat, 'Named_cat'),
-% lbl(frame741).
+% gc_pred('On', Moris_Named_Cat, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_name(Moris_Named_Cat, 'Moris'),
+% cg_type(Moris_Named_Cat, 'Named_Cat'),
+% lbl(frame15).
 ```
 
 
@@ -87,12 +178,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [LENGTH:@5ft]<-(SizeOf)-[Mat]
 % ===========================================
 
-% sizeof(Mat, Ft_Length),
-% isa(Mat, 'Mat'),
-% cg_name(Ft_Length, [ft]),
-% quantz(5, Ft_Length),
-% isa(Ft_Length, 'Length'),
-% lbl(frame742).
+% gc_pred('SizeOf', Mat, Ft_Length),
+% cg_type(Mat, 'Mat'),
+% frame_var('FT', Ft_Length),
+% cg_quantz(5, Ft_Length),
+% cg_type(Ft_Length, 'Length'),
+% lbl(frame16).
 ```
 
 
@@ -101,11 +192,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [LENGTH:@5ft.]<-(SizeOf)-[Mat]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Length',:,@,5,ft,'.',']',<-,'(','SizeOf',')',-,'[','Mat',']']))
-   ).
+% gc_pred('SizeOf', Mat, Ft_Length),
+% cg_type(Mat, 'Mat'),
+% frame_var('FT', Ft_Length),
+% cg_quantz(5, Ft_Length),
+% cg_type(Ft_Length, 'Length'),
+% lbl(frame17).
 ```
 
 
@@ -114,11 +206,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [CAT_SET_NONE:{}]-(On)->[Mat]
 % ===========================================
 
-% on(Cat_set_none, Mat),
-% isa(Mat, 'Mat'),
-% countof(Cat_set_none, 0, 0),
-% isa(Cat_set_none, 'Cat_set_none'),
-% lbl(frame744).
+% gc_pred('On', Cat_Set_None, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_count(Cat_Set_None, 0, 0),
+% cg_type(Cat_Set_None, 'Cat_Set_None'),
+% lbl(frame18).
 ```
 
 
@@ -127,12 +219,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [CATS_ONE_OR_MORE:{*}]-(On)->[Mat]
 % ===========================================
 
-% on(Set_Cats_one_or_more, Mat),
-% isa(Mat, 'Mat'),
-% countof(Set_Cats_one_or_more, 1, _7432),
-% quantz(set, Set_Cats_one_or_more),
-% isa(Set_Cats_one_or_more, 'Cats_one_or_more'),
-% lbl(frame745).
+% gc_pred('On', Set_Cats_One_Or_More, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_count(Set_Cats_One_Or_More, 1, _1258),
+% cg_quantz(set, Set_Cats_One_Or_More),
+% cg_type(Set_Cats_One_Or_More, 'Cats_One_Or_More'),
+% lbl(frame19).
 ```
 
 
@@ -141,13 +233,13 @@ Conceptual Graph (CG) Libraries in Prolog
 [CAT_FIVE:{*}@5]-(On)->[Mat]
 % ===========================================
 
-% on(Set_Cat_five, Mat),
-% isa(Mat, 'Mat'),
-% quantz(5, Set_Cat_five),
-% countof(Set_Cat_five, 1, _716),
-% quantz(set, Set_Cat_five),
-% isa(Set_Cat_five, 'Cat_five'),
-% lbl(frame746).
+% gc_pred('On', Set_Cat_Five, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_quantz(5, Set_Cat_Five),
+% cg_count(Set_Cat_Five, 1, _11100),
+% cg_quantz(set, Set_Cat_Five),
+% cg_type(Set_Cat_Five, 'Cat_Five'),
+% lbl(frame20).
 ```
 
 
@@ -156,12 +248,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [CAT_FM:{Felix,Moris}]-(On)->[Mat]
 % ===========================================
 
-% on(FelixMoris_Set_Cat_fm, Mat),
-% isa(Mat, 'Mat'),
-% each_of(FelixMoris_Set_Cat_fm, ['Felix', 'Moris']),
-% quantz(set, FelixMoris_Set_Cat_fm),
-% isa(FelixMoris_Set_Cat_fm, 'Cat_fm'),
-% lbl(frame747).
+% gc_pred('On', FelixMoris_Set_Cat_Fm, Mat),
+% cg_type(Mat, 'Mat'),
+% each_of(FelixMoris_Set_Cat_Fm, ['Felix', 'Moris']),
+% cg_quantz(set, FelixMoris_Set_Cat_Fm),
+% cg_type(FelixMoris_Set_Cat_Fm, 'Cat_Fm'),
+% lbl(frame21).
 ```
 
 
@@ -173,7 +265,7 @@ Conceptual Graph (CG) Libraries in Prolog
 
 % Failed Parse
 ?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Cat_set_min_two',:,'{','Felix',',','Moris',',',*,'}',']',-,'(','On',')',->,'[','Mat',']']))
+    pred_cg(assert_cg_real,tOkS(['[','Cat_Set_Min_Two',:,'{','Felix',',','Moris',',',*,'}',']',-,'(','On',')',->,'[','Mat',']']))
    ).
 ```
 
@@ -186,76 +278,8 @@ Conceptual Graph (CG) Libraries in Prolog
 
 % Failed Parse
 ?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Cat_set_five',:,'{','Felix',',','Moris',',',*,'}',@,5,']',-,'(','On',')',->,'[','Mat',']']))
+    pred_cg(assert_cg_real,tOkS(['[','Cat_Set_Five',:,'{','Felix',',','Moris',',',*,'}',@,5,']',-,'(','On',')',->,'[','Mat',']']))
    ).
-```
-
-
-```
-% ===========================================
-
-[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
-     [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].
-% ===========================================
-
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Citizen',:,x,']',<-,memberOf,-,'[','Country',:,'Oz',']',:-,'[','Person',:,x,']',<-,'Agnt',-,'[','Being_Born',']',-,'Loc',->,'[','Country',:,'Oz',']','.']))
-   ).
-```
-
-
-```
-% ===========================================
-
-[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
-     [PERSON: x]<-childOf-[PERSON: y],
-     [CITIZEN : y]<-memberOf-[COUNTRY : Oz].
-% ===========================================
-
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Citizen',:,x,']',<-,memberOf,-,'[','Country',:,'Oz',']',:-,'[','Person',:,x,']',<-,childOf,-,'[','Person',:,y,']',',','[','Citizen',:,y,']',<-,memberOf,-,'[','Country',:,'Oz',']','.']))
-   ).
-```
-
-
-```
-% ===========================================
-
-[CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
-     [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].
-% ===========================================
-
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Citizen',:,x,']',<-,memberOf,-,'[','Country',:,'Oz',']',:-,'[','Person',:,x,']',<-,'Rcpt',-,'[','Naturalize',']',-,'Loc',->,'[','Country',:,'Oz',']','.']))
-   ).
-```
-
-
-```
-% ===========================================
-
-[PERSON : Tinman]-
-              -childOf->[GIRL : Dorothy],
-              <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].
-% ===========================================
-
-% loc(Being_Born_Event, Oz_Country),
-% cg_name(Oz_Country, ['Oz']),
-% isa(Oz_Country, 'Country'),
-% agnt(Being_Born_Event, Tinman_Person),
-% isa(Being_Born_Event, 'Being_Born'),
-% childof(Tinman_Person, Dorothy_Girl),
-% cg_name(Dorothy_Girl, ['Dorothy']),
-% isa(Dorothy_Girl, 'Girl'),
-% cg_name(Tinman_Person, ['Tinman']),
-% isa(Tinman_Person, 'Person'),
-% lbl(frame753).
 ```
 
 
@@ -264,13 +288,13 @@ Conceptual Graph (CG) Libraries in Prolog
 ['Man':imad]<-agnt-['Drive']-obj->['Car']
 % ===========================================
 
-% obj(Drive_Event, Car),
-% isa(Car, 'Car'),
-% agnt(Drive_Event, Imad_Man),
-% isa(Drive_Event, 'Drive'),
-% cg_name(Imad_Man, [imad]),
-% isa(Imad_Man, 'Man'),
-% lbl(frame754).
+% gc_pred(obj, Drive, Car),
+% cg_type(Car, 'Car'),
+% gc_pred(agnt, Drive, Imad_Man),
+% cg_type(Drive, 'Drive'),
+% frame_var('IMAD', Imad_Man),
+% cg_type(Imad_Man, 'Man'),
+% lbl(frame24).
 ```
 
 
@@ -279,15 +303,15 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]
 % ===========================================
 
-% attrib(Cat, Color),
-% Color='Color#1',
-% isa(Color, 'Color'),
-% on(Cat, Mat),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% Cat='Cat#1',
-% isa(Cat, 'Cat'),
-% lbl(frame755).
+% gc_pred('Attrib', Cat, Color),
+% cg_equal(Color, 'Color#1'),
+% cg_type(Color, 'Color'),
+% gc_pred('On', Cat, Mat),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% cg_equal(Cat, 'Cat#1'),
+% cg_type(Cat, 'Cat'),
+% lbl(frame25).
 ```
 
 
@@ -296,12 +320,13 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]
 % ===========================================
 
-% on(X_, Mat),
-% isa(Mat, 'Mat'),
-% attrib(X_, C1),
-% isa(C1, 'C1'),
-% isa(X_, 'Cat'),
-% lbl(frame756).
+% gc_pred('On', X_, Mat),
+% cg_type(Mat, 'Mat'),
+% gc_pred('Attrib', X_, C1),
+% cg_type(C1, 'C1'),
+% cg_quantz(e, X_),
+% cg_type(X_, 'Cat'),
+% lbl(frame26).
 ```
 
 
@@ -310,10 +335,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat: ?x]-(On)->[Mat]
 % ===========================================
 
-% on(X_, Mat),
-% isa(Mat, 'Mat'),
-% isa(X_, 'Cat'),
-% lbl(frame757).
+% gc_pred('On', X_, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_quantz(e, X_),
+% cg_type(X_, 'Cat'),
+% lbl(frame27).
 ```
 
 
@@ -322,9 +348,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat: ?x]-(On)->[*MatC]
 % ===========================================
 
-% on(X_, MatC),
-% isa(X_, 'Cat'),
-% lbl(frame758).
+% gc_pred('On', X_, MatC),
+% frame_var('MATC', MatC),
+% cg_quantz(e, X_),
+% cg_type(X_, 'Cat'),
+% lbl(frame28).
 ```
 
 
@@ -333,10 +361,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat: ?x]-(On)->[Mat: *MatC]
 % ===========================================
 
-% on(X_, Mat),
-% isa(Mat, 'Mat'),
-% isa(X_, 'Cat'),
-% lbl(frame759).
+% gc_pred('On', X_, Mat),
+% frame_var('MATC', Mat),
+% cg_type(Mat, 'Mat'),
+% cg_quantz(e, X_),
+% cg_type(X_, 'Cat'),
+% lbl(frame29).
 ```
 
 
@@ -345,13 +375,13 @@ Conceptual Graph (CG) Libraries in Prolog
 [Man:karim]<-agnt-[Drink]-obj->[Water]
 % ===========================================
 
-% obj(Drink_Event, Water),
-% isa(Water, 'Water'),
-% agnt(Drink_Event, Karim_Man),
-% isa(Drink_Event, 'Drink'),
-% cg_name(Karim_Man, [karim]),
-% isa(Karim_Man, 'Man'),
-% lbl(frame760).
+% gc_pred(obj, Drink, Water),
+% cg_type(Water, 'Water'),
+% gc_pred(agnt, Drink, Karim_Man),
+% cg_type(Drink, 'Drink'),
+% frame_var('KARIM', Karim_Man),
+% cg_type(Karim_Man, 'Man'),
+% lbl(frame30).
 ```
 
 
@@ -360,12 +390,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [Mat #1]<- (on)- [Cat #1]
 % ===========================================
 
-% on(Cat, Mat),
-% Cat='Cat#1',
-% isa(Cat, 'Cat'),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% lbl(frame761).
+% gc_pred(on, Cat, Mat),
+% cg_equal(Cat, 'Cat#1'),
+% cg_type(Cat, 'Cat'),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% lbl(frame31).
 ```
 
 
@@ -374,10 +404,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [Mat]<-(On)-[Cat: ?x]
 % ===========================================
 
-% on(X_, Mat),
-% isa(X_, 'Cat'),
-% isa(Mat, 'Mat'),
-% lbl(frame762).
+% gc_pred('On', X_, Mat),
+% cg_quantz(e, X_),
+% cg_type(X_, 'Cat'),
+% cg_type(Mat, 'Mat'),
+% lbl(frame32).
 ```
 
 
@@ -386,12 +417,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [Color #1]<-(Attrib)-[Mat #1]
 % ===========================================
 
-% attrib(Mat, Color),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% Color='Color#1',
-% isa(Color, 'Color'),
-% lbl(frame763).
+% gc_pred('Attrib', Mat, Color),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% cg_equal(Color, 'Color#1'),
+% cg_type(Color, 'Color'),
+% lbl(frame33).
 ```
 
 
@@ -400,15 +431,15 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]
 % ===========================================
 
-% attrib(Cat, Color),
-% Color='Color#1',
-% isa(Color, 'Color'),
-% on(Cat, Mat),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% Cat='Cat#1',
-% isa(Cat, 'Cat'),
-% lbl(frame764).
+% gc_pred('Attrib', Cat, Color),
+% cg_equal(Color, 'Color#1'),
+% cg_type(Color, 'Color'),
+% gc_pred('On', Cat, Mat),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% cg_equal(Cat, 'Cat#1'),
+% cg_type(Cat, 'Cat'),
+% lbl(frame34).
 ```
 
 
@@ -417,13 +448,13 @@ Conceptual Graph (CG) Libraries in Prolog
 [Man:karim]<-agnt-[Drink]-obj->[Water]
 % ===========================================
 
-% obj(Drink_Event, Water),
-% isa(Water, 'Water'),
-% agnt(Drink_Event, Karim_Man),
-% isa(Drink_Event, 'Drink'),
-% cg_name(Karim_Man, [karim]),
-% isa(Karim_Man, 'Man'),
-% lbl(frame765).
+% gc_pred(obj, Drink, Water),
+% cg_type(Water, 'Water'),
+% gc_pred(agnt, Drink, Karim_Man),
+% cg_type(Drink, 'Drink'),
+% frame_var('KARIM', Karim_Man),
+% cg_type(Karim_Man, 'Man'),
+% lbl(frame35).
 ```
 
 
@@ -432,15 +463,15 @@ Conceptual Graph (CG) Libraries in Prolog
 [Color #1] <- (Attrib) -[Mat #1]<- (on)- [Cat#1]
 % ===========================================
 
-% on(Cat, Mat),
-% Cat='Cat#1',
-% isa(Cat, 'Cat'),
-% attrib(Mat, Color),
-% Mat='Mat#1',
-% isa(Mat, 'Mat'),
-% Color='Color#1',
-% isa(Color, 'Color'),
-% lbl(frame766).
+% gc_pred(on, Cat, Mat),
+% cg_equal(Cat, 'Cat#1'),
+% cg_type(Cat, 'Cat'),
+% gc_pred('Attrib', Mat, Color),
+% cg_equal(Mat, 'Mat#1'),
+% cg_type(Mat, 'Mat'),
+% cg_equal(Color, 'Color#1'),
+% cg_type(Color, 'Color'),
+% lbl(frame36).
 ```
 
 
@@ -449,11 +480,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat: @every]->(On)->[Mat]
 % ===========================================
 
-% on(Every_Cat, Mat),
-% isa(Mat, 'Mat'),
-% quantz(every, Every_Cat),
-% isa(Every_Cat, 'Cat'),
-% lbl(frame767).
+% gc_pred('On', Every_Cat, Mat),
+% cg_type(Mat, 'Mat'),
+% cg_quantz(every, Every_Cat),
+% cg_type(Every_Cat, 'Cat'),
+% lbl(frame37).
 ```
 
 
@@ -462,12 +493,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [CAT]->(STAT)->[SIT]->(LOC)->[MAT].
 % ===========================================
 
-% loc(Sit, Mat),
-% isa(Mat, 'Mat'),
-% stat(Cat, Sit),
-% isa(Sit, 'Sit'),
-% isa(Cat, 'Cat'),
-% lbl(frame768).
+% gc_pred('Loc', Sit, Mat),
+% cg_type(Mat, 'Mat'),
+% gc_pred('Stat', Cat, Sit),
+% cg_type(Sit, 'Sit'),
+% cg_type(Cat, 'Cat'),
+% lbl(frame38).
 ```
 
 
@@ -476,12 +507,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [CAT]->(STAT)->[SIT]->(LOC)->[MAT]
 % ===========================================
 
-% loc(Sit, Mat),
-% isa(Mat, 'Mat'),
-% stat(Cat, Sit),
-% isa(Sit, 'Sit'),
-% isa(Cat, 'Cat'),
-% lbl(frame769).
+% gc_pred('Loc', Sit, Mat),
+% cg_type(Mat, 'Mat'),
+% gc_pred('Stat', Cat, Sit),
+% cg_type(Sit, 'Sit'),
+% cg_type(Cat, 'Cat'),
+% lbl(frame39).
 ```
 
 
@@ -492,17 +523,23 @@ Conceptual Graph (CG) Libraries in Prolog
    (Agnt ?x Bob) (Dest ?x "St. Louis") (Thme ?x ?y) (Poss Bob ?y)
 % ===========================================
 
-% rel('Poss', ['Bob', Y_Chevy]),
-% rel('Thme', [X_Drive, Y_Chevy]),
-% rel('Dest', [X_Drive, "St. Louis"]),
-% rel('Agnt', [X_Drive, 'Bob']),
-% isa(Y_Chevy, 'Chevy'),
-% textof(St_c46_c32_Louis_City, "St. Louis"),
-% isa(St_c46_c32_Louis_City, 'City'),
-% cg_name(Bob_Person, ['Bob']),
-% isa(Bob_Person, 'Person'),
-% isa(X_Drive, 'Drive'),
-% lbl(frame770).
+% cg_holds(Poss_Bob_c63_c40_Y_c41),
+% cg_name(Poss_Bob_c63_c40_Y_c41, 'Poss_Bob_?(\'Y\')'),
+% cg_holds(Thme_c63_c40_X_c41_c63_c40_Y_c41),
+% cg_name(Thme_c63_c40_X_c41_c63_c40_Y_c41, 'Thme_?(\'X\')_?(\'Y\')'),
+% cg_holds(Dest_c63_c40_X_c41_c34_St_c46_c32_Louis_c34),
+% cg_name(Dest_c63_c40_X_c41_c34_St_c46_c32_Louis_c34, 'Dest_?(\'X\')_"St. Louis"'),
+% cg_holds(Agnt_c63_c40_X_c41_Bob),
+% cg_name(Agnt_c63_c40_X_c41_Bob, 'Agnt_?(\'X\')_Bob'),
+% frame_var('Y', Y_Chevy),
+% cg_type(Y_Chevy, 'Chevy'),
+% textOf(St_c46_c32_Louis_City, "St. Louis"),
+% cg_type(St_c46_c32_Louis_City, 'City'),
+% cg_name(Bob_Person, 'Bob'),
+% cg_type(Bob_Person, 'Person'),
+% frame_var('X', X_Drive),
+% cg_type(X_Drive, 'Drive'),
+% lbl(frame40).
 ```
 
 
@@ -522,7 +559,7 @@ Conceptual Graph (CG) Libraries in Prolog
 
 % Failed Parse
 ?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','A_cat',']',->,'(','KnowsAbout',')',->,'[','The_cat',:,#,666,']',->,'(','KnowsAbout',')',->,'[','Named_cat',:,'Moris',']',->,'(','KnowsAbout',')',->,'[','Length',:,@,5,ft,']',->,'(','KnowsAbout',')',->,'[','Cat_set',:,'{',*,'}',']',->,'(','KnowsAbout',')',->,'[','Cat5',:,'{',*,'}',@,5,']',->,'(','KnowsAbout',')',->,'[','Cats_two',:,'{','Moris',',','Felix','}',']',->,'(','KnowsAbout',')',->,'[','Cats_one_or_more',:,'{','Moris',',',*,'}',']']))
+    pred_cg(assert_cg_real,tOkS(['[','A_Cat',']',->,'(','KnowsAbout',')',->,'[','The_Cat',:,#,666,']',->,'(','KnowsAbout',')',->,'[','Named_Cat',:,'Moris',']',->,'(','KnowsAbout',')',->,'[','Length',:,@,5,ft,']',->,'(','KnowsAbout',')',->,'[','Cat_Set',:,'{',*,'}',']',->,'(','KnowsAbout',')',->,'[','Cat5',:,'{',*,'}',@,5,']',->,'(','KnowsAbout',')',->,'[','Cats_Two',:,'{','Moris',',','Felix','}',']',->,'(','KnowsAbout',')',->,'[','Cats_One_Or_More',:,'{','Moris',',',*,'}',']']))
    ).
 ```
 
@@ -532,11 +569,14 @@ Conceptual Graph (CG) Libraries in Prolog
 [Relation: *r] (Familial ?r) (#?r Bob Sue)
 % ===========================================
 
-% rel(R, ['Bob', 'Sue']),
+% cg_holds(R, Bob_Sue),
+% cg_name(Bob_Sue, 'Bob_Sue'),
 % R=Relation,
-% rel('Familial', [Relation]),
-% isa(Relation, 'Relation'),
-% lbl(frame772).
+% cg_holds(Familial_c63_c40_R_c41),
+% cg_name(Familial_c63_c40_R_c41, 'Familial_?(\'R\')'),
+% frame_var('R', Relation),
+% cg_type(Relation, 'Relation'),
+% lbl(frame42).
 ```
 
 
@@ -548,12 +588,12 @@ Conceptual Graph (CG) Libraries in Prolog
   ->(LOC)->[MAT],.
 % ===========================================
 
-% loc(Cat, Mat),
-% isa(Mat, 'Mat'),
-% stat(Cat, Sit),
-% isa(Cat, 'Cat'),
-% isa(Sit, 'Sit'),
-% lbl(frame773).
+% gc_pred('Loc', Cat, Mat),
+% cg_type(Mat, 'Mat'),
+% gc_pred('Stat', Cat, Sit),
+% cg_type(Cat, 'Cat'),
+% cg_type(Sit, 'Sit'),
+% lbl(frame43).
 ```
 
 
@@ -562,10 +602,11 @@ Conceptual Graph (CG) Libraries in Prolog
 ?x -(Attrib)-> [Color #1]
 % ===========================================
 
-  isa(Color, 'Color').
-  attrib(X, Color).
-  Color='Color#1'.
-  lbl(frame774).
+  gc_pred('Attrib', X, Color).
+  cg_type(Color, 'Color').
+  cg_quantz(e, X).
+  cg_equal(Color, 'Color#1').
+  lbl(frame44).
 % pred_cg(call_cg_real, xtext("?x -(Attrib)-> [Color #1]")).
 
 
@@ -574,13 +615,14 @@ Conceptual Graph (CG) Libraries in Prolog
 ?x -(On)->[Mat #1]-(Attrib)->[Color #1]
 % ===========================================
 
-  on(X, Mat).
-  isa(Color, 'Color').
-  isa(Mat, 'Mat').
-  attrib(X, Color).
-  Color='Color#1'.
-  Mat='Mat#1'.
-  lbl(frame775).
+  gc_pred('On', X, Mat).
+  gc_pred('Attrib', X, Color).
+  cg_type(Color, 'Color').
+  cg_type(Mat, 'Mat').
+  cg_quantz(e, X).
+  cg_equal(Color, 'Color#1').
+  cg_equal(Mat, 'Mat#1').
+  lbl(frame45).
 % pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]-(Attrib)->[Color #1]")).
 
 
@@ -589,10 +631,11 @@ Conceptual Graph (CG) Libraries in Prolog
 ?x -(On)->[Mat #1]
 % ===========================================
 
-  on(X, Mat).
-  isa(Mat, 'Mat').
-  Mat='Mat#1'.
-  lbl(frame776).
+  gc_pred('On', X, Mat).
+  cg_type(Mat, 'Mat').
+  cg_quantz(e, X).
+  cg_equal(Mat, 'Mat#1').
+  lbl(frame46).
 % pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]")).
 
 
@@ -601,11 +644,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [?x] -(Attrib)-> [Color #1]
 % ===========================================
 
-  isa(Color, 'Color').
-  isa(X, '?(X)').
-  attrib(X, Color).
-  Color='Color#1'.
-  lbl(frame777).
+  gc_pred('Attrib', X, Color).
+  cg_type(Color, 'Color').
+  cg_type(X, ?('X')).
+  cg_equal(Color, 'Color#1').
+  lbl(frame47).
 % pred_cg(call_cg_real, xtext("[?x] -(Attrib)-> [Color #1]")).
 
 
@@ -614,14 +657,14 @@ Conceptual Graph (CG) Libraries in Prolog
 [?x]-(On)->[Mat #1]-(Attrib)->[Color #1]
 % ===========================================
 
-  on(X, Mat).
-  isa(Color, 'Color').
-  isa(Mat, 'Mat').
-  isa(X, '?(X)').
-  attrib(X, Color).
-  Color='Color#1'.
-  Mat='Mat#1'.
-  lbl(frame778).
+  gc_pred('On', X, Mat).
+  gc_pred('Attrib', X, Color).
+  cg_type(Color, 'Color').
+  cg_type(Mat, 'Mat').
+  cg_type(X, ?('X')).
+  cg_equal(Color, 'Color#1').
+  cg_equal(Mat, 'Mat#1').
+  lbl(frame48).
 % pred_cg(call_cg_real, xtext("[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]")).
 
 
@@ -630,11 +673,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [Mat ?x]-(Attrib)->[Color #1]
 % ===========================================
 
-  isa(X, 'Mat').
-  isa(Color, 'Color').
-  attrib(X, Color).
-  Color='Color#1'.
-  lbl(frame779).
+  gc_pred('Attrib', X, Color).
+  cg_type(X, 'Mat').
+  cg_type(Color, 'Color').
+  cg_quantz(e, X).
+  cg_equal(Color, 'Color#1').
+  lbl(frame49).
 % pred_cg(call_cg_real, xtext("[Mat ?x]-(Attrib)->[Color #1]")).
 
 
@@ -643,14 +687,15 @@ Conceptual Graph (CG) Libraries in Prolog
 [Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]
 % ===========================================
 
-  on(X, Mat).
-  isa(X, 'Cat').
-  isa(Color, 'Color').
-  isa(Mat, 'Mat').
-  attrib(X, Color).
-  Color='Color#2'.
-  Mat='Mat#1'.
-  lbl(frame780).
+  gc_pred('On', X, Mat).
+  gc_pred('Attrib', X, Color).
+  cg_type(X, 'Cat').
+  cg_type(Color, 'Color').
+  cg_type(Mat, 'Mat').
+  cg_quantz(e, X).
+  cg_equal(Color, 'Color#2').
+  cg_equal(Mat, 'Mat#1').
+  lbl(frame50).
 % pred_cg(call_cg_real, xtext("[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]")).
 
 
@@ -659,11 +704,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[',a,']',-,'(',belives,')',->,'[',statement,:,'[','Cat',:,@,every,']',->,'(','On',')',->,'[','Mat',']',']']))
-   ).
+% gc_pred(belives, A, Statement),
+% 'GRAPH'(Statement, [gc_pred('On', Every_Cat, Mat), cg_type(Mat, 'Mat'), cg_quantz(every, Every_Cat), cg_type(Every_Cat, 'Cat'), lbl(frame52)]),
+% cg_type(Statement, statement),
+% cg_type(A, a),
+% lbl(frame51).
 ```
 
 
@@ -672,11 +717,11 @@ Conceptual Graph (CG) Libraries in Prolog
 [a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[',a,']',-,'(',belives,')',->,'[',statement2,=,'[','Cat',:,@,every,']',->,'(','On',')',->,'[','Mat',']',']']))
-   ).
+% gc_pred(belives, A, Statement2),
+% Statement2='GRAPH'([gc_pred('On', Every_Cat, Mat), cg_type(Mat, 'Mat'), cg_quantz(every, Every_Cat), cg_type(Every_Cat, 'Cat'), lbl(frame54)]),
+% cg_type(Statement2, statement2),
+% cg_type(A, a),
+% lbl(frame53).
 ```
 
 
@@ -690,16 +735,16 @@ Conceptual Graph (CG) Libraries in Prolog
    (Inst)->[Bus]
 % ===========================================
 
-% inst(Go_Event, Bus),
-% isa(Bus, 'Bus'),
-% dest(Go_Event, Boston_City),
-% cg_name(Boston_City, ['Boston']),
-% isa(Boston_City, 'City'),
-% agnt(Go_Event, John_Person),
-% cg_name(John_Person, ['John']),
-% isa(John_Person, 'Person'),
-% isa(Go_Event, 'Go'),
-% lbl(frame785).
+% gc_pred('Inst', Go, Bus),
+% cg_type(Bus, 'Bus'),
+% gc_pred('Dest', Go, Boston_City),
+% cg_name(Boston_City, 'Boston'),
+% cg_type(Boston_City, 'City'),
+% gc_pred('Agnt', Go, John_Person),
+% cg_name(John_Person, 'John'),
+% cg_type(John_Person, 'Person'),
+% cg_type(Go, 'Go'),
+% lbl(frame55).
 ```
 
 
@@ -711,16 +756,16 @@ Conceptual Graph (CG) Libraries in Prolog
    [Bus2] <- (Inst) - [Go2]
 % ===========================================
 
-% inst(Go2_Event, Bus2),
-% isa(Go2_Event, 'Go2'),
-% dest(Bus2, Boston2_City_Event),
-% isa(Bus2, 'Bus2'),
-% agnt(Boston2_City_Event, John2_Person),
-% cg_name(Boston2_City_Event, ['Boston2']),
-% isa(Boston2_City_Event, 'City'),
-% cg_name(John2_Person, ['John2']),
-% isa(John2_Person, 'Person'),
-% lbl(frame786).
+% gc_pred('Inst', Go2, Bus2),
+% cg_type(Go2, 'Go2'),
+% gc_pred('Dest', Bus2, Boston2_City),
+% cg_type(Bus2, 'Bus2'),
+% gc_pred('Agnt', Boston2_City, John2_Person),
+% cg_name(Boston2_City, 'Boston2'),
+% cg_type(Boston2_City, 'City'),
+% cg_name(John2_Person, 'John2'),
+% cg_type(John2_Person, 'Person'),
+% lbl(frame56).
 ```
 
 
@@ -737,11 +782,16 @@ Conceptual Graph (CG) Libraries in Prolog
         -agnt->[Person : John]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Begin',']',-,-,obj,->,'[','Session',']',',',-,srce,->,'[','Proposition',=,'[','Press',']',-,-,obj,->,'[','Key',:,enter,']',-,partOf,->,'[','Keyboard',']',',',-,agnt,->,'[','Person',:,'John',']',']',',',-,agnt,->,'[','Person',:,'John',']']))
-   ).
+% gc_pred(agnt, Begin, John_Person9),
+% cg_name(John_Person9, 'John'),
+% cg_type(John_Person9, 'Person'),
+% gc_pred(srce, Begin, Proposition),
+% Proposition='GRAPH'([gc_pred(agnt, Press, John_Person), cg_name(John_Person, 'John'), cg_type(John_Person, 'Person'), gc_pred(partOf, Press, Keyboard), cg_type(Keyboard, 'Keyboard'), gc_pred(obj, Press, Enter_Key), frame_var('ENTER', Enter_Key), cg_type(Enter_Key, 'Key'), cg_type(Press, 'Press'), lbl(frame58)]),
+% cg_type(Proposition, 'Proposition'),
+% gc_pred(obj, Begin, Session),
+% cg_type(Session, 'Session'),
+% cg_type(Begin, 'Begin'),
+% lbl(frame57).
 ```
 
 
@@ -755,11 +805,11 @@ Conceptual Graph (CG) Libraries in Prolog
    - (Inst)->[Bus2]  ]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[',a,']',-,'(',belives,')',->,'[',statement,=,'[','Go2',']',-,'(','Agnt',')',->,'[','Person',:,'John2',']',-,'(','Dest',')',->,'[','City',:,'Boston2',']',-,'(','Inst',')',->,'[','Bus2',']',']']))
-   ).
+% gc_pred(belives, A, Statement),
+% Statement='GRAPH'([gc_pred('Inst', Go2, Bus2), cg_type(Bus2, 'Bus2'), gc_pred('Dest', Go2, Boston2_City), cg_name(Boston2_City, 'Boston2'), cg_type(Boston2_City, 'City'), gc_pred('Agnt', Go2, John2_Person), cg_name(John2_Person, 'John2'), cg_type(John2_Person, 'Person'), cg_type(Go2, 'Go2'), lbl(frame60)]),
+% cg_type(Statement, statement),
+% cg_type(A, a),
+% lbl(frame59).
 ```
 
 
@@ -768,16 +818,23 @@ Conceptual Graph (CG) Libraries in Prolog
 [Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?w)
 % ===========================================
 
-% rel('Inst', [X_Go, W_Bus]),
-% rel('Dest', [X_Go, Z_Boston_City]),
-% rel('Agnt', [X_Go, Y_John_Person]),
-% isa(W_Bus, 'Bus'),
-% cg_name(Z_Boston_City, ['Boston']),
-% isa(Z_Boston_City, 'City'),
-% cg_name(Y_John_Person, ['John']),
-% isa(Y_John_Person, 'Person'),
-% isa(X_Go, 'Go'),
-% lbl(frame792).
+% cg_holds(Inst_c63_c40_X_c41_c63_c40_W_c41),
+% cg_name(Inst_c63_c40_X_c41_c63_c40_W_c41, 'Inst_?(\'X\')_?(\'W\')'),
+% cg_holds(Dest_c63_c40_X_c41_c63_c40_Z_c41),
+% cg_name(Dest_c63_c40_X_c41_c63_c40_Z_c41, 'Dest_?(\'X\')_?(\'Z\')'),
+% cg_holds(Agnt_c63_c40_X_c41_c63_c40_Y_c41),
+% cg_name(Agnt_c63_c40_X_c41_c63_c40_Y_c41, 'Agnt_?(\'X\')_?(\'Y\')'),
+% frame_var('W', W_Bus),
+% cg_type(W_Bus, 'Bus'),
+% frame_var('Z', Z_Boston_City),
+% cg_name(Z_Boston_City, 'Boston'),
+% cg_type(Z_Boston_City, 'City'),
+% frame_var('Y', Y_John_Person),
+% cg_name(Y_John_Person, 'John'),
+% cg_type(Y_John_Person, 'Person'),
+% frame_var('X', X_Go),
+% cg_type(X_Go, 'Go'),
+% lbl(frame61).
 ```
 
 
@@ -786,18 +843,18 @@ Conceptual Graph (CG) Libraries in Prolog
 [Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]
 % ===========================================
 
-% on(Red_Woman, Table),
-% isa(Table, table),
-% obj(Eat_Event, Apple),
-% isa(Apple, 'Apple'),
-% agnt(Eat_Event, Karim_Man),
-% isa(Eat_Event, 'Eat'),
-% knows(Karim_Man, Red_Woman),
-% cg_name(Karim_Man, [karim]),
-% isa(Karim_Man, 'Man'),
-% cg_name(Red_Woman, [red]),
-% isa(Red_Woman, 'Woman'),
-% lbl(frame793).
+% gc_pred(on, Red_Woman, Table),
+% cg_type(Table, table),
+% gc_pred(obj, Eat, Apple),
+% cg_type(Apple, 'Apple'),
+% gc_pred(agnt, Eat, Karim_Man),
+% cg_type(Eat, 'Eat'),
+% gc_pred(knows, Karim_Man, Red_Woman),
+% frame_var('KARIM', Karim_Man),
+% cg_type(Karim_Man, 'Man'),
+% frame_var('RED', Red_Woman),
+% cg_type(Red_Woman, 'Woman'),
+% lbl(frame62).
 ```
 
 
@@ -806,12 +863,12 @@ Conceptual Graph (CG) Libraries in Prolog
 [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor]
 % ===========================================
 
-% thme(Marry_Event, Sailor),
-% isa(Sailor, 'Sailor'),
-% agnt(Marry_Event, X),
-% isa(Marry_Event, 'Marry'),
-% isa(X, '?(X)'),
-% lbl(frame794).
+% gc_pred('Thme', Marry, Sailor),
+% cg_type(Sailor, 'Sailor'),
+% gc_pred('Agnt', Marry, X),
+% cg_type(Marry, 'Marry'),
+% cg_type(X, ?('X')),
+% lbl(frame63).
 ```
 
 
@@ -822,11 +879,15 @@ Conceptual Graph (CG) Libraries in Prolog
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Person',:,'Mary',*,x,']',<-,'(','Expr',')',-,'[','Want',']',-,'(','Thme',')',->,'[','Situation',:,'[',?('X'),']',<-,'(','Agnt',')',-,'[','Marry',']',-,'(','Thme',')',->,'[','Sailor',']',']']))
-   ).
+% gc_pred('Thme', Want, Situation),
+% 'GRAPH'(Situation, [gc_pred('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), gc_pred('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person), lbl(frame65)]),
+% cg_type(Situation, 'Situation'),
+% gc_pred('Expr', Want, X_Mary_Person),
+% cg_type(Want, 'Want'),
+% frame_var('X', X_Mary_Person),
+% cg_name(X_Mary_Person, 'Mary'),
+% cg_type(X_Mary_Person, 'Person'),
+% lbl(frame64).
 ```
 
 
@@ -837,11 +898,9 @@ Conceptual Graph (CG) Libraries in Prolog
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Proposition',:,'[','Person',:,'Mary',*,x,']',<-,'(','Expr',')',-,'[','Want',']',-,'(','Thme',')',->,'[','Situation',:,'[',?('X'),']',<-,'(','Agnt',')',-,'[','Marry',']',-,'(','Thme',')',->,'[','Sailor',']',']',']']))
-   ).
+% 'GRAPH'(Proposition, [gc_pred('Thme', Want, Situation), 'GRAPH'(Situation, [gc_pred('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), gc_pred('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person), lbl(frame68)]), cg_type(Situation, 'Situation'), gc_pred('Expr', Want, X_Mary_Person), cg_type(Want, 'Want'), frame_var('X', X_Mary_Person), cg_name(X_Mary_Person, 'Mary'), cg_type(X_Mary_Person, 'Person'), lbl(frame67)]),
+% cg_type(Proposition, 'Proposition'),
+% lbl(frame66).
 ```
 
 
@@ -853,11 +912,14 @@ Conceptual Graph (CG) Libraries in Prolog
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Person',:,'Tom',']',<-,'(','Expr',')',-,'[','Believe',']',-,'(','Thme',')',->,'[','Proposition',:,'[','Person',:,'Mary',*,x,']',<-,'(','Expr',')',-,'[','Want',']',-,'(','Thme',')',->,'[','Situation',:,'[',?('X'),']',<-,'(','Agnt',')',-,'[','Marry',']',-,'(','Thme',')',->,'[','Sailor',']',']',']']))
-   ).
+% gc_pred('Thme', Believe, Proposition),
+% 'GRAPH'(Proposition, [gc_pred('Thme', Want, Situation), 'GRAPH'(Situation, [gc_pred('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), gc_pred('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person3), lbl(frame71)]), cg_type(Situation, 'Situation'), gc_pred('Expr', Want, X_Mary_Person3), cg_type(Want, 'Want'), frame_var('X', X_Mary_Person3), cg_name(X_Mary_Person3, 'Mary'), cg_type(X_Mary_Person3, 'Person'), lbl(frame70)]),
+% cg_type(Proposition, 'Proposition'),
+% gc_pred('Expr', Believe, Tom_Person),
+% cg_type(Believe, 'Believe'),
+% cg_name(Tom_Person, 'Tom'),
+% cg_type(Tom_Person, 'Person'),
+% lbl(frame69).
 ```
 
 
@@ -869,11 +931,14 @@ Conceptual Graph (CG) Libraries in Prolog
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['[','Person',:,'Tom',']',<-,'(','Expr',')',<-,'[','Believe',']',->,'(','Thme',')',-,'[','Proposition',:,'[','Person',:,'Mary',*,x,']',<-,'(','Expr',')',<-,'[','Want',']',->,'(','Thme',')',-,'[','Situation',:,'[',?('X'),']',<-,'(','Agnt',')',<-,'[','Marry',']',->,'(','Thme',')',->,'[','Sailor',']',']',']']))
-   ).
+% gc_pred('Thme', Believe, Proposition),
+% 'GRAPH'(Proposition, [gc_pred('Thme', Want, Situation), 'GRAPH'(Situation, [gc_pred('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), gc_pred('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person3), lbl(frame74)]), cg_type(Situation, 'Situation'), gc_pred('Expr', Want, X_Mary_Person3), cg_type(Want, 'Want'), frame_var('X', X_Mary_Person3), cg_name(X_Mary_Person3, 'Mary'), cg_type(X_Mary_Person3, 'Person'), lbl(frame73)]),
+% cg_type(Proposition, 'Proposition'),
+% gc_pred('Expr', Believe, Tom_Person),
+% cg_type(Believe, 'Believe'),
+% cg_name(Tom_Person, 'Tom'),
+% cg_type(Tom_Person, 'Person'),
+% lbl(frame72).
 ```
 
 
@@ -882,9 +947,13 @@ Conceptual Graph (CG) Libraries in Prolog
 TYPE ARRIVAL-DATE(a) IS [UNIV:*a].
 % ===========================================
 
-% isa(A_Univ, 'Univ'),
-% decl(type, rEL('Arrival-date', [A_Univ])),
-% lbl(frame816).
+% cg_quantz(type, A_Univ),
+% cg_type(A_Univ, 'Arrival_Date'),
+% lbl(frame76),
+% cg_type(A_Univ, 'Univ'),
+% frame_var('A', A_Univ),
+% frame_var('A', A_Univ),
+% lbl(frame75).
 ```
 
 
@@ -893,9 +962,13 @@ TYPE ARRIVAL-DATE(a) IS [UNIV:*a].
 TYPE CIRCUS(c) IS [UNIV:*c].
 % ===========================================
 
-% isa(C_Univ, 'Univ'),
-% decl(type, rEL('Circus', [C_Univ])),
-% lbl(frame817).
+% cg_quantz(type, C_Univ),
+% cg_type(C_Univ, 'Circus'),
+% lbl(frame78),
+% cg_type(C_Univ, 'Univ'),
+% frame_var('C', C_Univ),
+% frame_var('C', C_Univ),
+% lbl(frame77).
 ```
 
 
@@ -904,9 +977,13 @@ TYPE CIRCUS(c) IS [UNIV:*c].
 TYPE CIRCUS(c) IS [UNIV:*c]
 % ===========================================
 
-% isa(C_Univ, 'Univ'),
-% decl(type, rEL('Circus', [C_Univ])),
-% lbl(frame818).
+% cg_quantz(type, C_Univ),
+% cg_type(C_Univ, 'Circus'),
+% lbl(frame80),
+% cg_type(C_Univ, 'Univ'),
+% frame_var('C', C_Univ),
+% frame_var('C', C_Univ),
+% lbl(frame79).
 ```
 
 
@@ -915,12 +992,13 @@ TYPE CIRCUS(c) IS [UNIV:*c]
 [ELEPHANT:*c]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS]
 % ===========================================
 
-% loc(Perform_Event, Circus),
-% isa(Circus, 'Circus'),
-% agnt(Perform_Event, C_Elephant),
-% isa(Perform_Event, 'Perform'),
-% isa(C_Elephant, 'Elephant'),
-% lbl(frame819).
+% gc_pred('Loc', Perform, Circus),
+% cg_type(Circus, 'Circus'),
+% gc_pred('Agnt', Perform, C_Elephant),
+% cg_type(Perform, 'Perform'),
+% frame_var('C', C_Elephant),
+% cg_type(C_Elephant, 'Elephant'),
+% lbl(frame81).
 ```
 
 
@@ -931,16 +1009,20 @@ TYPE CIRCUS(c) IS [UNIV:*c]
 
 % ===========================================
 
-% rel('Inst', [X_Go, Bus]),
-% isa(Bus, 'Bus'),
-% rel('Dest', [X_Go, Boston_City]),
-% cg_name(Boston_City, ['Boston']),
-% isa(Boston_City, 'City'),
-% rel('Agnt', [X_Go, John_Person]),
-% cg_name(John_Person, ['John']),
-% isa(John_Person, 'Person'),
-% isa(X_Go, 'Go'),
-% lbl(frame820).
+% cg_holds(Inst_c63_c40_X_c41, Bus),
+% cg_type(Bus, 'Bus'),
+% cg_name(Inst_c63_c40_X_c41, 'Inst_?(\'X\')'),
+% cg_holds(Dest_c63_c40_X_c41, Boston_City),
+% cg_name(Boston_City, 'Boston'),
+% cg_type(Boston_City, 'City'),
+% cg_name(Dest_c63_c40_X_c41, 'Dest_?(\'X\')'),
+% cg_holds(Agnt_c63_c40_X_c41, John_Person),
+% cg_name(John_Person, 'John'),
+% cg_type(John_Person, 'Person'),
+% cg_name(Agnt_c63_c40_X_c41, 'Agnt_?(\'X\')'),
+% frame_var('X', X_Go),
+% cg_type(X_Go, 'Go'),
+% lbl(frame82).
 ```
 
 
@@ -950,11 +1032,17 @@ TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['Type','Circus-elephant','(','C',')','Is','[','Elephant',:,*,'C',']',<-,'(','Agnt',')',<-,'[','Perform',']',->,'(','Loc',')',->,'[','Circus',']','.']))
-   ).
+% cg_quantz(type, C_Elephant),
+% cg_type(C_Elephant, 'Circus_Elephant'),
+% lbl(frame84),
+% cg_type(C_Elephant, 'Elephant'),
+% frame_var('C', C_Elephant),
+% cg_type(Perform, 'Perform'),
+% gc_pred('Agnt', Perform, C_Elephant),
+% cg_type(Circus, 'Circus'),
+% gc_pred('Loc', Perform, Circus),
+% cg_name(C_Elephant, 'C'),
+% lbl(frame83).
 ```
 
 
@@ -964,11 +1052,17 @@ TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['Type','Circus-elephant','(','C',')','Is','[','Elephant',:,*,'C',']',<-,'(','Agnt',')',<-,'[','Perform',']',->,'(','Loc',')',->,'[','Circus',']','.']))
-   ).
+% cg_quantz(type, C_Elephant),
+% cg_type(C_Elephant, 'Circus_Elephant'),
+% lbl(frame86),
+% cg_type(C_Elephant, 'Elephant'),
+% frame_var('C', C_Elephant),
+% cg_type(Perform, 'Perform'),
+% gc_pred('Agnt', Perform, C_Elephant),
+% cg_type(Circus, 'Circus'),
+% gc_pred('Loc', Perform, Circus),
+% cg_name(C_Elephant, 'C'),
+% lbl(frame85).
 ```
 
 
@@ -977,9 +1071,13 @@ TYPE CIRCUS-ELEPHANT(C) IS
 TYPE DEPARTURE-DATE(d) IS [UNIV:*d].
 % ===========================================
 
-% isa(D_Univ, 'Univ'),
-% decl(type, rEL('Departure-date', [D_Univ])),
-% lbl(frame823).
+% cg_quantz(type, D_Univ),
+% cg_type(D_Univ, 'Departure_Date'),
+% lbl(frame88),
+% cg_type(D_Univ, 'Univ'),
+% frame_var('D', D_Univ),
+% frame_var('D', D_Univ),
+% lbl(frame87).
 ```
 
 
@@ -988,9 +1086,13 @@ TYPE DEPARTURE-DATE(d) IS [UNIV:*d].
 TYPE ELEPHANT(e) IS [UNIV:*e].
 % ===========================================
 
-% isa(E_Univ, 'Univ'),
-% decl(type, rEL('Elephant', [E_Univ])),
-% lbl(frame824).
+% cg_quantz(type, E_Univ),
+% cg_type(E_Univ, 'Elephant'),
+% lbl(frame90),
+% cg_type(E_Univ, 'Univ'),
+% frame_var('E', E_Univ),
+% frame_var('E', E_Univ),
+% lbl(frame89).
 ```
 
 
@@ -999,9 +1101,13 @@ TYPE ELEPHANT(e) IS [UNIV:*e].
 TYPE HOTEL(h) IS [UNIV:*h].
 % ===========================================
 
-% isa(H_Univ, 'Univ'),
-% decl(type, rEL('Hotel', [H_Univ])),
-% lbl(frame825).
+% cg_quantz(type, H_Univ),
+% cg_type(H_Univ, 'Hotel'),
+% lbl(frame92),
+% cg_type(H_Univ, 'Univ'),
+% frame_var('H', H_Univ),
+% frame_var('H', H_Univ),
+% lbl(frame91).
 ```
 
 
@@ -1016,11 +1122,25 @@ TYPE HOTEL-RESERVATION(RESERVATION-NO) IS
              ->(UNTL)->[DEPARTURE-DATE],,.
 % ===========================================
 
-
-% Failed Parse
-?- rtrace(
-    pred_cg(assert_cg_real,tOkS(['Type','Hotel-reservation','(','Reservation-no',')','Is','[','Reservation',:,*,'Reservation-no',']',-,->,'(','Rcpt',')',->,'[','Person',']',->,'(','Obj',')',->,'[','Room',']',->,'(','Loc',')',->,'[','Hotel',']',->,'(','Dur',')',->,'[','Time-period',']',-,->,'(','Strt',')',->,'[','Arrival-date',']',->,'(','Untl',')',->,'[','Departure-date',']',',',',','.']))
-   ).
+% cg_quantz(type, Reservation_No),
+% cg_type(Reservation_No, 'Hotel_Reservation'),
+% lbl(frame94),
+% cg_type(Reservation, 'Reservation'),
+% frame_var('RESERVATION_NO', Reservation),
+% cg_type(Person, 'Person'),
+% gc_pred('Rcpt', Reservation, Person),
+% cg_type(Room, 'Room'),
+% gc_pred('Obj', Person, Room),
+% cg_type(Hotel, 'Hotel'),
+% gc_pred('Loc', Room, Hotel),
+% cg_type(Time_Period, 'Time_Period'),
+% gc_pred('Dur', Hotel, Time_Period),
+% cg_type(Arrival_Date, 'Arrival_Date'),
+% gc_pred('Strt', Reservation, Arrival_Date),
+% cg_type(Departure_Date, 'Departure_Date'),
+% gc_pred('Untl', Arrival_Date, Departure_Date),
+% cg_name(Reservation_No, 'Reservation_No'),
+% lbl(frame93).
 ```
 
 
@@ -1029,9 +1149,13 @@ TYPE HOTEL-RESERVATION(RESERVATION-NO) IS
 TYPE PERFORM(p) IS [UNIV:*p].
 % ===========================================
 
-% isa(P_Univ, 'Univ'),
-% decl(type, rEL('Perform', [P_Univ])),
-% lbl(frame827).
+% cg_quantz(type, P_Univ),
+% cg_type(P_Univ, 'Perform'),
+% lbl(frame96),
+% cg_type(P_Univ, 'Univ'),
+% frame_var('P', P_Univ),
+% frame_var('P', P_Univ),
+% lbl(frame95).
 ```
 
 
@@ -1040,9 +1164,13 @@ TYPE PERFORM(p) IS [UNIV:*p].
 TYPE PERSON(p) IS [UNIV:*p].
 % ===========================================
 
-% isa(P_Univ, 'Univ'),
-% decl(type, rEL('Person', [P_Univ])),
-% lbl(frame828).
+% cg_quantz(type, P_Univ),
+% cg_type(P_Univ, 'Person'),
+% lbl(frame98),
+% cg_type(P_Univ, 'Univ'),
+% frame_var('P', P_Univ),
+% frame_var('P', P_Univ),
+% lbl(frame97).
 ```
 
 
@@ -1051,9 +1179,13 @@ TYPE PERSON(p) IS [UNIV:*p].
 TYPE PROPOSITION(p) IS [UNIV:*p].
 % ===========================================
 
-% isa(P_Univ, 'Univ'),
-% decl(type, rEL('Proposition', [P_Univ])),
-% lbl(frame829).
+% cg_quantz(type, P_Univ),
+% cg_type(P_Univ, 'Proposition'),
+% lbl(frame100),
+% cg_type(P_Univ, 'Univ'),
+% frame_var('P', P_Univ),
+% frame_var('P', P_Univ),
+% lbl(frame99).
 ```
 
 
@@ -1062,9 +1194,13 @@ TYPE PROPOSITION(p) IS [UNIV:*p].
 TYPE RESERVATION(r) IS [UNIV:*r].
 % ===========================================
 
-% isa(R_Univ, 'Univ'),
-% decl(type, rEL('Reservation', [R_Univ])),
-% lbl(frame830).
+% cg_quantz(type, R_Univ),
+% cg_type(R_Univ, 'Reservation'),
+% lbl(frame102),
+% cg_type(R_Univ, 'Univ'),
+% frame_var('R', R_Univ),
+% frame_var('R', R_Univ),
+% lbl(frame101).
 ```
 
 
@@ -1073,9 +1209,13 @@ TYPE RESERVATION(r) IS [UNIV:*r].
 TYPE ROOM(r) IS [UNIV:*r].
 % ===========================================
 
-% isa(R_Univ, 'Univ'),
-% decl(type, rEL('Room', [R_Univ])),
-% lbl(frame831).
+% cg_quantz(type, R_Univ),
+% cg_type(R_Univ, 'Room'),
+% lbl(frame104),
+% cg_type(R_Univ, 'Univ'),
+% frame_var('R', R_Univ),
+% frame_var('R', R_Univ),
+% lbl(frame103).
 ```
 
 
@@ -1084,9 +1224,13 @@ TYPE ROOM(r) IS [UNIV:*r].
 TYPE TIME-PERIOD(t) IS [UNIV:*t].
 % ===========================================
 
-% isa(T_Univ, 'Univ'),
-% decl(type, rEL('Time-period', [T_Univ])),
-% lbl(frame832).
+% cg_quantz(type, T_Univ),
+% cg_type(T_Univ, 'Time_Period'),
+% lbl(frame106),
+% cg_type(T_Univ, 'Univ'),
+% frame_var('T', T_Univ),
+% frame_var('T', T_Univ),
+% lbl(frame105).
 ```
 
 
@@ -1101,28 +1245,28 @@ TYPE TIME-PERIOD(t) IS [UNIV:*t].
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]
 % ===========================================
 
-% untl(Marchd14c1983_Arrival_date, Marchd18c1983_Departure_date),
-% cg_name(Marchd18c1983_Departure_date, ['March', 18, cg_name([1983])]),
-% isa(Marchd18c1983_Departure_date, 'Departure-date'),
-% strt(Reservation, Marchd14c1983_Arrival_date),
-% cg_name(Marchd14c1983_Arrival_date, ['March', 14, cg_name([1983])]),
-% isa(Marchd14c1983_Arrival_date, 'Arrival-date'),
-% dur(Shelburne_Hotel, Nights_Time_period),
-% cg_name(Nights_Time_period, ['Nights']),
-% quantz(4, Nights_Time_period),
-% isa(Nights_Time_period, 'Time-period'),
-% loc(Q2_Room, Shelburne_Hotel),
-% cg_name(Shelburne_Hotel, ['Shelburne']),
-% isa(Shelburne_Hotel, 'Hotel'),
-% obj(JohnSowa_Person, Q2_Room),
-% cg_name(Q2_Room, ['Q2']),
-% isa(Q2_Room, 'Room'),
-% rcpt(Reservation, JohnSowa_Person),
-% cg_name(JohnSowa_Person, ['John', 'Sowa']),
-% isa(JohnSowa_Person, 'Person'),
-% Reservation='Reservation#316209',
-% isa(Reservation, 'Reservation'),
-% lbl(frame833).
+% gc_pred('Untl', March_14_1983_Arrival_Date, March_18_1983_Departure_Date),
+% cg_name(March_18_1983_Departure_Date, 'March_18_1983'),
+% cg_type(March_18_1983_Departure_Date, 'Departure_Date'),
+% gc_pred('Strt', Reservation, March_14_1983_Arrival_Date),
+% cg_name(March_14_1983_Arrival_Date, 'March_14_1983'),
+% cg_type(March_14_1983_Arrival_Date, 'Arrival_Date'),
+% gc_pred('Dur', Shelburne_Hotel, Nights_Time_Period),
+% cg_name(Nights_Time_Period, 'Nights'),
+% cg_quantz(4, Nights_Time_Period),
+% cg_type(Nights_Time_Period, 'Time_Period'),
+% gc_pred('Loc', Q2_Room, Shelburne_Hotel),
+% cg_name(Shelburne_Hotel, 'Shelburne'),
+% cg_type(Shelburne_Hotel, 'Hotel'),
+% gc_pred('Obj', John_Sowa_Person, Q2_Room),
+% cg_name(Q2_Room, 'Q2'),
+% cg_type(Q2_Room, 'Room'),
+% gc_pred('Rcpt', Reservation, John_Sowa_Person),
+% cg_name(John_Sowa_Person, 'John_Sowa'),
+% cg_type(John_Sowa_Person, 'Person'),
+% cg_equal(Reservation, 'Reservation#316209'),
+% cg_type(Reservation, 'Reservation'),
+% lbl(frame107).
 ```
 
 
@@ -1137,28 +1281,28 @@ TYPE TIME-PERIOD(t) IS [UNIV:*t].
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]
 % ===========================================
 
-% untl(Marchd14c1983_Arrival_date, Marchd18c1983_Departure_date),
-% cg_name(Marchd18c1983_Departure_date, ['March', 18, cg_name([1983])]),
-% isa(Marchd18c1983_Departure_date, 'Departure-date'),
-% strt(Reservation, Marchd14c1983_Arrival_date),
-% cg_name(Marchd14c1983_Arrival_date, ['March', 14, cg_name([1983])]),
-% isa(Marchd14c1983_Arrival_date, 'Arrival-date'),
-% dur(Shelburne_Hotel, Nights_Time_period),
-% cg_name(Nights_Time_period, ['Nights']),
-% quantz(4, Nights_Time_period),
-% isa(Nights_Time_period, 'Time-period'),
-% loc(Q2_Room, Shelburne_Hotel),
-% cg_name(Shelburne_Hotel, ['Shelburne']),
-% isa(Shelburne_Hotel, 'Hotel'),
-% obj(JohnSowa_Person, Q2_Room),
-% cg_name(Q2_Room, ['Q2']),
-% isa(Q2_Room, 'Room'),
-% rcpt(Reservation, JohnSowa_Person),
-% cg_name(JohnSowa_Person, ['John', 'Sowa']),
-% isa(JohnSowa_Person, 'Person'),
-% Reservation='Reservation#316209',
-% isa(Reservation, 'Reservation'),
-% lbl(frame834).
+% gc_pred('Untl', March_14_1983_Arrival_Date, March_18_1983_Departure_Date),
+% cg_name(March_18_1983_Departure_Date, 'March_18_1983'),
+% cg_type(March_18_1983_Departure_Date, 'Departure_Date'),
+% gc_pred('Strt', Reservation, March_14_1983_Arrival_Date),
+% cg_name(March_14_1983_Arrival_Date, 'March_14_1983'),
+% cg_type(March_14_1983_Arrival_Date, 'Arrival_Date'),
+% gc_pred('Dur', Shelburne_Hotel, Nights_Time_Period),
+% cg_name(Nights_Time_Period, 'Nights'),
+% cg_quantz(4, Nights_Time_Period),
+% cg_type(Nights_Time_Period, 'Time_Period'),
+% gc_pred('Loc', Q2_Room, Shelburne_Hotel),
+% cg_name(Shelburne_Hotel, 'Shelburne'),
+% cg_type(Shelburne_Hotel, 'Hotel'),
+% gc_pred('Obj', John_Sowa_Person, Q2_Room),
+% cg_name(Q2_Room, 'Q2'),
+% cg_type(Q2_Room, 'Room'),
+% gc_pred('Rcpt', Reservation, John_Sowa_Person),
+% cg_name(John_Sowa_Person, 'John_Sowa'),
+% cg_type(John_Sowa_Person, 'Person'),
+% cg_equal(Reservation, 'Reservation#316209'),
+% cg_type(Reservation, 'Reservation'),
+% lbl(frame108).
 ```
 
 
@@ -1174,30 +1318,32 @@ INDIVIDUAL HOTEL-RESERVATION(#316209) IS
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983],,.
 % ===========================================
 
-% untl(Marchd14c1983_Arrival_date, Marchd18c1983_Departure_date),
-% cg_name(Marchd18c1983_Departure_date, ['March', 18, cg_name([1983])]),
-% isa(Marchd18c1983_Departure_date, 'Departure-date'),
-% strt(Reservation, Marchd14c1983_Arrival_date),
-% cg_name(Marchd14c1983_Arrival_date, ['March', 14, cg_name([1983])]),
-% isa(Marchd14c1983_Arrival_date, 'Arrival-date'),
-% dur(Shelburne_Hotel, Nights_Time_period),
-% cg_name(Nights_Time_period, ['Nights']),
-% quantz(4, Nights_Time_period),
-% isa(Nights_Time_period, 'Time-period'),
-% loc(Q2_Room, Shelburne_Hotel),
-% cg_name(Shelburne_Hotel, ['Shelburne']),
-% isa(Shelburne_Hotel, 'Hotel'),
-% obj(JohnSowa_Person, Q2_Room),
-% cg_name(Q2_Room, ['Q2']),
-% isa(Q2_Room, 'Room'),
-% rcpt(Reservation, JohnSowa_Person),
-% cg_name(JohnSowa_Person, ['John', 'Sowa']),
-% isa(JohnSowa_Person, 'Person'),
-% Reservation='Reservation#316209',
-% isa(Reservation, 'Reservation'),
-% rel(_3322, []),
-% _3322#316209,
-% lbl(frame835).
+% cg_quantz(individual, _1298),
+% cg_type(_1298, 'Hotel_Reservation'),
+% lbl(frame110),
+% cg_type(Reservation, 'Reservation'),
+% cg_equal(Reservation, 'Reservation#316209'),
+% cg_type(John_Sowa_Person, 'Person'),
+% cg_name(John_Sowa_Person, 'John_Sowa'),
+% gc_pred('Rcpt', Reservation, John_Sowa_Person),
+% cg_type(Q2_Room, 'Room'),
+% cg_name(Q2_Room, 'Q2'),
+% gc_pred('Obj', John_Sowa_Person, Q2_Room),
+% cg_type(Shelburne_Hotel, 'Hotel'),
+% cg_name(Shelburne_Hotel, 'Shelburne'),
+% gc_pred('Loc', Q2_Room, Shelburne_Hotel),
+% cg_type(Nights_Time_Period, 'Time_Period'),
+% cg_quantz(4, Nights_Time_Period),
+% cg_name(Nights_Time_Period, 'Nights'),
+% gc_pred('Dur', Shelburne_Hotel, Nights_Time_Period),
+% cg_type(March_14_1983_Arrival_Date, 'Arrival_Date'),
+% cg_name(March_14_1983_Arrival_Date, 'March_14_1983'),
+% gc_pred('Strt', Reservation, March_14_1983_Arrival_Date),
+% cg_type(March_18_1983_Departure_Date, 'Departure_Date'),
+% cg_name(March_18_1983_Departure_Date, 'March_18_1983'),
+% gc_pred('Untl', March_14_1983_Arrival_Date, March_18_1983_Departure_Date),
+% _1298#316209,
+% lbl(frame109).
 ```
 
 
@@ -1213,30 +1359,32 @@ INDIVIDUAL HOTEL-RESERVATION(#316210) IS
              ->(UNTL)->[DEPARTURE-DATE:MARCH 19 1983],,.
 % ===========================================
 
-% untl(Marchd12c1983_Arrival_date, Marchd19c1983_Departure_date),
-% cg_name(Marchd19c1983_Departure_date, ['March', 19, cg_name([1983])]),
-% isa(Marchd19c1983_Departure_date, 'Departure-date'),
-% strt(Reservation, Marchd12c1983_Arrival_date),
-% cg_name(Marchd12c1983_Arrival_date, ['March', 12, cg_name([1983])]),
-% isa(Marchd12c1983_Arrival_date, 'Arrival-date'),
-% dur(Sidney_Hotel, Nights_Time_period),
-% cg_name(Nights_Time_period, ['Nights']),
-% quantz(7, Nights_Time_period),
-% isa(Nights_Time_period, 'Time-period'),
-% loc(Q3_Room, Sidney_Hotel),
-% cg_name(Sidney_Hotel, ['Sidney']),
-% isa(Sidney_Hotel, 'Hotel'),
-% obj(JohnEsch_Person, Q3_Room),
-% cg_name(Q3_Room, ['Q3']),
-% isa(Q3_Room, 'Room'),
-% rcpt(Reservation, JohnEsch_Person),
-% cg_name(JohnEsch_Person, ['John', 'Esch']),
-% isa(JohnEsch_Person, 'Person'),
-% Reservation='Reservation#316210',
-% isa(Reservation, 'Reservation'),
-% rel(_7234, []),
-% _7234#316210,
-% lbl(frame836).
+% cg_quantz(individual, _1296),
+% cg_type(_1296, 'Hotel_Reservation'),
+% lbl(frame112),
+% cg_type(Reservation, 'Reservation'),
+% cg_equal(Reservation, 'Reservation#316210'),
+% cg_type(John_Esch_Person, 'Person'),
+% cg_name(John_Esch_Person, 'John_Esch'),
+% gc_pred('Rcpt', Reservation, John_Esch_Person),
+% cg_type(Q3_Room, 'Room'),
+% cg_name(Q3_Room, 'Q3'),
+% gc_pred('Obj', John_Esch_Person, Q3_Room),
+% cg_type(Sidney_Hotel, 'Hotel'),
+% cg_name(Sidney_Hotel, 'Sidney'),
+% gc_pred('Loc', Q3_Room, Sidney_Hotel),
+% cg_type(Nights_Time_Period, 'Time_Period'),
+% cg_quantz(7, Nights_Time_Period),
+% cg_name(Nights_Time_Period, 'Nights'),
+% gc_pred('Dur', Sidney_Hotel, Nights_Time_Period),
+% cg_type(March_12_1983_Arrival_Date, 'Arrival_Date'),
+% cg_name(March_12_1983_Arrival_Date, 'March_12_1983'),
+% gc_pred('Strt', Reservation, March_12_1983_Arrival_Date),
+% cg_type(March_19_1983_Departure_Date, 'Departure_Date'),
+% cg_name(March_19_1983_Departure_Date, 'March_19_1983'),
+% gc_pred('Untl', March_12_1983_Arrival_Date, March_19_1983_Departure_Date),
+% _1296#316210,
+% lbl(frame111).
 ```
 
 
@@ -1247,22 +1395,19 @@ INDIVIDUAL CIRCUS-ELEPHANT(#BUMBO) IS
 [ELEPHANT:#BUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Flying Tigers].
 % ===========================================
 
-% loc(Set_Perform_Event, FlyingTigers_Circus),
-% cg_name(FlyingTigers_Circus, ['Flying', 'Tigers']),
-% isa(FlyingTigers_Circus, 'Circus'),
-% agnt(Set_Perform_Event, Elephant),
-% countof(Set_Perform_Event, 1, _16094),
-% quantz(set, Set_Perform_Event),
-% isa(Set_Perform_Event, 'Perform'),
-% Elephant='Elephant#Bumbo',
-% isa(Elephant, 'Elephant'),
-% rel(Bumbo, []),
+% cg_quantz(individual, Bumbo),
+% cg_type(Bumbo, 'Circus_Elephant'),
+% lbl(frame114),
+% cg_type(Elephant, 'Elephant'),
+% cg_equal(Elephant, 'Elephant#Bumbo'),
+% cg_type(Set_Perform, 'Perform'),
+% cg_quantz(set, Set_Perform),
+% cg_count(Set_Perform, 1, _14570),
+% gc_pred('Agnt', Set_Perform, Elephant),
+% cg_type(Flying_Tigers_Circus, 'Circus'),
+% cg_name(Flying_Tigers_Circus, 'Flying_Tigers'),
+% gc_pred('Loc', Set_Perform, Flying_Tigers_Circus),
 % Bumbo#'Bumbo',
-% lbl(frame837).
-```
-```
-true.
-
-cgpro:  ?-
+% lbl(frame113).
 ```
 
