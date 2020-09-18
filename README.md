@@ -485,6 +485,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
 
 
 ```
+
 % ===========================================
 ?- pred_cg(assert_cg_real,"[Cat: @every]->(On)->[Mat]").
 % ===========================================
@@ -494,10 +495,12 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
 % cg_quantz(every, Every_Cat),
 % cg_type(Every_Cat, 'Cat'),
 % lbl(frame37).
+
 ```
 
 
 ```
+
 % ===========================================
 ?- pred_cg(assert_cg_real,"[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
 % ===========================================
@@ -508,6 +511,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
 % cg_type(Sit, 'Sit'),
 % cg_type(Cat, 'Cat'),
 % lbl(frame38).
+
 ```
 
 
@@ -631,8 +635,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_quantz(e, X).
   cg_equal(Color, 'Color#1').
   lbl(frame44).
-% pred_cg(call_cg_real, xtext("?x -(Attrib)-> [Color #1]")).
-
+```
 
 ```
 % ===========================================
@@ -647,8 +650,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_equal(Color, 'Color#1').
   cg_equal(Mat, 'Mat#1').
   lbl(frame45).
-% pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]-(Attrib)->[Color #1]")).
-
+```
 
 ```
 % ===========================================
@@ -660,7 +662,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_quantz(e, X).
   cg_equal(Mat, 'Mat#1').
   lbl(frame46).
-% pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]")).
+```
 
 
 ```
@@ -689,8 +691,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_equal(Color, 'Color#1').
   cg_equal(Mat, 'Mat#1').
   lbl(frame48).
-% pred_cg(call_cg_real, xtext("[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]")).
-
+```
 
 ```
 % ===========================================
@@ -703,8 +704,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_quantz(e, X).
   cg_equal(Color, 'Color#1').
   lbl(frame49).
-% pred_cg(call_cg_real, xtext("[Mat ?x]-(Attrib)->[Color #1]")).
-
+```
 
 ```
 % ===========================================
@@ -720,7 +720,7 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
   cg_equal(Color, 'Color#2').
   cg_equal(Mat, 'Mat#1').
   lbl(frame50).
-% pred_cg(call_cg_real, xtext("[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]")).
+```
 
 
 ```
