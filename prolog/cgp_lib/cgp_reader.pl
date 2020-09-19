@@ -3,7 +3,7 @@
 :- use_module(library(logicmoo/dcg_meta)).
 :- use_module(library(logicmoo/util_bb_frame)).
 
-:- ensure_loaded(library(cgprolog_swipl)).
+:- ensure_loaded(library(cgp_lib/cgp_swipl)).
 
 :- multifile_data(cg_test_data/2). 
 %:- multifile_data(skip_cg_test_data/2). 

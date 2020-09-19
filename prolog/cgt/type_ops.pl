@@ -135,7 +135,7 @@ Notes		: generates all proper (sub/super)types of a given type
 ************************************************************************/
 
 proper_subtype(X, Y) :- 
-	X << Z, subtype(Z, Y).
+	call('<<'(X , Z)), subtype(Z, Y).
 proper_subtype(absurd, X) :- 
 	concept_type(X, _, _, _, _), X \= absurd.
 proper_subtype(X, universal) :- 
@@ -357,3 +357,5 @@ max_type_expansion(ID, GID, [GID|RestGIDs]) :-
 	  assert( p(Env, TyEnv, NewRefEnv, EnvEnv) )
 	).
 max_type_expansion(_, GID, [GID]).
+
+

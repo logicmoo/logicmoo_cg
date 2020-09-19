@@ -1,5 +1,6 @@
 
 multifile_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
+
 :- multifile_data(cgr/3).
 :- multifile_data(cg/4).
 :- multifile_data(cgc/5).
@@ -10,6 +11,7 @@ multifile_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
 :- multifile_data(reldef/3).
 :- multifile_data(isa_kind/4).
 :- multifile_data(typedef/3).
+
 
 
 

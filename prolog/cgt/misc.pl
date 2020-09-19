@@ -195,7 +195,12 @@ Notes		:
 
 ************************************************************************/
 
-load_db(Canon) :-
+
+load_db_dir(Canon,CanonFull):- 
+  absolute_file_name(library(cgt/Canon),File,[extensions([gr]),access(read)]),
+  atom_concat(CanonFull,'.gr',File),!.
+load_db(Canon0) :-
+        load_db_dir(Canon0,Canon),
 	name(Canon, L),
 	name('.gr',  E1), conc(L, E1, L1), name(File1, L1), reconsult(File1),
 	name('.hrc', E2), conc(L, E2, L2), name(File2, L2), reconsult(File2),
@@ -426,15 +431,19 @@ Notes		:
 
 ************************************************************************/
 
+cgp_id_dat(File):- absolute_file_name(library('cgt/cgp_id.dat'), File,[access(read)]).
+
 load_id :-
-	seeing(Old), seen, see('cgp_id.dat'),
+        cgp_id_dat(File),
+	seeing(Old), seen, see(File),
 	repeat, read(T), 
 	( T = end_of_file
 	; T = id(Key, Id), recordz(Key, Id, _), fail
 	),
 	seen, seeing(Old).
 load_id :-
-	write('File cgp_id.dat is misssing!'), nl, abort.
+        cgp_id_dat(File),
+	format('File ~w is misssing!~n',[File]),  abort.
 
 /* save_id/0 ************************************************************
 
@@ -446,7 +455,8 @@ Notes		: succeeds always
 ************************************************************************/
 
 save_id :-
-	telling(Old), told, tell('cgp_id.dat'),
+        cgp_id_dat(File),
+	telling(Old), told, tell(File),
 	( member(Key, [c,g,p,l]), recorded(Key, Id, _Ref),% erase(Ref), 
 	  write(id(Key, Id)), write('.'), nl, fail
 	; told, tell(Old)

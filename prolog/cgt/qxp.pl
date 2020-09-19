@@ -1,3 +1,17 @@
+:- module(cgt,[]).
+
+cgt_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
+
+:- cgt_data('<<'/2).
+:- cgt_data(c/3).
+:- cgt_data(concept_type/5).
+:- cgt_data(description/3).
+:- cgt_data(g/3).
+:- cgt_data(l/3).
+:- cgt_data(p/4).
+:- cgt_data(relation_type/5).
+
+
 /* COPYRIGHT ************************************************************
 
 Conceptual Graph Tools (CGT) - a partial implementation of Sowa's CS Theory
@@ -165,3 +179,6 @@ acknowledge(Msg):- wdmsg(Msg).
 :- dynamic(defined/3).
 
 :- load_cgt.
+
+
+
