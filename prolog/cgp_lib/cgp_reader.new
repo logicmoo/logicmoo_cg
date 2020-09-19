@@ -161,7 +161,9 @@ codes_to_tokens(S,Toks):- length(S,Len), Len> 2, notrace(catch(atom_codes(_,S),_
 parse_cg(CG) --> codes_to_tokens,!,parse_cg(CG).
 parse_cg(CG)--> parse_cg0(CG0), {must(var(CG)),resolve_frame_constants(CG0,CG)},!,dcgOptional(ci('.')).
 
+
 parse_cg0(CG,S,E) :- var(CG), \+ attvar(CG),cg_new(CG),!,locally_setval(cgframe,CG,parse_cg0(CG,S,E)).
+parse_cg0(CG) --> cw(Name), (ci('::');(ci(':'),ci(':'))),parse_cg(CG), push_frame_info([lbl=Name],CG).
 
 parse_cg0(CG)--> [':-'], !,parse_cg(PCG), { merge_simular_graph_vars(CG,PCG), push_frame_info(preconds(PCG),CG)}.
 
