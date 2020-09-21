@@ -359,18 +359,18 @@ graphrels(Gid1,Gid2,Cid1,Cid2,C1,R1,C2,R2):-
 graphrels(_,_,_,_,_,_,_,_):-
  write('No compatible triples of relations'),!,fail.
 
-/*replace every appearance of X in list with Y*/
+/*cg_replace every appearance of X in list with Y*/
 find_rep(_,_,[],[]).
 find_rep(X,Y,[X|T],[Y|T1]):-!,find_rep(X,Y,T,T1).
 find_rep(X,Y,[H|T],[H|T1]):-!,find_rep(X,Y,T,T1).
 
-/*replace every appearance of concept X in rel.list with concept Y*/
-replace(_,_,[],[]).
-replace(X,Y,[cgr(N,L,_)|T],[cgr(N,L1,_)|T1]):-
+/*cg_replace every appearance of concept X in rel.list with concept Y*/
+cg_replace(_,_,[],[]).
+cg_replace(X,Y,[cgr(N,L,_)|T],[cgr(N,L1,_)|T1]):-
 	find_rep(X,Y,L,L1),!,
-	replace(X,Y,T,T1).
+	cg_replace(X,Y,T,T1).
 
-/*replace when it is considered wheather concepts are related to in comming or out comming arcs*/
+/*cg_replace when it is considered wheather concepts are related to in comming or out comming arcs*/
 replace_in(_,_,[],[]).
 replace_in(X,Y,[cgr(N,L,_)|T],[cgr(N,L1,_)|T1]):-
 	inRel(cgr(N,L,_),InR),
@@ -451,8 +451,8 @@ join(Gid1,Gid2,Cid1,Cid2,Gid3,Cid3):-
 	help_link(Link1,Cid1,Cid3,L1),help_link(Link2,Cid2,Cid3,L2),
 	append(L1,L2,L),
 	graphrels(Gid1,Gid2,Cid1,Cid2,C1,R1,C2,R2),
-	replace(Cid1,Cid3,C1,NC1),
-	replace(Cid2,Cid3,C2,NC2),
+	cg_replace(Cid1,Cid3,C1,NC1),
+	cg_replace(Cid2,Cid3,C2,NC2),
 	append(NC1,NC2,NC),append(R1,R2,NR),
 	append(NC,NR,NRel),!,
 	clean(NRel,NR1),clean_help(NR1,NRels),
@@ -668,7 +668,7 @@ general_conc_in_graph(Grid,Lbl,NGrid):-
 	cg(Grid,Rel,_,_),rel_to_list(Rel,List),
 	(cgc(Cid,K,Lbl,Fs,_),member(Cid,List)),!,
 	isa(Lbl,SLbl),exist_cgc(K,SLbl,Fs,_,Cid1),
-	replace(Cid,Cid1,Rel,NR),clean_help(NR,NRel),
+	cg_replace(Cid,Cid1,Rel,NR),clean_help(NR,NRel),
 	to_string('This graph is received from graph ',Grid,Com1),
 	to_string(' by generalizing the concept with label ',Lbl, Com2),
 	to_string(Com1,Com2,Comment),graph_clinks(Grid,L),
@@ -783,7 +783,7 @@ special_conc_in_graph(Grid,Lbl,NGrid):-
 	cg(Grid,Rel,_,_),rel_to_list(Rel,List),
 	(cgc(Cid,K,Lbl,Fs,_),member(Cid,List)),!,
 	isa(SLbl,Lbl),exist_cgc(K,SLbl,Fs,_,Cid1),
-	replace(Cid,Cid1,Rel,NRels),clean_help(NRels,NRel),
+	cg_replace(Cid,Cid1,Rel,NRels),clean_help(NRels,NRel),
 	to_string('This graph is received from graph ',Grid,Com1),
 	to_string(' by specializing the concept with label ',Lbl, Com2),
 	to_string(Com1,Com2,Comment),graph_clinks(Grid,L),
@@ -926,7 +926,7 @@ contract_type(Gid,TDef,NGrid):-
 	cgc(Gen,simple,_,Ref,_),exist_cgc(simple,Conc,Ref,_,Id1),
 	graph_relations(PrId,Rel1),graph_relations(Gid,Rel2),
 	razlika(Rel2,Rel1,Rel),
-	replace(Gen,Id1,Rel,Rel4),clean_help(Rel4,Rel3),
+	cg_replace(Gen,Id1,Rel,Rel4),clean_help(Rel4,Rel3),
       to_string('This graph is received from graph ',Gid,Com1),to_string(' by performing the contract_type operation of type: ',Conc,Com2),to_string(Com1,Com2,Comment),
 	exist_cg(Rel3,_,cotracted_type,Comment,Param,NGrid),
 	assertz(params(Param)))).
@@ -943,7 +943,7 @@ type_contraction(Gid,TLbl,NGrid):-
 	cgc(Gen,simple,_,Ref,_),exist_cgc(simple,TLbl,Ref,_,Id1),
 	graph_relations(PrId,Rel1),graph_relations(Gid,Rel2),
 	razlika(Rel2,Rel1,Rel),
-	replace(Gen,Id1,Rel,Rel4),clean_help(Rel4,Rel3),
+	cg_replace(Gen,Id1,Rel,Rel4),clean_help(Rel4,Rel3),
 	to_string('This graph is received from graph ',Gid,Com1),to_string(' by performing the type_contraction operation of type: ',TLbl,Com2),to_string(Com1,Com2,Comment),
 	exist_cg(Rel3,_,type_contracted,Comment,Param,NGrid),
 	assertz(params(Param)))).
@@ -988,8 +988,8 @@ type_exp(Grid,T,Relg1,Reld1):-
 	graph_relations(Grid,Relg),findgenus(Gr,Gen),
       findc_number(Relg,T,Num),cgc(Num,simple,T,F,_),
       cgc(Gen,_,T1,_,_),exist_cgc(simple,T1,F,_,Id),
-	replace(Num,Id,Relg,Relg1),
-	replace(Gen,Id,Reld,Reld1).
+	cg_replace(Num,Id,Relg,Relg1),
+	cg_replace(Gen,Id,Reld,Reld1).
 
 type_expansion(Grid,T,NGrid):-
 	Param=['type_expansion',Grid,T,NGrid],
@@ -1016,8 +1016,8 @@ type_expan(Grid,TGrid,Relg1,Reld1):-
 	graph_relations(Grid,Relg),findgenus(Gr,Gen),
       findc_number(Relg,T,Num),cgc(Num,simple,T,F,_),
       cgc(Gen,_,T1,_,_),exist_cgc(simple,T1,F,_,Id),
-	replace(Num,Id,Relg,Relg1),
-	replace(Gen,Id,Reld,Reld1).
+	cg_replace(Num,Id,Relg,Relg1),
+	cg_replace(Gen,Id,Reld,Reld1).
 
 expand_type(Grid,TGrid,NGrid):-
 	Param=['expand_type',Grid,TGrid,NGrid],
@@ -1056,11 +1056,11 @@ findrep([_|T],L,T1):-findrel(T,L,T1).
 replacement([],_,[]).
 replacement([rep(C1,C2)|L],Reld,Reld1):-
 	(replace1(C1,C2,Reld,R1),!;
-	replace(C1,C2,Reld,R1)),
+	cg_replace(C1,C2,Reld,R1)),
 	replacement(L,Reld,R2),
 	append(R1,R2,Reld1).
 
-replace1([C1],[C2],R1,R2):-replace(C1,C2,R1,R2).
+replace1([C1],[C2],R1,R2):-cg_replace(C1,C2,R1,R2).
 
 copygraph(GrID,NGrID):-ground(GrID),
 	cg(GrID,Rels,Idl,Fs),
@@ -1250,7 +1250,7 @@ new_crel(cgr(N,[C,C1],A),cgr(N,[C,C2],A)):-cgc(C1,Kd,Lb,Fs,_),
 f_rep(Rel,Rep):-rel_to_list(Rel,Lst),
 	findall(rep(C1,C),(member(C,Lst),cgc(C,_,_,_,rep(C1,C)),ground(C1)),Rep).
 frepl([],R,R).
-frepl([rep(C1,C)|T],R,Rel):-replace(C1,C,R,R1),frepl(T,R1,Rel).
+frepl([rep(C1,C)|T],R,Rel):-cg_replace(C1,C,R,R1),frepl(T,R1,Rel).
 
 member_check(E,[E|_]):-!.
 member_check(E,[_|T]):-member_check(E,T).
@@ -1283,7 +1283,7 @@ all_un(R1,R2,L):-	findall(u_conc(C1,C2,K),(u_conc(C1,C2,K),memb_rel(C1,R1),
 
 memb_rel(C,R):-rel_to_list(R,L),member_check(C,L).
 un_process([],R1,R2,R1,R2).
-un_process([u_conc(C1,C2,Id)|T],R1,R2,NR1,NR2):-	replace(C1,Id,R1,R11),replace(C2,Id,R2,R22),
+un_process([u_conc(C1,C2,Id)|T],R1,R2,NR1,NR2):-	cg_replace(C1,Id,R1,R11),cg_replace(C2,Id,R2,R22),
 	un_process(T,R11,R22,NR1,NR2).
 
 un_processl([],L1,L2,L1,L2).

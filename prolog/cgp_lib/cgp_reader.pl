@@ -79,7 +79,7 @@ print_cg(X):- !, frmprint(X).
 print_cg(X):- is_list(X),!, maplist(print_cg,X).
 print_cg(X):- nl,wdmsg(display(X)),nl.
 
-fixcase_atom(Name,NameR):- atom(Name), upcase_atom(Name,Name),to_case_break_atoms(Name,Atoms),
+fixcase_atom(Name,NameR):- atom(Name), upcase_atom(Name,Name), \+ downcase_atom(Name,Name), to_case_break_atoms(Name,Atoms),
  maplist(to_titlecase,Atoms,PAtoms),sUbst(PAtoms,'-','_',PSAtoms),atomic_list_concat(PSAtoms,NameR),!.
 fixcase_atom(Name,Name).
 
@@ -91,8 +91,8 @@ end_symbol--> \+ [_].
 prolog_id_conted([])--> dcg_peek(end_symbol),!.
 prolog_id_conted([C|T])--> [C], !,prolog_id_conted(T).
 
+tokenize_cg_w(HT)--> maybe_to_codes,!,tokenize_cg_w(HT).
 tokenize_cg_w(HT)--> blank,!,tokenize_cg_w(HT).
-
 tokenize_cg_w(Name) --> dcg_peek(`'`),!,single_quoted_string(Str),{atom_codes(Name,Str)}.
 tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
 tokenize_cg_w(Op)--> {sent_op_chars(Op,Chars)},Chars,!.
@@ -101,8 +101,9 @@ tokenize_cg_w(T)--> dcg_basics:number(T),!.
 tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{atom_codes(NameR, CL),fixcase_atom(NameR,Name)},!.
 tokenize_cg_w(Name)--> [C],{ atom_codes(Name, [C])},!.
 
-tokenize_cg(HT)--> blank,!,tokenize_cg(HT).
-tokenize_cg([],S,E):- S=[],!,E=[].
+tokenize_cg(HT)--> maybe_to_codes,!,tokenize_cg(HT).
+tokenize_cg(HT)--> dcg_basics:blank,!,tokenize_cg(HT).
+tokenize_cg([],S,E):- S==[],!,E=[].
 tokenize_cg([H|T])--> tokenize_cg_w(H),!,tokenize_cg(T).
 tokenize_cg([])-->[],!.                                             
 
@@ -155,10 +156,16 @@ ballanced(L):- notrace((ballance(L,R),\+ ( get_incrs(R,_,V),V\=0))).
 dcg_beforeSeq(Skipped,Mid,S,E):-
   append(Skipped,MidS,S),ballanced(Skipped), phrase(Mid,MidS,E).
 
-codes_to_tokens(S,Toks):- length(S,Len), Len> 2, notrace(catch(atom_codes(_,S),_,fail)), tokenize_cg(Toks,S,[]),!.
+maybe_codes_to_tokens(_,_):- !, fail.
+maybe_codes_to_tokens(S,_):- is_list(S), notrace(catch((atom_codes(_,S),fail),_,true)),!,fail.
+maybe_codes_to_tokens(S,Toks):- \+ is_list(S),!, any_to_codes(S,Codes), maybe_codes_to_tokens(Codes,Toks).
+maybe_codes_to_tokens(S,Toks):- tokenize_cg(Toks,S,[]),!.
 
 
-parse_cg(CG) --> codes_to_tokens,!,parse_cg(CG).
+maybe_to_codes(S,_):- is_list(S), notrace(catch(atom_codes(_,S),_,fail)),!,fail.
+maybe_to_codes(S,Codes):- any_to_string(S,Str),atom_codes(Str,Codes),!.
+
+% parse_cg(CG) --> maybe_codes_to_tokens,!,parse_cg(CG).
 parse_cg(CG)--> parse_cg0(CG0), {must(var(CG)),resolve_frame_constants(CG0,CG)},!,dcgOptional(cic('.')).
 
 
@@ -199,7 +206,7 @@ rel(C)--> ['('],word_tok_loose(C),[')'].
 rel(C)--> ['<'],word_tok_loose(C),['>'].
 rel(C)--> word_tok_loose(C).
 
-word_tok_loose(DC)-->[C],{atom(C),fixcase_atom(C,DC)}.
+word_tok_loose(DC)-->[C],{atom(C),C\=='', fixcase_atom(C,DC)}.
 
 nonword_tok(X):- atom(X),upcase_atom(X,UC),downcase_atom(X,DC),!,UC==DC. 
 
@@ -216,7 +223,7 @@ word_tok(X)--> [X], !, {atom(X), \+ nonword_tok(X)}.
 quant(X) --> [X], {nonword_tok(X)}.
 
                                                   
-concept(CG) --> codes_to_tokens,!,concept(CG).
+concept(CG) --> maybe_codes_to_tokens,!,concept(CG).
 concept(V,S,E):- concept0(C,S,E),concept_var(V,C).
 
 % concept0('*')--> [*], !.
@@ -337,11 +344,11 @@ cg_comment_expr(X) --> cspace,!,cg_comment_expr(X).
 cg_comment_expr('$COMMENT'(Expr,I,CP)) --> comment_expr_5(Expr,I,CP),!.
 comment_expr_5(T,N,CharPOS) --> `/*`, !, my_lazy_list_location(file(_,_,N,CharPOS)),!, zalwayz(read_string_until_no_esc(S,`*/`)),!,
   {text_to_string_safe(S,T)},!.
-comment_expr_5(T,N,CharPOS) -->  {cmt_until_eoln(Text)},Text,!, my_lazy_list_location(file(_,_,N,CharPOS)),!,zalwayz(read_string_until_no_esc(S,eoln)),!,
+comment_expr_5(T,N,CharPOS) -->  {cg_cmt_until_eoln(Text)},Text,!, my_lazy_list_location(file(_,_,N,CharPOS)),!,zalwayz(read_string_until_no_esc(S,eoln)),!,
  {text_to_string_safe(S,T)},!.
-cmt_until_eoln(`//`).
-cmt_until_eoln(`;;`).
-cmt_until_eoln(`%`).
+cg_cmt_until_eoln(`//`).
+cg_cmt_until_eoln(`;;`).
+cg_cmt_until_eoln(`%`).
 
 
   
