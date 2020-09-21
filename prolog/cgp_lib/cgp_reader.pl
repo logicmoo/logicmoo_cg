@@ -108,32 +108,32 @@ tokenize_cg([])-->[],!.
 
 
 
-%find_var(V)--> ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
-%parse_var_concept(V,typeof(Rel, ?(V)))-->  ci('['), cw(Rel), ci(':'),ci('*'), cw(VL),ci(']'),!,{upcase_atom(VL,V)},!.
-%parse_var_concept(V,C)-->  ci('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
+%find_var(V)--> cic('*'), cw(VL),cic(']'),!,{upcase_atom(VL,V)},!.
+%parse_var_concept(V,typeof(Rel, ?(V)))-->  cic('['), cw(Rel), cic(':'),cic('*'), cw(VL),cic(']'),!,{upcase_atom(VL,V)},!.
+%parse_var_concept(V,C)-->  cic('['),dcg_beforeSeq(LeftSkipped,find_var(V)), {append(['['|LeftSkipped],[']'],CS), concept(C,CS,[])},!.
 
-parse_rel(Logic) -->  ci('('),carg(Rel),
-  dcg_list_of(carg,Args), ci(')'),!,{fixcase_atom(Rel,RelD),Logic=..[cg_holds,RelD|Args]},!.
-
-
-parse_decl(Type, [cg_type(Arg,RelD),cg_quantz(Type,Arg)],Arg) -->  cw(Rel), ci('('), carg(Arg), ci(')'),!,{fixcase_atom(Rel,RelD)},!.
+parse_rel(Logic) -->  cic('('),carg(Rel),
+  dcg_list_of(carg,Args), cic(')'),!,{fixcase_atom(Rel,RelD),Logic=..[cg_holds,RelD|Args]},!.
 
 
+parse_decl(Type, [cg_type(Arg,RelD),cg_quantz(Type,Arg)],Arg) -->  cw(Rel), cic('('), carg(Arg), cic(')'),!,{fixcase_atom(Rel,RelD)},!.
 
-carg(W)-->dcg_peek(ci('[')),concept(W),!.
-carg(W)-->dcg_peek(ci('(')),parse_rel(W),!.
+
+
+carg(W)-->dcg_peek(cic('[')),concept(W),!.
+carg(W)-->dcg_peek(cic('(')),parse_rel(W),!.
 %carg(_)-->[CI],{sent_op(CI)},!,{fail}.
 carg(W) --> cw(W),!.
 carg(V)-->cvalue(W),{concept_var(V,W)}.
 
 
-dcg_list_of( _,['*']) --> ci('*'), ending(_),!.
-dcg_list_of( Cw,[H|Frame]) --> ci('|'), !, {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
-dcg_list_of( Cw,[H|Frame]) --> ci(','), !, {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
+dcg_list_of( _,['*']) --> cic('*'), ending(_),!.
+dcg_list_of( Cw,[H|Frame]) --> cic('|'), !, {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
+dcg_list_of( Cw,[H|Frame]) --> cic(','), !, {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
 dcg_list_of( Cw,[H|Frame]) --> {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
 dcg_list_of(_Cw,[]) --> ending(_).
 
-ending(R) --> {sent_op_pair(_,R)},dcg_peek(ci(R)),!.
+ending(R) --> {sent_op_pair(_,R)},dcg_peek(cic(R)),!.
 ending(_) --> \+[_].
 
 
@@ -159,21 +159,21 @@ codes_to_tokens(S,Toks):- length(S,Len), Len> 2, notrace(catch(atom_codes(_,S),_
 
 
 parse_cg(CG) --> codes_to_tokens,!,parse_cg(CG).
-parse_cg(CG)--> parse_cg0(CG0), {must(var(CG)),resolve_frame_constants(CG0,CG)},!,dcgOptional(ci('.')).
+parse_cg(CG)--> parse_cg0(CG0), {must(var(CG)),resolve_frame_constants(CG0,CG)},!,dcgOptional(cic('.')).
 
 
 parse_cg0(CG,S,E) :- var(CG), \+ attvar(CG),cg_new(CG),!,locally_setval(cgframe,CG,parse_cg0(CG,S,E)).
-parse_cg0(CG) --> cw(Name), (ci('::');(ci(':'),ci(':'))),parse_cg(CG), push_frame_info([lbl=Name],CG).
+parse_cg0(CG) --> cw(Name), (cic('::');(cic(':'),cic(':'))),parse_cg(CG), push_frame_info([lbl=Name],CG).
 
 parse_cg0(CG)--> [':-'], !,parse_cg(PCG), { merge_simular_graph_vars(CG,PCG), push_frame_info(preconds(PCG),CG)}.
 
-parse_cg0(CG)--> {member(Type,[type,individual])}, ci(Type), !, zalwayz(parse_decl(Type,Expr,_X)), !, zalwayz(ci('Is')),!, 
+parse_cg0(CG)--> {member(Type,[type,individual])}, cic(Type), !, zalwayz(parse_decl(Type,Expr,_X)), !, zalwayz(cic('Is')),!, 
  zalwayz(parse_cg(CG0)),!, {push_frame_info(CG0,CG),push_frame_info(Expr,CG)},!.
 
 parse_cg0(CG) --> parse_rel(H), {push_frame_info([H],CG)}, parse_cg0(CG).
 parse_cg0(CG) --> concept(S), cont_graph(S,S,CG),!,parse_cg0(CG).
-parse_cg0(_) --> {sent_op_pair(_,R)},dcg_peek(ci(R)),!.
-parse_cg0(_) --> ci('.'),!.
+parse_cg0(_) --> {sent_op_pair(_,R)},dcg_peek(cic(R)),!.
+parse_cg0(_) --> cic('.'),!.
 parse_cg0(_) --> \+ [_],!.
 
 s_e(S,E,S,E).
@@ -182,18 +182,18 @@ cont_graph(Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(cg
 cont_graph(Parent,Subj,CG) --> rel_right(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Obj,CG).
 cont_graph(Parent,Obj,CG) --> rel_left2(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Subj,CG).
 cont_graph(Parent,Obj,CG) --> rel_left(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Subj,CG).
-cont_graph(Parent,_Subj,CG) --> ci(','),!,cont_graph(Parent,Parent,CG).
-cont_graph(Parent,_Subj,CG) --> ci('-'),!,cont_graph(Parent,Parent,CG).
-cont_graph(_Parent,_Subj,_) --> dcg_peek(ci(']')),!.
-cont_graph(_Parent,_Subj,_) --> ci('.'),!.
+cont_graph(Parent,_Subj,CG) --> cic(','),!,cont_graph(Parent,Parent,CG).
+cont_graph(Parent,_Subj,CG) --> cic('-'),!,cont_graph(Parent,Parent,CG).
+cont_graph(_Parent,_Subj,_) --> dcg_peek(cic(']')),!.
+cont_graph(_Parent,_Subj,_) --> cic('.'),!.
 cont_graph(_Parent,_,_)--> \+ [_],!.
 cont_graph(_Parent,_Subj,CG) --> parse_cg0(CG).
 
-rel_right(Rel)-->ci('-'),rel(Rel),ci('->').
-rel_right2(Rel)-->ci('->'),rel(Rel),ci('->').
-rel_right2(Rel)-->ci('->'),rel(Rel),ci('-').
-rel_left(Rel)-->ci('<-'),rel(Rel),ci('-').
-rel_left2(Rel)-->ci('<-'),rel(Rel),ci('<-').
+rel_right(Rel)-->cic('-'),rel(Rel),cic('->').
+rel_right2(Rel)-->cic('->'),rel(Rel),cic('->').
+rel_right2(Rel)-->cic('->'),rel(Rel),cic('-').
+rel_left(Rel)-->cic('<-'),rel(Rel),cic('-').
+rel_left2(Rel)-->cic('<-'),rel(Rel),cic('<-').
 
 rel(C)--> ['('],word_tok_loose(C),[')'].
 rel(C)--> ['<'],word_tok_loose(C),['>'].
@@ -225,8 +225,8 @@ concept0([?(Var)]) --> [?(Var)],!.
 
 concept0(C)-->concept2(C),(([I],{integer(I)})->{nb_set_add(C,'#'(I))};[]).
 
-%concept1(C)--> ci('['), dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
-concept2(C)--> ci('['), concept_innerds(C), ci(']'),!.
+%concept1(C)--> cic('['), dcg_peek([P1,P2]), concept_innerds_3a(P1,P2,C),!.
+concept2(C)--> cic('['), concept_innerds(C), cic(']'),!.
 concept2(C)--> word_tok(C),!.
 
 concept_var(V,C):- \+ is_list(C),concept_var(V,[C]).
@@ -254,27 +254,27 @@ concept_var(V, _Props,    IZA ):- compound(IZA),compound_name_arguments(IZA,I,[Z
 concept_var(_, _Props, _):-!.
 
  
-cvalue_cont([])--> (ci('.'); ending(_)),!.
-cvalue_cont([]) --> {sent_op(Op)},dcg_peek(ci(Op)),!.
+cvalue_cont([])--> (cic('.'); ending(_)),!.
+cvalue_cont([]) --> {sent_op(Op)},dcg_peek(cic(Op)),!.
 cvalue_cont([H|T]) --> cw(H), cvalue_cont(T).
 
 
-cvalue('GRAPH'(W))--> dcg_peek(ci('[')), zalwayz(parse_cg(W)).
-cvalue(=(REL))--> dcg_peek(ci('(')), zalwayz(parse_rel(REL)),!.
-cvalue(=(X,REL))--> dcg_peek((cw(_),ci('('))), parse_decl(instance,REL,X),!.
+cvalue('GRAPH'(W))--> dcg_peek(cic('[')), zalwayz(parse_cg(W)).
+cvalue(=(REL))--> dcg_peek(cic('(')), zalwayz(parse_rel(REL)),!.
+cvalue(=(X,REL))--> dcg_peek((cw(_),cic('('))), parse_decl(instance,REL,X),!.
 cvalue(textOf(String))--> [String], {string(String)},!.
-cvalue('='(W))--> ci('='), cvalue(W).
-cvalue('^'(W))--> ci('^'), cvalue(W).
-cvalue('~'(W))--> ci('~'), cvalue(W).
-cvalue('*'(W))--> ci('*'), cw(W).
+cvalue('='(W))--> cic('='), cvalue(W).
+cvalue('^'(W))--> cic('^'), cvalue(W).
+cvalue('~'(W))--> cic('~'), cvalue(W).
+cvalue('*'(W))--> cic('*'), cw(W).
 cvalue('?'(W))--> [?(W)],!.
 % #?Quotient
-cvalue('='(W))--> ci('#'), [?(W)], {atomic(W)}.
-cvalue('#'(W))--> ci('#'), [W].
-% cvalue(cg_count(W,W))--> ci('@'), [W], { number(W) },!.
-cvalue('@'(W))--> ci('@'), cw(W).
-cvalue(cg_count(0,0))--> ci('{'),  ci('}'),!.
-cvalue(TstAtts)--> ci('{'), {TstAtts=['@'(set)]}, dcg_list_of(ci,Atts), ci('}'), !, {into_set(Atts,TstAtts)}.
+cvalue('='(W))--> cic('#'), [?(W)], {atomic(W)}.
+cvalue('#'(W))--> cic('#'), [W].
+% cvalue(cg_count(W,W))--> cic('@'), [W], { number(W) },!.
+cvalue('@'(W))--> cic('@'), cw(W).
+cvalue(cg_count(0,0))--> cic('{'),  cic('}'),!.
+cvalue(TstAtts)--> cic('{'), {TstAtts=['@'(set)]}, dcg_list_of(cic,Atts), cic('}'), !, {into_set(Atts,TstAtts)}.
 cvalue(cg_name(W))--> cw(H), cvalue_cont(T), {maplist(term_to_unquoted_atom,[H|T],HT),atomic_list_concat(HT,'_',W)}.
 
 into_set(['*'],TstAtts):- nb_set_add(TstAtts,cg_count(1,_)),!.
@@ -285,8 +285,8 @@ into_set(List,TstAtts):- length(List,Count), nb_set_add(TstAtts,cg_count(Count,_
 term_to_unquoted_atom(Atom,Atom):- atom(Atom),!.
 term_to_unquoted_atom(Term,Atom):- term_to_atom(Term,Atom).
 
-concept_innerds([cg_type(C)|Cont]) --> cw(C),ci(','),!, concept_innerds(Cont).
-concept_innerds([cg_type(C)|Cont]) --> cw(C), dcgOptional(ci(':')),!,concept_innerds_cont(Cont).
+concept_innerds([cg_type(C)|Cont]) --> cw(C),cic(','),!, concept_innerds(Cont).
+concept_innerds([cg_type(C)|Cont]) --> cw(C), dcgOptional(cic(':')),!,concept_innerds_cont(Cont).
 concept_innerds(Cont) --> concept_innerds_cont(Cont).
 
 concept_innerds_cont([])--> ending(_).
@@ -321,7 +321,7 @@ sent_op_pair_q('\'').
 
 cw(H,[H|T],T):- notrace(( \+ sent_op(H))).
 
-ci(CI)-->[C],{notrace((atom(C),upcase_atom(C,UC),(CI=UC->true; upcase_atom(CI,UC))))}.
+cic(CI)-->[C],{notrace((atom(C),upcase_atom(C,UC),(CI=UC->true; upcase_atom(CI,UC))))}.
 
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),

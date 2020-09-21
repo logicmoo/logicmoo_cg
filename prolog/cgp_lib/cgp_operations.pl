@@ -26,8 +26,8 @@ multifile_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
 :- use_module(library(lists)).
 :- dynamic(params/1).
 
-:- include('../test/cgworld/CGKB.kb').
-:- include('../test/cgworld/Type_Hierarchy.kb').
+:- include(library('../test/cgworld/CGKB.kb')).
+:- include(library('../test/cgworld/Type_Hierarchy.kb')).
 
 isConcept(ID):- grounded(id(g), ID), cgc(ID, _, _, _, _).
 isCG(ID):- grounded(id(g), ID), cg(ID, _, _, _).
