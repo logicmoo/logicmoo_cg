@@ -681,7 +681,7 @@ cg_equal(Color,'Color#1').
 cg_type(Color,'Color').
 cg_quantz(e,X).
 lbl(frame44).
-% pred_cg(call_cg_real, xtext("?x -(Attrib)-> [Color #1]")).
+```
 
 
 ```
@@ -697,7 +697,7 @@ cg_equal(Mat,'Mat#1').
 cg_type(Mat,'Mat').
 cg_quantz(e,X).
 lbl(frame45).
-% pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]-(Attrib)->[Color #1]")).
+```
 
 
 ```
@@ -710,7 +710,7 @@ cg_equal(Mat,'Mat#1').
 cg_type(Mat,'Mat').
 cg_quantz(e,X).
 lbl(frame46).
-% pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]")).
+```
 
 
 ```
@@ -725,7 +725,7 @@ cg_type(
    X,
    ?('X')).
 lbl(frame47).
-% pred_cg(call_cg_real, xtext("[?x] -(Attrib)-> [Color #1]")).
+```
 
 
 ```
@@ -743,7 +743,7 @@ cg_type(
    X,
    ?('X')).
 lbl(frame48).
-% pred_cg(call_cg_real, xtext("[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]")).
+```
 
 
 ```
@@ -757,7 +757,7 @@ cg_type(Color,'Color').
 cg_quantz(e,X).
 cg_type(X,'Mat').
 lbl(frame49).
-% pred_cg(call_cg_real, xtext("[Mat ?x]-(Attrib)->[Color #1]")).
+```
 
 
 ```
@@ -774,7 +774,7 @@ cg_type(Mat,'Mat').
 cg_quantz(e,X).
 cg_type(X,'Cat').
 lbl(frame50).
-% pred_cg(call_cg_real, xtext("[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]")).
+```
 
 
 ```
