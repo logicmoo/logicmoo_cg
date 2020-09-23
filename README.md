@@ -10,551 +10,587 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
 % init_why(before_boot, after(/.../(prolog, 'cgprolog.pl'))).
 
 
+
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [PERSON: x] :- [CITIZEN : x].").
 % ===========================================
 
-% preconds([frame_var('X', X_Citizen), cg_type(X_Citizen, 'Citizen'), lbl(frame2)]),
-% frame_var('X', X_Citizen),
-% cg_type(X_Citizen, 'Person'),
-% lbl(frame1).
+[ lbl(frame1),
+  frame_var('X',Person_X_Citizen),
+  cg_type(Person_X_Citizen,'Person'),
+  preconds(
+     [ [ frame_var('X',Person_X_Citizen),
+         cg_type(Person_X_Citizen,'Citizen'),
+         lbl(frame2) ] ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
      [PERSON: x]<-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
 % ===========================================
 
-% preconds([cg_holds('Loc', Being_Born, Oz_Country7), cg_name(Oz_Country7, 'Oz'), cg_type(Oz_Country7, 'Country'), cg_holds('Agnt', Being_Born, X_Person), cg_type(Being_Born, 'Being_Born'), frame_var('X', X_Person), cg_type(X_Person, 'Person'), lbl(frame4)]),
-% cg_holds(memberOf, Oz_Country7, X_Person),
-% cg_name(Oz_Country7, 'Oz'),
-% cg_type(Oz_Country7, 'Country'),
-% frame_var('X', X_Person),
-% cg_type(X_Person, 'Citizen'),
-% lbl(frame3).
+[ lbl(frame3),
+  frame_var('X',Citizen_X_Person),
+  cg_type(Oz_Country7,'Country'),
+  cg_type(Citizen_X_Person,'Citizen'),
+  cg_name(Oz_Country7,'Oz'),
+  cg_holds(memberOf,Oz_Country7,Citizen_X_Person),
+  preconds(
+     [ [ cg_holds('Loc',Being_Born,Oz_Country7),
+         cg_name(Oz_Country7,'Oz'),
+         cg_type(Oz_Country7,'Country'),
+         cg_holds('Agnt',Being_Born,Citizen_X_Person),
+         cg_type(Being_Born,'Being_Born'),
+         frame_var('X',Citizen_X_Person),
+         cg_type(Citizen_X_Person,'Person'),
+         lbl(frame4) ] ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
      [PERSON: ?x]<-childOf-[PERSON: y],
      [CITIZEN : y]<-memberOf-[COUNTRY : Oz].").
 % ===========================================
 
-% preconds([cg_holds(memberOf, Oz_Country10, Y_Citizen8), cg_name(Oz_Country10, 'Oz'), cg_type(Oz_Country10, 'Country'), frame_var('Y', Y_Citizen8), cg_type(Y_Citizen8, 'Citizen'), cg_holds(childOf, Y_Citizen8, X_), frame_var('Y', Y_Citizen8), cg_type(Y_Citizen8, 'Person'), cg_quantz(e, X_), cg_type(X_, 'Person'), lbl(frame6)]),
-% cg_holds(memberOf, Oz_Country10, X_Citizen),
-% cg_name(Oz_Country10, 'Oz'),
-% cg_type(Oz_Country10, 'Country'),
-% frame_var('X', X_Citizen),
-% cg_type(X_Citizen, 'Citizen'),
-% lbl(frame5).
+[ lbl(frame5),
+  frame_var('X',X_Citizen),
+  cg_type(Oz_Country10,'Country'),
+  cg_type(X_Citizen,'Citizen'),
+  cg_name(Oz_Country10,'Oz'),
+  cg_holds(memberOf,Oz_Country10,X_Citizen),
+  preconds(
+     [ [ cg_holds(memberOf,Oz_Country10,Y_Citizen8),
+         cg_name(Oz_Country10,'Oz'),
+         cg_type(Oz_Country10,'Country'),
+         frame_var('Y',Y_Citizen8),
+         cg_type(Y_Citizen8,'Citizen'),
+         cg_holds(childOf,Y_Person6,X),
+         frame_var('Y',Y_Person6),
+         cg_type(Y_Person6,'Person'),
+         cg_quantz(e,X),
+         cg_type(X,'Person'),
+         lbl(frame6) ] ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [CITIZEN : x]<-memberOf-[COUNTRY : Oz] :-
      [PERSON : x]<-RCPT-[NATURALIZE]-LOC->[COUNTRY : Oz].").
 % ===========================================
 
-% preconds([cg_holds('Loc', Naturalize, Oz_Country7), cg_name(Oz_Country7, 'Oz'), cg_type(Oz_Country7, 'Country'), cg_holds('Rcpt', Naturalize, X_Person), cg_type(Naturalize, 'Naturalize'), frame_var('X', X_Person), cg_type(X_Person, 'Person'), lbl(frame8)]),
-% cg_holds(memberOf, Oz_Country7, X_Person),
-% cg_name(Oz_Country7, 'Oz'),
-% cg_type(Oz_Country7, 'Country'),
-% frame_var('X', X_Person),
-% cg_type(X_Person, 'Citizen'),
-% lbl(frame7).
+[ lbl(frame7),
+  frame_var('X',Citizen_X_Person),
+  cg_type(Oz_Country7,'Country'),
+  cg_type(Citizen_X_Person,'Citizen'),
+  cg_name(Oz_Country7,'Oz'),
+  cg_holds(memberOf,Oz_Country7,Citizen_X_Person),
+  preconds(
+     [ [ cg_holds('Loc',Naturalize,Oz_Country7),
+         cg_name(Oz_Country7,'Oz'),
+         cg_type(Oz_Country7,'Country'),
+         cg_holds('Rcpt',Naturalize,Citizen_X_Person),
+         cg_type(Naturalize,'Naturalize'),
+         frame_var('X',Citizen_X_Person),
+         cg_type(Citizen_X_Person,'Person'),
+         lbl(frame8) ] ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [PERSON : Tinman]-
               -childOf->[GIRL : Dorothy],
               <-AGNT-[Being_Born]-LOC->[COUNTRY : Oz].").
 % ===========================================
 
-% cg_holds('Loc', Being_Born, Oz_Country),
-% cg_name(Oz_Country, 'Oz'),
-% cg_type(Oz_Country, 'Country'),
-% cg_holds('Agnt', Being_Born, Tinman_Person),
-% cg_type(Being_Born, 'Being_Born'),
-% cg_holds(childOf, Tinman_Person, Dorothy_Girl),
-% cg_name(Dorothy_Girl, 'Dorothy'),
-% cg_type(Dorothy_Girl, 'Girl'),
-% cg_name(Tinman_Person, 'Tinman'),
-% cg_type(Tinman_Person, 'Person'),
-% lbl(frame9).
+[ lbl(frame9),
+  cg_type(Oz_Country,'Country'),
+  cg_type(Being_Born,'Being_Born'),
+  cg_type(Dorothy_Girl,'Girl'),
+  cg_type(Tinman_Person,'Person'),
+  cg_name(Oz_Country,'Oz'),
+  cg_name(Dorothy_Girl,'Dorothy'),
+  cg_name(Tinman_Person,'Tinman'),
+  cg_holds(childOf,Tinman_Person,Dorothy_Girl),
+  cg_holds('Loc',Being_Born,Oz_Country),
+  cg_holds('Agnt',Being_Born,Tinman_Person) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Mat]1-(Attrib)->[Color #1]").
+% ?- pred_cg(assert_cg_real,"[Mat]1-(Attrib)->[Color #1]").
 % ===========================================
 
-% cg_holds('Attrib', Mat, Color),
-% cg_equal(Color, 'Color#1'),
-% cg_type(Color, 'Color'),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% lbl(frame10).
+[ lbl(frame10),
+  cg_type(Color,'Color'),
+  cg_type(Mat,'Mat'),
+  cg_holds('Attrib',Mat,Color),
+  cg_equal(Color,'Color#1'),
+  cg_equal(Mat,'Mat#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Mat]1-(Attrib)->[Color]2").
+% ?- pred_cg(assert_cg_real,"[Mat]1-(Attrib)->[Color]2").
 % ===========================================
 
-% cg_holds('Attrib', Mat, Color),
-% cg_equal(Color, 'Color#2'),
-% cg_type(Color, 'Color'),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% lbl(frame11).
+[ lbl(frame11),
+  cg_type(Color,'Color'),
+  cg_type(Mat,'Mat'),
+  cg_holds('Attrib',Mat,Color),
+  cg_equal(Color,'Color#2'),
+  cg_equal(Mat,'Mat#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT_QUANT:@every]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CAT_QUANT:@every]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', Every_Cat_Quant, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_quantz(every, Every_Cat_Quant),
-% cg_type(Every_Cat_Quant, 'Cat_Quant'),
-% lbl(frame12).
+[ lbl(frame12),
+  cg_type(Mat,'Mat'),
+  cg_type(Every_Cat_Quant,'Cat_Quant'),
+  cg_quantz(every,Every_Cat_Quant),
+  cg_holds('On',Every_Cat_Quant,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[A_CAT]->(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[A_CAT]->(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', A_Cat, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_type(A_Cat, 'A_Cat'),
-% lbl(frame13).
+[ lbl(frame13),
+  cg_type(Mat,'Mat'),
+  cg_type(A_Cat,'A_Cat'),
+  cg_holds('On',A_Cat,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[THE_CAT:#666]->(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[THE_CAT:#666]->(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', The_Cat, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_equal(The_Cat, 'The_Cat#666'),
-% cg_type(The_Cat, 'The_Cat'),
-% lbl(frame14).
+[ lbl(frame14),
+  cg_type(Mat,'Mat'),
+  cg_type(The_Cat,'The_Cat'),
+  cg_holds('On',The_Cat,Mat),
+  cg_equal(The_Cat,'The_Cat#666') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[NAMED_CAT:Moris]->(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[NAMED_CAT:Moris]->(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', Moris_Named_Cat, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_name(Moris_Named_Cat, 'Moris'),
-% cg_type(Moris_Named_Cat, 'Named_Cat'),
-% lbl(frame15).
+[ lbl(frame15),
+  cg_type(Mat,'Mat'),
+  cg_type(Moris_Named_Cat,'Named_Cat'),
+  cg_name(Moris_Named_Cat,'Moris'),
+  cg_holds('On',Moris_Named_Cat,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[LENGTH:@5ft]<-(SizeOf)-[Mat]").
+% ?- pred_cg(assert_cg_real,"[LENGTH:@5ft]<-(SizeOf)-[Mat]").
 % ===========================================
 
-% cg_holds('SizeOf', Mat, Ft_Length),
-% cg_type(Mat, 'Mat'),
-% frame_var('FT', Ft_Length),
-% cg_quantz(5, Ft_Length),
-% cg_type(Ft_Length, 'Length'),
-% lbl(frame16).
+[ lbl(frame16),
+  frame_var('FT',Ft_Length_Num5_Num5),
+  cg_type(Mat,'Mat'),
+  cg_type(Ft_Length_Num5_Num5,'Length'),
+  cg_quantz(5,Ft_Length_Num5_Num5),
+  cg_holds('SizeOf',Mat,Ft_Length_Num5_Num5) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[LENGTH:@5ft.]<-(SizeOf)-[Mat]").
+% ?- pred_cg(assert_cg_real,"[LENGTH:@5ft.]<-(SizeOf)-[Mat]").
 % ===========================================
 
-% cg_holds('SizeOf', Mat, Ft_Length),
-% cg_type(Mat, 'Mat'),
-% frame_var('FT', Ft_Length),
-% cg_quantz(5, Ft_Length),
-% cg_type(Ft_Length, 'Length'),
-% lbl(frame17).
+[ lbl(frame17),
+  frame_var('FT',Ft_Length_Num5_Num5),
+  cg_type(Mat,'Mat'),
+  cg_type(Ft_Length_Num5_Num5,'Length'),
+  cg_quantz(5,Ft_Length_Num5_Num5),
+  cg_holds('SizeOf',Mat,Ft_Length_Num5_Num5) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT_SET_NONE:{}]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CAT_SET_NONE:{}]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', Cat_Set_None, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_count(Cat_Set_None, 0, 0),
-% cg_type(Cat_Set_None, 'Cat_Set_None'),
-% lbl(frame18).
+[ lbl(frame18),
+  cg_type(Mat,'Mat'),
+  cg_count(Cat_Set_None,0,0),
+  cg_type(Cat_Set_None,'Cat_Set_None'),
+  cg_holds('On',Cat_Set_None,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CATS_ONE_OR_MORE:{*}]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CATS_ONE_OR_MORE:{*}]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', Set_Cats_One_Or_More, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_count(Set_Cats_One_Or_More, 1, _1076),
-% cg_quantz(set, Set_Cats_One_Or_More),
-% cg_type(Set_Cats_One_Or_More, 'Cats_One_Or_More'),
-% lbl(frame19).
+[ lbl(frame19),
+  cg_type(Mat,'Mat'),
+  cg_type(Set_Cats_One_Or_More,'Cats_One_Or_More'),
+  cg_quantz(set,Set_Cats_One_Or_More),
+  cg_holds('On',Set_Cats_One_Or_More,Mat),
+  cg_count(Set_Cats_One_Or_More,1,Cg_Count) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT_FIVE:{*}@5]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CAT_FIVE:{*}@5]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', Set_Cat_Five, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_quantz(5, Set_Cat_Five),
-% cg_count(Set_Cat_Five, 1, _432),
-% cg_quantz(set, Set_Cat_Five),
-% cg_type(Set_Cat_Five, 'Cat_Five'),
-% lbl(frame20).
+[ lbl(frame20),
+  cg_type(Mat,'Mat'),
+  cg_quantz(set,Set_Cat_Five_Num5_Num5),
+  cg_count(Set_Cat_Five_Num5_Num5,1,Cg_Count),
+  cg_type(Set_Cat_Five_Num5_Num5,'Cat_Five'),
+  cg_quantz(5,Set_Cat_Five_Num5_Num5),
+  cg_holds('On',Set_Cat_Five_Num5_Num5,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT_FM:{Felix,Moris}]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CAT_FM:{Felix,Moris}]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', FELIXMORIS_Set_Cat_Fm, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_values(FELIXMORIS_Set_Cat_Fm, ['FELIX', 'MORIS']),
-% cg_count(FELIXMORIS_Set_Cat_Fm, 2, _9682),
-% cg_quantz(set, FELIXMORIS_Set_Cat_Fm),
-% cg_type(FELIXMORIS_Set_Cat_Fm, 'Cat_Fm'),
-% lbl(frame21).
+[ lbl(frame21),
+  cg_values(
+     FelixMoris_Set_Cat_Fm,
+     [ 'Felix',
+       'Moris' ]),
+  cg_type(Mat,'Mat'),
+  cg_quantz(set,FelixMoris_Set_Cat_Fm),
+  cg_count(FelixMoris_Set_Cat_Fm,2,Cg_Count),
+  cg_type(FelixMoris_Set_Cat_Fm,'Cat_Fm'),
+  cg_holds('On',FelixMoris_Set_Cat_Fm,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', FELIXMORIS_Cat_Set_Min_Two, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_values(FELIXMORIS_Cat_Set_Min_Two, ['FELIX', 'MORIS']),
-% cg_count(FELIXMORIS_Cat_Set_Min_Two, 2, _4506),
-% cg_quantz(set, FELIXMORIS_Cat_Set_Min_Two),
-% cg_type(FELIXMORIS_Cat_Set_Min_Two, 'Cat_Set_Min_Two'),
-% lbl(frame22).
+[ lbl(frame22),
+  cg_values(
+     FelixMoris_Cat_Set_Min_Two,
+     [ 'Felix',
+       'Moris' ]),
+  cg_type(Mat,'Mat'),
+  cg_quantz(set,FelixMoris_Cat_Set_Min_Two),
+  cg_count(FelixMoris_Cat_Set_Min_Two,2,Cg_Count),
+  cg_type(FelixMoris_Cat_Set_Min_Two,'Cat_Set_Min_Two'),
+  cg_holds('On',FelixMoris_Cat_Set_Min_Two,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', FELIXMORIS_Cat_Set_Five, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_quantz(5, FELIXMORIS_Cat_Set_Five),
-% cg_values(FELIXMORIS_Cat_Set_Five, ['FELIX', 'MORIS']),
-% cg_count(FELIXMORIS_Cat_Set_Five, 2, _4048),
-% cg_quantz(set, FELIXMORIS_Cat_Set_Five),
-% cg_type(FELIXMORIS_Cat_Set_Five, 'Cat_Set_Five'),
-% lbl(frame23).
+[ lbl(frame23),
+  cg_values(
+     FelixMoris_Cat_Set_Five_Num5_Num5,
+     [ 'Felix',
+       'Moris' ]),
+  cg_type(Mat,'Mat'),
+  cg_quantz(set,FelixMoris_Cat_Set_Five_Num5_Num5),
+  cg_count(FelixMoris_Cat_Set_Five_Num5_Num5,2,Cg_Count),
+  cg_type(FelixMoris_Cat_Set_Five_Num5_Num5,'Cat_Set_Five'),
+  cg_quantz(5,FelixMoris_Cat_Set_Five_Num5_Num5),
+  cg_holds('On',FelixMoris_Cat_Set_Five_Num5_Num5,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"['Man':imad]<-agnt-['Drive']-obj->['Car']").
+% ?- pred_cg(assert_cg_real,"['Man':imad]<-agnt-['Drive']-obj->['Car']").
 % ===========================================
 
-% cg_holds(obj, Drive, Car),
-% cg_type(Car, 'Car'),
-% cg_holds(agnt, Drive, Imad_Man),
-% cg_type(Drive, 'Drive'),
-% frame_var('IMAD', Imad_Man),
-% cg_type(Imad_Man, 'Man'),
-% lbl(frame24).
+[ lbl(frame24),
+  frame_var('IMAD',Imad_Man),
+  cg_type(Car,'Car'),
+  cg_type(Drive,'Drive'),
+  cg_type(Imad_Man,'Man'),
+  cg_holds(obj,Drive,Car),
+  cg_holds(agnt,Drive,Imad_Man) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+% ?- pred_cg(assert_cg_real,"[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
 % ===========================================
 
-% cg_holds('Attrib', Mat, Color),
-% cg_equal(Color, 'Color#1'),
-% cg_type(Color, 'Color'),
-% cg_holds('On', Cat, Mat),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% cg_equal(Cat, 'Cat#1'),
-% cg_type(Cat, 'Cat'),
-% lbl(frame25).
+[ lbl(frame25),
+  cg_type(Color,'Color'),
+  cg_type(Mat,'Mat'),
+  cg_type(Cat,'Cat'),
+  cg_holds('On',Cat,Mat),
+  cg_holds('Attrib',Mat,Color),
+  cg_equal(Color,'Color#1'),
+  cg_equal(Mat,'Mat#1'),
+  cg_equal(Cat,'Cat#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', C1, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_holds('Attrib', X_, C1),
-% cg_type(C1, 'C1'),
-% cg_quantz(e, X_),
-% cg_type(X_, 'Cat'),
-% lbl(frame26).
+[ lbl(frame26),
+  cg_type(Mat,'Mat'),
+  cg_type(C1,'C1'),
+  cg_quantz(e,X),
+  cg_holds('On',C1,Mat),
+  cg_holds('Attrib',X,C1),
+  cg_type(X,'Cat') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Cat: ?x]-(On)->[Mat]").
+% ?- pred_cg(assert_cg_real,"[Cat: ?x]-(On)->[Mat]").
 % ===========================================
 
-% cg_holds('On', X_, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_quantz(e, X_),
-% cg_type(X_, 'Cat'),
-% lbl(frame27).
+[ lbl(frame27),
+  cg_type(Mat,'Mat'),
+  cg_quantz(e,X),
+  cg_holds('On',X,Mat),
+  cg_type(X,'Cat') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Cat: ?x]-(On)->[*MatC]").
+% ?- pred_cg(assert_cg_real,"[Cat: ?x]-(On)->[*MatC]").
 % ===========================================
 
-% cg_holds('On', X_, MatC),
-% frame_var('MATC', MatC),
-% cg_quantz(e, X_),
-% cg_type(X_, 'Cat'),
-% lbl(frame28).
+[ lbl(frame28),
+  frame_var('MATC',Matc),
+  cg_quantz(e,X),
+  cg_holds('On',X,Matc),
+  cg_type(X,'Cat') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Cat: ?x]-(On)->[Mat: *MatC]").
+% ?- pred_cg(assert_cg_real,"[Cat: ?x]-(On)->[Mat: *MatC]").
 % ===========================================
 
-% cg_holds('On', X_, Mat),
-% frame_var('MATC', Mat),
-% cg_type(Mat, 'Mat'),
-% cg_quantz(e, X_),
-% cg_type(X_, 'Cat'),
-% lbl(frame29).
+[ lbl(frame29),
+  frame_var('MATC',Mat),
+  cg_type(Mat,'Mat'),
+  cg_quantz(e,X),
+  cg_holds('On',X,Mat),
+  cg_type(X,'Cat') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Man:karim]<-agnt-[Drink]-obj->[Water]").
+% ?- pred_cg(assert_cg_real,"[Man:karim]<-agnt-[Drink]-obj->[Water]").
 % ===========================================
 
-% cg_holds(obj, Drink, Water),
-% cg_type(Water, 'Water'),
-% cg_holds(agnt, Drink, Karim_Man),
-% cg_type(Drink, 'Drink'),
-% frame_var('KARIM', Karim_Man),
-% cg_type(Karim_Man, 'Man'),
-% lbl(frame30).
+[ lbl(frame30),
+  frame_var('KARIM',Karim_Man),
+  cg_type(Water,'Water'),
+  cg_type(Drink,'Drink'),
+  cg_type(Karim_Man,'Man'),
+  cg_holds(obj,Drink,Water),
+  cg_holds(agnt,Drink,Karim_Man) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Mat #1]<- (on)- [Cat #1]").
+% ?- pred_cg(assert_cg_real,"[Mat #1]<- (on)- [Cat #1]").
 % ===========================================
 
-% cg_holds(on, Cat, Mat),
-% cg_equal(Cat, 'Cat#1'),
-% cg_type(Cat, 'Cat'),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% lbl(frame31).
+[ lbl(frame31),
+  cg_type(Cat,'Cat'),
+  cg_type(Mat,'Mat'),
+  cg_holds(on,Cat,Mat),
+  cg_equal(Cat,'Cat#1'),
+  cg_equal(Mat,'Mat#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Mat]<-(On)-[Cat: ?x]").
+% ?- pred_cg(assert_cg_real,"[Mat]<-(On)-[Cat: ?x]").
 % ===========================================
 
-% cg_holds('On', X_, Mat),
-% cg_quantz(e, X_),
-% cg_type(X_, 'Cat'),
-% cg_type(Mat, 'Mat'),
-% lbl(frame32).
+[ lbl(frame32),
+  cg_type(Mat,'Mat'),
+  cg_quantz(e,X),
+  cg_holds('On',X,Mat),
+  cg_type(X,'Cat') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Color #1]<-(Attrib)-[Mat #1]").
+% ?- pred_cg(assert_cg_real,"[Color #1]<-(Attrib)-[Mat #1]").
 % ===========================================
 
-% cg_holds('Attrib', Mat, Color),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% cg_equal(Color, 'Color#1'),
-% cg_type(Color, 'Color'),
-% lbl(frame33).
+[ lbl(frame33),
+  cg_type(Mat,'Mat'),
+  cg_type(Color,'Color'),
+  cg_holds('Attrib',Mat,Color),
+  cg_equal(Mat,'Mat#1'),
+  cg_equal(Color,'Color#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+% ?- pred_cg(assert_cg_real,"[Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
 % ===========================================
 
-% cg_holds('Attrib', Mat, Color),
-% cg_equal(Color, 'Color#1'),
-% cg_type(Color, 'Color'),
-% cg_holds('On', Cat, Mat),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% cg_equal(Cat, 'Cat#1'),
-% cg_type(Cat, 'Cat'),
-% lbl(frame34).
+[ lbl(frame34),
+  cg_type(Color,'Color'),
+  cg_type(Mat,'Mat'),
+  cg_type(Cat,'Cat'),
+  cg_holds('On',Cat,Mat),
+  cg_holds('Attrib',Mat,Color),
+  cg_equal(Color,'Color#1'),
+  cg_equal(Mat,'Mat#1'),
+  cg_equal(Cat,'Cat#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Man:karim]<-agnt-[Drink]-obj->[Water]").
+% ?- pred_cg(assert_cg_real,"[Man:karim]<-agnt-[Drink]-obj->[Water]").
 % ===========================================
 
-% cg_holds(obj, Drink, Water),
-% cg_type(Water, 'Water'),
-% cg_holds(agnt, Drink, Karim_Man),
-% cg_type(Drink, 'Drink'),
-% frame_var('KARIM', Karim_Man),
-% cg_type(Karim_Man, 'Man'),
-% lbl(frame35).
+[ lbl(frame35),
+  frame_var('KARIM',Karim_Man),
+  cg_type(Water,'Water'),
+  cg_type(Drink,'Drink'),
+  cg_type(Karim_Man,'Man'),
+  cg_holds(obj,Drink,Water),
+  cg_holds(agnt,Drink,Karim_Man) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Color #1] <- (Attrib) -[Mat #1]<- (on)- [Cat#1]").
+% ?- pred_cg(assert_cg_real,"[Color #1] <- (Attrib) -[Mat #1]<- (on)- [Cat#1]").
 % ===========================================
 
-% cg_holds(on, Cat, Mat),
-% cg_equal(Cat, 'Cat#1'),
-% cg_type(Cat, 'Cat'),
-% cg_holds('Attrib', Mat, Color),
-% cg_equal(Mat, 'Mat#1'),
-% cg_type(Mat, 'Mat'),
-% cg_equal(Color, 'Color#1'),
-% cg_type(Color, 'Color'),
-% lbl(frame36).
-```
-
-
-```
-
-% ===========================================
-?- pred_cg(assert_cg_real,"[Cat: @every]->(On)->[Mat]").
-% ===========================================
-
-% cg_holds('On', Every_Cat, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_quantz(every, Every_Cat),
-% cg_type(Every_Cat, 'Cat'),
-% lbl(frame37).
-
-```
-
-
-```
-
-% ===========================================
-?- pred_cg(assert_cg_real,"[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
-% ===========================================
-
-% cg_holds('Loc', Sit, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_holds('Stat', Cat, Sit),
-% cg_type(Sit, 'Sit'),
-% cg_type(Cat, 'Cat'),
-% lbl(frame38).
-
+[ lbl(frame36),
+  cg_type(Cat,'Cat'),
+  cg_type(Mat,'Mat'),
+  cg_type(Color,'Color'),
+  cg_holds(on,Cat,Mat),
+  cg_holds('Attrib',Mat,Color),
+  cg_equal(Cat,'Cat#1'),
+  cg_equal(Mat,'Mat#1'),
+  cg_equal(Color,'Color#1') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[CAT]->(STAT)->[SIT]->(LOC)->[MAT]").
+% ?- pred_cg(assert_cg_real,"[Cat: @every]->(On)->[Mat]").
 % ===========================================
 
-% cg_holds('Loc', Sit, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_holds('Stat', Cat, Sit),
-% cg_type(Sit, 'Sit'),
-% cg_type(Cat, 'Cat'),
-% lbl(frame39).
+[ lbl(frame37),
+  cg_type(Mat,'Mat'),
+  cg_type(Every_Cat,'Cat'),
+  cg_quantz(every,Every_Cat),
+  cg_holds('On',Every_Cat,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"[CAT]->(STAT)->[SIT]->(LOC)->[MAT].").
+% ===========================================
+
+[ lbl(frame38),
+  cg_type(Mat,'Mat'),
+  cg_type(Sit,'Sit'),
+  cg_type(Cat,'Cat'),
+  cg_holds('Stat',Cat,Sit),
+  cg_holds('Loc',Sit,Mat) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"[CAT]->(STAT)->[SIT]->(LOC)->[MAT]").
+% ===========================================
+
+[ lbl(frame39),
+  cg_type(Mat,'Mat'),
+  cg_type(Sit,'Sit'),
+  cg_type(Cat,'Cat'),
+  cg_holds('Stat',Cat,Sit),
+  cg_holds('Loc',Sit,Mat) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
    [Drive *x] [Person: Bob] [City: "St. Louis"] [Chevy *y]
    (Agnt ?x Bob) (Dest ?x "St. Louis") (Thme ?x ?y) (Poss Bob ?y)").
 % ===========================================
 
-% cg_holds('Poss', Bob_Person, Y_Chevy),
-% cg_holds('Thme', X_Drive, Y_Chevy),
-% cg_holds('Dest', X_Drive, "St. Louis"),
-% cg_holds('Agnt', X_Drive, Bob_Person),
-% frame_var('Y', Y_Chevy),
-% cg_type(Y_Chevy, 'Chevy'),
-% textOf(St_c46_c32_Louis_City, "St. Louis"),
-% cg_type(St_c46_c32_Louis_City, 'City'),
-% cg_name(Bob_Person, 'Bob'),
-% cg_type(Bob_Person, 'Person'),
-% frame_var('X', X_Drive),
-% cg_type(X_Drive, 'Drive'),
-% lbl(frame40).
+[ textOf(C34_St_C46_C32_Louis_C34_City,"St. Louis"),
+  lbl(frame40),
+  frame_var('Y',Y_Chevy),
+  frame_var('X',X_Drive),
+  cg_type(Y_Chevy,'Chevy'),
+  cg_type(C34_St_C46_C32_Louis_C34_City,'City'),
+  cg_type(Bob_Person,'Person'),
+  cg_type(X_Drive,'Drive'),
+  cg_name(Bob_Person,'Bob'),
+  cg_holds('Thme',X_Drive,Y_Chevy),
+  cg_holds('Poss',Bob_Person,Y_Chevy),
+  cg_holds('Dest',X_Drive,"St. Louis"),
+  cg_holds('Agnt',X_Drive,Bob_Person) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
    [A_CAT] -> (KnowsAbout) ->
    [THE_CAT: #666]  -> (KnowsAbout) ->
    [NAMED_CAT: Moris]  -> (KnowsAbout) ->
@@ -565,194 +601,224 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
    [CATS_ONE_OR_MORE:{Moris,*}]").
 % ===========================================
 
-% cg_holds('KnowsAbout', Set_Cat5, MORISFELIXc125c93c62c40KNOWSABOUTc41c62c91CATS_ONE_OR_MOREkw_c123MORIS_Set_Cats_Two),
-% cg_values(MORISFELIXc125c93c62c40KNOWSABOUTc41c62c91CATS_ONE_OR_MOREkw_c123MORIS_Set_Cats_Two, [Moris_Named_Cat, 'FELIX', '}', ']', ->, '(', 'KNOWSABOUT', ')', ->, '[', 'CATS_ONE_OR_MORE', :, '{', Moris_Named_Cat]),
-% cg_count(MORISFELIXc125c93c62c40KNOWSABOUTc41c62c91CATS_ONE_OR_MOREkw_c123MORIS_Set_Cats_Two, 14, _6444),
-% cg_quantz(set, MORISFELIXc125c93c62c40KNOWSABOUTc41c62c91CATS_ONE_OR_MOREkw_c123MORIS_Set_Cats_Two),
-% cg_type(MORISFELIXc125c93c62c40KNOWSABOUTc41c62c91CATS_ONE_OR_MOREkw_c123MORIS_Set_Cats_Two, 'Cats_Two'),
-% cg_holds('KnowsAbout', Cat_Set, Set_Cat5),
-% cg_quantz(5, Set_Cat5),
-% cg_count(Set_Cat5, 1, _3320),
-% cg_quantz(set, Set_Cat5),
-% cg_type(Set_Cat5, 'Cat5'),
-% cg_holds('KnowsAbout', Ft_Length, Cat_Set),
-% cg_count(Cat_Set, 1, _1754),
-% cg_quantz(set, Cat_Set),
-% cg_type(Cat_Set, 'Cat_Set'),
-% cg_holds('KnowsAbout', Moris_Named_Cat, Ft_Length),
-% frame_var('FT', Ft_Length),
-% cg_quantz(5, Ft_Length),
-% cg_type(Ft_Length, 'Length'),
-% cg_holds('KnowsAbout', The_Cat, Moris_Named_Cat),
-% cg_name(Moris_Named_Cat, 'Moris'),
-% cg_type(Moris_Named_Cat, 'Named_Cat'),
-% cg_holds('KnowsAbout', A_Cat, The_Cat),
-% cg_equal(The_Cat, 'The_Cat#666'),
-% cg_type(The_Cat, 'The_Cat'),
-% cg_type(A_Cat, 'A_Cat'),
-% lbl(frame41).
+[ lbl(frame41),
+  frame_var('FT',Ft_Length_Num5_Num5),
+  cg_count(Moris_Set_Cats_One_Or_More,1,Cg_Count),
+  cg_values(
+     Moris_Set_Cats_One_Or_More,
+     ['Moris']),
+  cg_values(
+     MorisFelix_Set_Cats_Two,
+     [ 'Moris',
+       'Felix' ]),
+  cg_type(Moris_Set_Cats_One_Or_More,'Cats_One_Or_More'),
+  cg_type(MorisFelix_Set_Cats_Two,'Cats_Two'),
+  cg_type(Set_Cat5_Num5_Num5,'Cat5'),
+  cg_type(Cat_Set,'Cat_Set'),
+  cg_type(Ft_Length_Num5_Num5,'Length'),
+  cg_type(Moris_Named_Cat,'Named_Cat'),
+  cg_type(The_Cat,'The_Cat'),
+  cg_type(A_Cat,'A_Cat'),
+  cg_quantz(set,Moris_Set_Cats_One_Or_More),
+  cg_quantz(set,MorisFelix_Set_Cats_Two),
+  cg_quantz(set,Set_Cat5_Num5_Num5),
+  cg_quantz(set,Cat_Set),
+  cg_quantz(5,Set_Cat5_Num5_Num5),
+  cg_quantz(5,Ft_Length_Num5_Num5),
+  cg_name(Moris_Named_Cat,'Moris'),
+  cg_holds('KnowsAbout',MorisFelix_Set_Cats_Two,Moris_Set_Cats_One_Or_More),
+  cg_holds('KnowsAbout',Set_Cat5_Num5_Num5,MorisFelix_Set_Cats_Two),
+  cg_holds('KnowsAbout',Cat_Set,Set_Cat5_Num5_Num5),
+  cg_holds('KnowsAbout',Ft_Length_Num5_Num5,Cat_Set),
+  cg_holds('KnowsAbout',Moris_Named_Cat,Ft_Length_Num5_Num5),
+  cg_holds('KnowsAbout',The_Cat,Moris_Named_Cat),
+  cg_holds('KnowsAbout',A_Cat,The_Cat),
+  cg_equal(The_Cat,'The_Cat#666'),
+  cg_count(MorisFelix_Set_Cats_Two,2,Cg_Count18),
+  cg_count(Set_Cat5_Num5_Num5,1,Cg_Count19),
+  cg_count(Cat_Set,1,Cg_Count20) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Relation: *r] (Familial ?r) (#?r Bob Sue)").
+% ?- pred_cg(assert_cg_real,"[Relation: *r] (Familial ?r) (#?r Bob Sue)").
 % ===========================================
 
-% cg_holds(R, 'Bob', 'Sue'),
-% R=Relation,
-% cg_holds('Familial', Relation),
-% frame_var('R', Relation),
-% cg_type(Relation, 'Relation'),
-% lbl(frame42).
+[ lbl(frame42),
+  frame_var('R',Relation),
+  cg_type(Relation,'Relation'),
+  cg_holds('Familial',Relation),
+  cg_holds(R,'Bob','Sue'),
+  R=Relation ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [SIT]-
   <-(STAT)<-[CAT]
   ->(LOC)->[MAT],.").
 % ===========================================
 
-% cg_holds('Loc', Cat, Mat),
-% cg_type(Mat, 'Mat'),
-% cg_holds('Stat', Cat, Sit),
-% cg_type(Cat, 'Cat'),
-% cg_type(Sit, 'Sit'),
-% lbl(frame43).
+[ lbl(frame43),
+  cg_type(Mat,'Mat'),
+  cg_type(Cat,'Cat'),
+  cg_type(Sit,'Sit'),
+  cg_holds('Stat',Cat,Sit),
+  cg_holds('Loc',Cat,Mat) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(call_cg_real,"?x -(Attrib)-> [Color #1]").
+% ?- pred_cg(call_cg_real,"?x -(Attrib)-> [Color #1]").
 % ===========================================
 
-  cg_holds('Attrib', X, Color).
-  cg_type(Color, 'Color').
-  cg_quantz(e, X).
-  cg_equal(Color, 'Color#1').
-  lbl(frame44).
-```
-
-```
-% ===========================================
-?- pred_cg(call_cg_real,"?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
-% ===========================================
-
-  cg_holds('On', X, Mat).
-  cg_holds('Attrib', Mat, Color).
-  cg_type(Color, 'Color').
-  cg_type(Mat, 'Mat').
-  cg_quantz(e, X).
-  cg_equal(Color, 'Color#1').
-  cg_equal(Mat, 'Mat#1').
-  lbl(frame45).
-```
-
-```
-% ===========================================
-?- pred_cg(call_cg_real,"?x -(On)->[Mat #1]").
-% ===========================================
-
-  cg_holds('On', X, Mat).
-  cg_type(Mat, 'Mat').
-  cg_quantz(e, X).
-  cg_equal(Mat, 'Mat#1').
-  lbl(frame46).
-```
+cg_holds('Attrib',X,Color).
+cg_equal(Color,'Color#1').
+cg_type(Color,'Color').
+cg_quantz(e,X).
+lbl(frame44).
+% pred_cg(call_cg_real, xtext("?x -(Attrib)-> [Color #1]")).
 
 
 ```
 % ===========================================
-?- pred_cg(call_cg_real,"[?x] -(Attrib)-> [Color #1]").
+% ?- pred_cg(call_cg_real,"?x -(On)->[Mat #1]-(Attrib)->[Color #1]").
 % ===========================================
 
-  cg_holds('Attrib', X, Color).
-  cg_type(Color, 'Color').
-  cg_type(X, ?('X')).
-  cg_equal(Color, 'Color#1').
-  lbl(frame47).
-```
-
-
-
-```
-% ===========================================
-?- pred_cg(call_cg_real,"[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
-% ===========================================
-
-  cg_holds('On', X, Mat).
-  cg_holds('Attrib', Mat, Color).
-  cg_type(Color, 'Color').
-  cg_type(Mat, 'Mat').
-  cg_type(X, ?('X')).
-  cg_equal(Color, 'Color#1').
-  cg_equal(Mat, 'Mat#1').
-  lbl(frame48).
-```
-
-```
-% ===========================================
-?- pred_cg(call_cg_real,"[Mat ?x]-(Attrib)->[Color #1]").
-% ===========================================
-
-  cg_holds('Attrib', X, Color).
-  cg_type(X, 'Mat').
-  cg_type(Color, 'Color').
-  cg_quantz(e, X).
-  cg_equal(Color, 'Color#1').
-  lbl(frame49).
-```
-
-```
-% ===========================================
-?- pred_cg(call_cg_real,"[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]").
-% ===========================================
-
-  cg_holds('On', X, Mat).
-  cg_holds('Attrib', Mat, Color).
-  cg_type(X, 'Cat').
-  cg_type(Color, 'Color').
-  cg_type(Mat, 'Mat').
-  cg_quantz(e, X).
-  cg_equal(Color, 'Color#2').
-  cg_equal(Mat, 'Mat#1').
-  lbl(frame50).
-```
+cg_holds('Attrib',Mat,Color).
+cg_equal(Color,'Color#1').
+cg_type(Color,'Color').
+cg_holds('On',X,Mat).
+cg_equal(Mat,'Mat#1').
+cg_type(Mat,'Mat').
+cg_quantz(e,X).
+lbl(frame45).
+% pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]-(Attrib)->[Color #1]")).
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
+% ?- pred_cg(call_cg_real,"?x -(On)->[Mat #1]").
 % ===========================================
 
-% cg_holds(belives, A, Statement),
-% 'GRAPH'(Statement, [cg_holds('On', Every_Cat, Mat), cg_type(Mat, 'Mat'), cg_quantz(every, Every_Cat), cg_type(Every_Cat, 'Cat'), lbl(frame52)]),
-% cg_type(Statement, statement),
-% cg_type(A, a),
-% lbl(frame51).
+cg_holds('On',X,Mat).
+cg_equal(Mat,'Mat#1').
+cg_type(Mat,'Mat').
+cg_quantz(e,X).
+lbl(frame46).
+% pred_cg(call_cg_real, xtext("?x -(On)->[Mat #1]")).
+
+
+```
+% ===========================================
+% ?- pred_cg(call_cg_real,"[?x] -(Attrib)-> [Color #1]").
+% ===========================================
+
+cg_holds('Attrib',X,Color).
+cg_equal(Color,'Color#1').
+cg_type(Color,'Color').
+cg_type(
+   X,
+   ?('X')).
+lbl(frame47).
+% pred_cg(call_cg_real, xtext("[?x] -(Attrib)-> [Color #1]")).
+
+
+```
+% ===========================================
+% ?- pred_cg(call_cg_real,"[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+% ===========================================
+
+cg_holds('Attrib',Mat,Color).
+cg_equal(Color,'Color#1').
+cg_type(Color,'Color').
+cg_holds('On',X,Mat).
+cg_equal(Mat,'Mat#1').
+cg_type(Mat,'Mat').
+cg_type(
+   X,
+   ?('X')).
+lbl(frame48).
+% pred_cg(call_cg_real, xtext("[?x]-(On)->[Mat #1]-(Attrib)->[Color #1]")).
+
+
+```
+% ===========================================
+% ?- pred_cg(call_cg_real,"[Mat ?x]-(Attrib)->[Color #1]").
+% ===========================================
+
+cg_holds('Attrib',X,Color).
+cg_equal(Color,'Color#1').
+cg_type(Color,'Color').
+cg_quantz(e,X).
+cg_type(X,'Mat').
+lbl(frame49).
+% pred_cg(call_cg_real, xtext("[Mat ?x]-(Attrib)->[Color #1]")).
+
+
+```
+% ===========================================
+% ?- pred_cg(call_cg_real,"[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]").
+% ===========================================
+
+cg_holds('Attrib',Mat,Color).
+cg_equal(Color,'Color#2').
+cg_type(Color,'Color').
+cg_holds('On',X,Mat).
+cg_equal(Mat,'Mat#1').
+cg_type(Mat,'Mat').
+cg_quantz(e,X).
+cg_type(X,'Cat').
+lbl(frame50).
+% pred_cg(call_cg_real, xtext("[Cat: ?x]-(On)->[Mat #1]-(Attrib)->[Color #2]")).
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"[a] - (belives) -> [statement: [Cat: @every]->(On)->[Mat] ]").
+% ===========================================
+
+[ lbl(frame51),
+  cg_type(Statement,statement),
+  cg_type(A,a),
+  cg_holds(belives,A,Statement),
+  'GRAPH'(
+     Statement,
+     [ cg_holds('On',Every_Cat,Mat),
+       cg_type(Mat,'Mat'),
+       cg_quantz(every,Every_Cat),
+       cg_type(Every_Cat,'Cat'),
+       lbl(frame52) ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]").
+% ?- pred_cg(assert_cg_real,"[a] - (belives) -> [statement2= [Cat: @every]->(On)->[Mat] ]").
 % ===========================================
 
-% cg_holds(belives, A, Statement2),
-% Statement2='GRAPH'([cg_holds('On', Every_Cat, Mat), cg_type(Mat, 'Mat'), cg_quantz(every, Every_Cat), cg_type(Every_Cat, 'Cat'), lbl(frame54)]),
-% cg_type(Statement2, statement2),
-% cg_type(A, a),
-% lbl(frame53).
+[ lbl(frame53),
+  cg_type(Statement2,statement2),
+  cg_type(A,a),
+  cg_holds(belives,A,Statement2),
+  '='(
+     Statement2,
+     'GRAPH'(
+        [ cg_holds('On',Every_Cat,Mat),
+          cg_type(Mat,'Mat'),
+          cg_quantz(every,Every_Cat),
+          cg_type(Every_Cat,'Cat'),
+          lbl(frame54) ])) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 
 [Go]- -
    (Agnt)->[Person: John] -
@@ -760,43 +826,43 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
    (Inst)->[Bus]").
 % ===========================================
 
-% cg_holds('Inst', Boston_City, Bus),
-% cg_type(Bus, 'Bus'),
-% cg_holds('Dest', John_Person, Boston_City),
-% cg_name(Boston_City, 'Boston'),
-% cg_type(Boston_City, 'City'),
-% cg_holds('Agnt', Go, John_Person),
-% cg_name(John_Person, 'John'),
-% cg_type(John_Person, 'Person'),
-% cg_type(Go, 'Go'),
-% lbl(frame55).
+[ lbl(frame55),
+  cg_type(Bus,'Bus'),
+  cg_type(Boston_City,'City'),
+  cg_type(John_Person,'Person'),
+  cg_type(Go,'Go'),
+  cg_name(Boston_City,'Boston'),
+  cg_name(John_Person,'John'),
+  cg_holds('Inst',Boston_City,Bus),
+  cg_holds('Dest',John_Person,Boston_City),
+  cg_holds('Agnt',Go,John_Person) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
    [Person: John2] <- (Agnt) -
    [City: Boston2] <- (Dest) -
    [Bus2] <- (Inst) - [Go2]").
 % ===========================================
 
-% cg_holds('Inst', Go2, Bus2),
-% cg_type(Go2, 'Go2'),
-% cg_holds('Dest', Bus2, Boston2_City),
-% cg_type(Bus2, 'Bus2'),
-% cg_holds('Agnt', Boston2_City, John2_Person),
-% cg_name(Boston2_City, 'Boston2'),
-% cg_type(Boston2_City, 'City'),
-% cg_name(John2_Person, 'John2'),
-% cg_type(John2_Person, 'Person'),
-% lbl(frame56).
+[ lbl(frame56),
+  cg_type(Go2,'Go2'),
+  cg_type(Bus2,'Bus2'),
+  cg_type(Boston2_City,'City'),
+  cg_type(John2_Person,'Person'),
+  cg_name(Boston2_City,'Boston2'),
+  cg_name(John2_Person,'John2'),
+  cg_holds('Inst',Go2,Bus2),
+  cg_holds('Dest',Bus2,Boston2_City),
+  cg_holds('Agnt',Boston2_City,John2_Person) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [Begin]-
         -obj->[Session],
         -srce->[Proposition =
@@ -807,22 +873,34 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
         -agnt->[Person : John]").
 % ===========================================
 
-% cg_holds(agnt, Begin, John_Person9),
-% cg_name(John_Person9, 'John'),
-% cg_type(John_Person9, 'Person'),
-% cg_holds(srce, Begin, Proposition),
-% Proposition='GRAPH'([cg_holds(agnt, Press, John_Person), cg_name(John_Person, 'John'), cg_type(John_Person, 'Person'), cg_holds(partOf, Enter_Key, Keyboard), cg_type(Keyboard, 'Keyboard'), cg_holds(obj, Press, Enter_Key), frame_var('ENTER', Enter_Key), cg_type(Enter_Key, 'Key'), cg_type(Press, 'Press'), lbl(frame58)]),
-% cg_type(Proposition, 'Proposition'),
-% cg_holds(obj, Begin, Session),
-% cg_type(Session, 'Session'),
-% cg_type(Begin, 'Begin'),
-% lbl(frame57).
+[ lbl(frame57),
+  cg_type(John_Person9,'Person'),
+  cg_type(Proposition,'Proposition'),
+  cg_type(Session,'Session'),
+  cg_type(Begin,'Begin'),
+  cg_name(John_Person9,'John'),
+  cg_holds(srce,Begin,Proposition),
+  cg_holds(obj,Begin,Session),
+  cg_holds(agnt,Begin,John_Person9),
+  '='(
+     Proposition,
+     'GRAPH'(
+        [ cg_holds(agnt,Press,John_Person),
+          cg_name(John_Person,'John'),
+          cg_type(John_Person,'Person'),
+          cg_holds(partOf,Enter_Key,Keyboard),
+          cg_type(Keyboard,'Keyboard'),
+          cg_holds(obj,Press,Enter_Key),
+          frame_var('ENTER',Enter_Key),
+          cg_type(Enter_Key,'Key'),
+          cg_type(Press,'Press'),
+          lbl(frame58) ])) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
  [a] - (belives) ->
  [statement = [Go2]
    - (Agnt)->[Person: John2]
@@ -830,301 +908,357 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
    - (Inst)->[Bus2]  ]").
 % ===========================================
 
-% cg_holds(belives, A, Statement),
-% Statement='GRAPH'([cg_holds('Inst', Boston2_City, Bus2), cg_type(Bus2, 'Bus2'), cg_holds('Dest', John2_Person, Boston2_City), cg_name(Boston2_City, 'Boston2'), cg_type(Boston2_City, 'City'), cg_holds('Agnt', Go2, John2_Person), cg_name(John2_Person, 'John2'), cg_type(John2_Person, 'Person'), cg_type(Go2, 'Go2'), lbl(frame60)]),
-% cg_type(Statement, statement),
-% cg_type(A, a),
-% lbl(frame59).
+[ lbl(frame59),
+  cg_type(Statement,statement),
+  cg_type(A,a),
+  cg_holds(belives,A,Statement),
+  '='(
+     Statement,
+     'GRAPH'(
+        [ cg_holds('Inst',Boston2_City,Bus2),
+          cg_type(Bus2,'Bus2'),
+          cg_holds('Dest',John2_Person,Boston2_City),
+          cg_name(Boston2_City,'Boston2'),
+          cg_type(Boston2_City,'City'),
+          cg_holds('Agnt',Go2,John2_Person),
+          cg_name(John2_Person,'John2'),
+          cg_type(John2_Person,'Person'),
+          cg_type(Go2,'Go2'),
+          lbl(frame60) ])) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?w)").
+% ?- pred_cg(assert_cg_real,"[Go*x][Person:'John'*y][City:'Boston'*z][Bus*w](Agnt?x?y)(Dest?x?z)(Inst?x?w)").
 % ===========================================
 
-% cg_holds('Inst', X_Go, W_Bus),
-% cg_holds('Dest', X_Go, Z_Boston_City),
-% cg_holds('Agnt', X_Go, Y_John_Person),
-% frame_var('W', W_Bus),
-% cg_type(W_Bus, 'Bus'),
-% frame_var('Z', Z_Boston_City),
-% cg_name(Z_Boston_City, 'Boston'),
-% cg_type(Z_Boston_City, 'City'),
-% frame_var('Y', Y_John_Person),
-% cg_name(Y_John_Person, 'John'),
-% cg_type(Y_John_Person, 'Person'),
-% frame_var('X', X_Go),
-% cg_type(X_Go, 'Go'),
-% lbl(frame61).
+[ lbl(frame61),
+  frame_var('Z',Z_Boston_City),
+  frame_var('Y',Y_John_Person),
+  frame_var('X',X_Go),
+  frame_var('W',W_Bus),
+  cg_type(W_Bus,'Bus'),
+  cg_type(Z_Boston_City,'City'),
+  cg_type(Y_John_Person,'Person'),
+  cg_type(X_Go,'Go'),
+  cg_name(Z_Boston_City,'Boston'),
+  cg_name(Y_John_Person,'John'),
+  cg_holds('Inst',X_Go,W_Bus),
+  cg_holds('Dest',X_Go,Z_Boston_City),
+  cg_holds('Agnt',X_Go,Y_John_Person) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]").
+% ?- pred_cg(assert_cg_real,"[Woman:red]<-knows-[Man:karim]<-agnt-[Eat]-obj->[Apple]-(on)->[table]").
 % ===========================================
 
-% cg_holds(on, Apple, Table),
-% cg_type(Table, table),
-% cg_holds(obj, Eat, Apple),
-% cg_type(Apple, 'Apple'),
-% cg_holds(agnt, Eat, Karim_Man),
-% cg_type(Eat, 'Eat'),
-% cg_holds(knows, Karim_Man, Red_Woman),
-% frame_var('KARIM', Karim_Man),
-% cg_type(Karim_Man, 'Man'),
-% frame_var('RED', Red_Woman),
-% cg_type(Red_Woman, 'Woman'),
-% lbl(frame62).
+[ lbl(frame62),
+  frame_var('RED',Red_Woman),
+  frame_var('KARIM',Karim_Man),
+  cg_type(Table,table),
+  cg_type(Apple,'Apple'),
+  cg_type(Eat,'Eat'),
+  cg_type(Karim_Man,'Man'),
+  cg_type(Red_Woman,'Woman'),
+  cg_holds(on,Apple,Table),
+  cg_holds(obj,Eat,Apple),
+  cg_holds(knows,Karim_Man,Red_Woman),
+  cg_holds(agnt,Eat,Karim_Man) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[?x]<-(Agnt)-[Marry]-(Thme)->[Sailor]").
+% ?- pred_cg(assert_cg_real,"[?x]<-(Agnt)-[Marry]-(Thme)->[Sailor]").
 % ===========================================
 
-% cg_holds('Thme', Marry, Sailor),
-% cg_type(Sailor, 'Sailor'),
-% cg_holds('Agnt', Marry, X),
-% cg_type(Marry, 'Marry'),
-% cg_type(X, ?('X')),
-% lbl(frame63).
+[ lbl(frame63),
+  cg_type(Sailor,'Sailor'),
+  cg_type(Marry,'Marry'),
+  cg_type(
+     X,
+     ?('X')),
+  cg_holds('Thme',Marry,Sailor),
+  cg_holds('Agnt',Marry,X) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]").
 % ===========================================
 
-% cg_holds('Thme', Want, Situation),
-% 'GRAPH'(Situation, [cg_holds('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), cg_holds('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person), lbl(frame65)]),
-% cg_type(Situation, 'Situation'),
-% cg_holds('Expr', Want, X_Mary_Person),
-% cg_type(Want, 'Want'),
-% frame_var('X', X_Mary_Person),
-% cg_name(X_Mary_Person, 'Mary'),
-% cg_type(X_Mary_Person, 'Person'),
-% lbl(frame64).
+[ lbl(frame64),
+  frame_var('X',X_Mary_Person),
+  cg_type(Situation,'Situation'),
+  cg_type(Want,'Want'),
+  cg_type(X_Mary_Person,'Person'),
+  cg_name(X_Mary_Person,'Mary'),
+  cg_holds('Thme',Want,Situation),
+  cg_holds('Expr',Want,X_Mary_Person),
+  'GRAPH'(
+     Situation,
+     [ cg_holds('Thme',Marry,Sailor),
+       cg_type(Sailor,'Sailor'),
+       cg_holds('Agnt',Marry,X),
+       cg_type(Marry,'Marry'),
+       cg_type(X,X_Mary_Person),
+       lbl(frame65) ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [Proposition: [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
 % ===========================================
 
-% 'GRAPH'(Proposition, [cg_holds('Thme', Want, Situation), 'GRAPH'(Situation, [cg_holds('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), cg_holds('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person), lbl(frame68)]), cg_type(Situation, 'Situation'), cg_holds('Expr', Want, X_Mary_Person), cg_type(Want, 'Want'), frame_var('X', X_Mary_Person), cg_name(X_Mary_Person, 'Mary'), cg_type(X_Mary_Person, 'Person'), lbl(frame67)]),
-% cg_type(Proposition, 'Proposition'),
-% lbl(frame66).
+[ lbl(frame66),
+  cg_type(Proposition,'Proposition'),
+  'GRAPH'(
+     Proposition,
+     [ cg_holds('Thme',Want,Situation),
+       'GRAPH'(
+          Situation,
+          [ cg_holds('Thme',Marry,Sailor),
+            cg_type(Sailor,'Sailor'),
+            cg_holds('Agnt',Marry,X),
+            cg_type(Marry,'Marry'),
+            cg_type(X,X_Mary_Person),
+            lbl(frame68) ]),
+       cg_type(Situation,'Situation'),
+       cg_holds('Expr',Want,X_Mary_Person),
+       cg_type(Want,'Want'),
+       frame_var('X',X_Mary_Person),
+       cg_name(X_Mary_Person,'Mary'),
+       cg_type(X_Mary_Person,'Person'),
+       lbl(frame67) ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [Person: Tom]<-(Expr)-[Believe]-(Thme)->
      [Proposition:  [Person: Mary *x]<-(Expr)-[Want]-(Thme)->
      [Situation:  [?x]<-(Agnt)-[Marry]-(Thme)->[Sailor] ]]").
 % ===========================================
 
-% cg_holds('Thme', Believe, Proposition),
-% 'GRAPH'(Proposition, [cg_holds('Thme', Want, Situation), 'GRAPH'(Situation, [cg_holds('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), cg_holds('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person3), lbl(frame71)]), cg_type(Situation, 'Situation'), cg_holds('Expr', Want, X_Mary_Person3), cg_type(Want, 'Want'), frame_var('X', X_Mary_Person3), cg_name(X_Mary_Person3, 'Mary'), cg_type(X_Mary_Person3, 'Person'), lbl(frame70)]),
-% cg_type(Proposition, 'Proposition'),
-% cg_holds('Expr', Believe, Tom_Person),
-% cg_type(Believe, 'Believe'),
-% cg_name(Tom_Person, 'Tom'),
-% cg_type(Tom_Person, 'Person'),
-% lbl(frame69).
+[ lbl(frame69),
+  cg_type(Proposition,'Proposition'),
+  cg_type(Believe,'Believe'),
+  cg_type(Tom_Person,'Person'),
+  cg_name(Tom_Person,'Tom'),
+  cg_holds('Thme',Believe,Proposition),
+  cg_holds('Expr',Believe,Tom_Person),
+  'GRAPH'(
+     Proposition,
+     [ cg_holds('Thme',Want,Situation),
+       'GRAPH'(
+          Situation,
+          [ cg_holds('Thme',Marry,Sailor),
+            cg_type(Sailor,'Sailor'),
+            cg_holds('Agnt',Marry,X),
+            cg_type(Marry,'Marry'),
+            cg_type(X,X_Mary_Person3),
+            lbl(frame71) ]),
+       cg_type(Situation,'Situation'),
+       cg_holds('Expr',Want,X_Mary_Person3),
+       cg_type(Want,'Want'),
+       frame_var('X',X_Mary_Person3),
+       cg_name(X_Mary_Person3,'Mary'),
+       cg_type(X_Mary_Person3,'Person'),
+       lbl(frame70) ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [Person: Tom]<-(Expr)<-[Believe]->(Thme)-
      [Proposition:  [Person: Mary *x]<-(Expr)<-[Want]->(Thme)-
      [Situation:  [?x]<-(Agnt)<-[Marry]->(Thme)->[Sailor] ]]").
 % ===========================================
 
-% cg_holds('Thme', Believe, Proposition),
-% 'GRAPH'(Proposition, [cg_holds('Thme', Want, Situation), 'GRAPH'(Situation, [cg_holds('Thme', Marry, Sailor), cg_type(Sailor, 'Sailor'), cg_holds('Agnt', Marry, X), cg_type(Marry, 'Marry'), cg_type(X, X_Mary_Person3), lbl(frame74)]), cg_type(Situation, 'Situation'), cg_holds('Expr', Want, X_Mary_Person3), cg_type(Want, 'Want'), frame_var('X', X_Mary_Person3), cg_name(X_Mary_Person3, 'Mary'), cg_type(X_Mary_Person3, 'Person'), lbl(frame73)]),
-% cg_type(Proposition, 'Proposition'),
-% cg_holds('Expr', Believe, Tom_Person),
-% cg_type(Believe, 'Believe'),
-% cg_name(Tom_Person, 'Tom'),
-% cg_type(Tom_Person, 'Person'),
-% lbl(frame72).
+[ lbl(frame72),
+  cg_type(Proposition,'Proposition'),
+  cg_type(Believe,'Believe'),
+  cg_type(Tom_Person,'Person'),
+  cg_name(Tom_Person,'Tom'),
+  cg_holds('Thme',Believe,Proposition),
+  cg_holds('Expr',Believe,Tom_Person),
+  'GRAPH'(
+     Proposition,
+     [ cg_holds('Thme',Want,Situation),
+       'GRAPH'(
+          Situation,
+          [ cg_holds('Thme',Marry,Sailor),
+            cg_type(Sailor,'Sailor'),
+            cg_holds('Agnt',Marry,X),
+            cg_type(Marry,'Marry'),
+            cg_type(X,X_Mary_Person3),
+            lbl(frame74) ]),
+       cg_type(Situation,'Situation'),
+       cg_holds('Expr',Want,X_Mary_Person3),
+       cg_type(Want,'Want'),
+       frame_var('X',X_Mary_Person3),
+       cg_name(X_Mary_Person3,'Mary'),
+       cg_type(X_Mary_Person3,'Person'),
+       lbl(frame73) ]) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE ARRIVAL-DATE(a) IS [UNIV:*a].").
+% ?- pred_cg(assert_cg_real,"TYPE ARRIVAL-DATE(a) IS [UNIV:*a].").
 % ===========================================
 
-% cg_quantz(type, A_Univ),
-% cg_type(A_Univ, 'Arrival_Date'),
-% lbl(frame76),
-% cg_type(A_Univ, 'Univ'),
-% frame_var('A', A_Univ),
-% lbl(frame75).
+[ lbl(frame75),
+  frame_var('A',A_Univ),
+  cg_type(A_Univ,'Univ'),
+  cg_holds(A_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE CIRCUS(c) IS [UNIV:*c].").
+% ?- pred_cg(assert_cg_real,"TYPE CIRCUS(c) IS [UNIV:*c].").
 % ===========================================
 
-% cg_quantz(type, C_Univ),
-% cg_type(C_Univ, 'Circus'),
-% lbl(frame78),
-% cg_type(C_Univ, 'Univ'),
-% frame_var('C', C_Univ),
-% lbl(frame77).
+[ lbl(frame76),
+  frame_var('C',C_Univ),
+  cg_type(C_Univ,'Univ'),
+  cg_holds(C_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE CIRCUS(c) IS [UNIV:*c]").
+% ?- pred_cg(assert_cg_real,"TYPE CIRCUS(c) IS [UNIV:*c]").
 % ===========================================
 
-% cg_quantz(type, C_Univ),
-% cg_type(C_Univ, 'Circus'),
-% lbl(frame80),
-% cg_type(C_Univ, 'Univ'),
-% frame_var('C', C_Univ),
-% lbl(frame79).
+[ lbl(frame77),
+  frame_var('C',C_Univ),
+  cg_type(C_Univ,'Univ'),
+  cg_holds(C_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"[ELEPHANT:*c]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS]").
+% ?- pred_cg(assert_cg_real,"[ELEPHANT:*c]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS]").
 % ===========================================
 
-% cg_holds('Loc', Perform, Circus),
-% cg_type(Circus, 'Circus'),
-% cg_holds('Agnt', Perform, C_Elephant),
-% cg_type(Perform, 'Perform'),
-% frame_var('C', C_Elephant),
-% cg_type(C_Elephant, 'Elephant'),
-% lbl(frame81).
+[ lbl(frame78),
+  frame_var('C',C_Elephant),
+  cg_type(Circus,'Circus'),
+  cg_type(Perform,'Perform'),
+  cg_type(C_Elephant,'Elephant'),
+  cg_holds('Loc',Perform,Circus),
+  cg_holds('Agnt',Perform,C_Elephant) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [Go *x] (Agnt ?x [Person: John]) (Dest ?x [City: Boston]) (Inst ?x [Bus])
 ").
 % ===========================================
 
-% cg_holds('Inst', X_Go, Bus),
-% cg_type(Bus, 'Bus'),
-% cg_holds('Dest', X_Go, Boston_City),
-% cg_name(Boston_City, 'Boston'),
-% cg_type(Boston_City, 'City'),
-% cg_holds('Agnt', X_Go, John_Person),
-% cg_name(John_Person, 'John'),
-% cg_type(John_Person, 'Person'),
-% frame_var('X', X_Go),
-% cg_type(X_Go, 'Go'),
-% lbl(frame82).
+[ lbl(frame79),
+  frame_var('X',X_Go),
+  cg_type(Bus,'Bus'),
+  cg_type(Boston_City,'City'),
+  cg_type(John_Person,'Person'),
+  cg_type(X_Go,'Go'),
+  cg_name(Boston_City,'Boston'),
+  cg_name(John_Person,'John'),
+  cg_holds('Inst',X_Go,Bus),
+  cg_holds('Dest',X_Go,Boston_City),
+  cg_holds('Agnt',X_Go,John_Person) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE CIRCUS-ELEPHANT(C) IS
+% ?- pred_cg(assert_cg_real,"TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
 % ===========================================
 
-% cg_quantz(type, C_Elephant),
-% cg_type(C_Elephant, 'Circus_Elephant'),
-% lbl(frame84),
-% cg_type(C_Elephant, 'Elephant'),
-% frame_var('C', C_Elephant),
-% cg_type(Perform, 'Perform'),
-% cg_holds('Agnt', Perform, C_Elephant),
-% cg_type(Circus, 'Circus'),
-% cg_holds('Loc', Perform, Circus),
-% lbl(frame83).
+[ lbl(frame80),
+  frame_var('C',C_Elephant),
+  cg_type(Circus,'Circus'),
+  cg_type(Perform,'Perform'),
+  cg_type(C_Elephant,'Elephant'),
+  cg_holds('Loc',Perform,Circus),
+  cg_holds('Agnt',Perform,C_Elephant),
+  cg_holds(C_Elephant) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE CIRCUS-ELEPHANT(C) IS
+% ?- pred_cg(assert_cg_real,"TYPE CIRCUS-ELEPHANT(C) IS
  [ELEPHANT:*C]<-(AGNT)<-[PERFORM]->(LOC)->[CIRCUS].").
 % ===========================================
 
-% cg_quantz(type, C_Elephant),
-% cg_type(C_Elephant, 'Circus_Elephant'),
-% lbl(frame86),
-% cg_type(C_Elephant, 'Elephant'),
-% frame_var('C', C_Elephant),
-% cg_type(Perform, 'Perform'),
-% cg_holds('Agnt', Perform, C_Elephant),
-% cg_type(Circus, 'Circus'),
-% cg_holds('Loc', Perform, Circus),
-% lbl(frame85).
+[ lbl(frame81),
+  frame_var('C',C_Elephant),
+  cg_type(Circus,'Circus'),
+  cg_type(Perform,'Perform'),
+  cg_type(C_Elephant,'Elephant'),
+  cg_holds('Loc',Perform,Circus),
+  cg_holds('Agnt',Perform,C_Elephant),
+  cg_holds(C_Elephant) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE DEPARTURE-DATE(d) IS [UNIV:*d].").
+% ?- pred_cg(assert_cg_real,"TYPE DEPARTURE-DATE(d) IS [UNIV:*d].").
 % ===========================================
 
-% cg_quantz(type, D_Univ),
-% cg_type(D_Univ, 'Departure_Date'),
-% lbl(frame88),
-% cg_type(D_Univ, 'Univ'),
-% frame_var('D', D_Univ),
-% lbl(frame87).
+[ lbl(frame82),
+  frame_var('D',D_Univ),
+  cg_type(D_Univ,'Univ'),
+  cg_holds(D_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE ELEPHANT(e) IS [UNIV:*e].").
+% ?- pred_cg(assert_cg_real,"TYPE ELEPHANT(e) IS [UNIV:*e].").
 % ===========================================
 
-% cg_quantz(type, E_Univ),
-% cg_type(E_Univ, 'Elephant'),
-% lbl(frame90),
-% cg_type(E_Univ, 'Univ'),
-% frame_var('E', E_Univ),
-% lbl(frame89).
+[ lbl(frame83),
+  frame_var('E',E_Univ),
+  cg_type(E_Univ,'Univ'),
+  cg_holds(E_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE HOTEL(h) IS [UNIV:*h].").
+% ?- pred_cg(assert_cg_real,"TYPE HOTEL(h) IS [UNIV:*h].").
 % ===========================================
 
-% cg_quantz(type, H_Univ),
-% cg_type(H_Univ, 'Hotel'),
-% lbl(frame92),
-% cg_type(H_Univ, 'Univ'),
-% frame_var('H', H_Univ),
-% lbl(frame91).
+[ lbl(frame84),
+  frame_var('H',H_Univ),
+  cg_type(H_Univ,'Univ'),
+  cg_holds(H_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE HOTEL-RESERVATION(RESERVATION-NO) IS
+% ?- pred_cg(assert_cg_real,"TYPE HOTEL-RESERVATION(RESERVATION-NO) IS
 [RESERVATION:*RESERVATION-NO]-
   ->(RCPT)->[PERSON]
   ->(OBJ)->[ROOM]->(LOC)->[HOTEL]
@@ -1133,114 +1267,100 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
              ->(UNTL)->[DEPARTURE-DATE],,.").
 % ===========================================
 
-% cg_quantz(type, 'Reservation_No'),
-% cg_type('Reservation_No', 'Hotel_Reservation'),
-% lbl(frame94),
-% cg_type(Reservation, 'Reservation'),
-% frame_var('RESERVATION_NO', Reservation),
-% cg_type(Person, 'Person'),
-% cg_holds('Rcpt', Reservation, Person),
-% cg_type(Room, 'Room'),
-% cg_holds('Obj', Person, Room),
-% cg_type(Hotel, 'Hotel'),
-% cg_holds('Loc', Room, Hotel),
-% cg_type(Time_Period, 'Time_Period'),
-% cg_holds('Dur', Hotel, Time_Period),
-% cg_type(Arrival_Date, 'Arrival_Date'),
-% cg_holds('Strt', Reservation, Arrival_Date),
-% cg_type(Departure_Date, 'Departure_Date'),
-% cg_holds('Untl', Arrival_Date, Departure_Date),
-% lbl(frame93).
+[ lbl(frame85),
+  frame_var('RESERVATION_NO',Reservation),
+  cg_type(Departure_Date,'Departure_Date'),
+  cg_type(Arrival_Date,'Arrival_Date'),
+  cg_type(Time_Period,'Time_Period'),
+  cg_type(Hotel,'Hotel'),
+  cg_type(Room,'Room'),
+  cg_type(Person,'Person'),
+  cg_type(Reservation,'Reservation'),
+  cg_holds('Untl',Arrival_Date,Departure_Date),
+  cg_holds('Strt',Reservation,Arrival_Date),
+  cg_holds('Reservation_No'),
+  cg_holds('Rcpt',Reservation,Person),
+  cg_holds('Obj',Person,Room),
+  cg_holds('Loc',Room,Hotel),
+  cg_holds('Dur',Hotel,Time_Period) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE PERFORM(p) IS [UNIV:*p].").
+% ?- pred_cg(assert_cg_real,"TYPE PERFORM(p) IS [UNIV:*p].").
 % ===========================================
 
-% cg_quantz(type, P_Univ),
-% cg_type(P_Univ, 'Perform'),
-% lbl(frame96),
-% cg_type(P_Univ, 'Univ'),
-% frame_var('P', P_Univ),
-% lbl(frame95).
+[ lbl(frame86),
+  frame_var('P',P_Univ),
+  cg_type(P_Univ,'Univ'),
+  cg_holds(P_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE PERSON(p) IS [UNIV:*p].").
+% ?- pred_cg(assert_cg_real,"TYPE PERSON(p) IS [UNIV:*p].").
 % ===========================================
 
-% cg_quantz(type, P_Univ),
-% cg_type(P_Univ, 'Person'),
-% lbl(frame98),
-% cg_type(P_Univ, 'Univ'),
-% frame_var('P', P_Univ),
-% lbl(frame97).
+[ lbl(frame87),
+  frame_var('P',P_Univ),
+  cg_type(P_Univ,'Univ'),
+  cg_holds(P_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE PROPOSITION(p) IS [UNIV:*p].").
+% ?- pred_cg(assert_cg_real,"TYPE PROPOSITION(p) IS [UNIV:*p].").
 % ===========================================
 
-% cg_quantz(type, P_Univ),
-% cg_type(P_Univ, 'Proposition'),
-% lbl(frame100),
-% cg_type(P_Univ, 'Univ'),
-% frame_var('P', P_Univ),
-% lbl(frame99).
+[ lbl(frame88),
+  frame_var('P',P_Univ),
+  cg_type(P_Univ,'Univ'),
+  cg_holds(P_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE RESERVATION(r) IS [UNIV:*r].").
+% ?- pred_cg(assert_cg_real,"TYPE RESERVATION(r) IS [UNIV:*r].").
 % ===========================================
 
-% cg_quantz(type, R_Univ),
-% cg_type(R_Univ, 'Reservation'),
-% lbl(frame102),
-% cg_type(R_Univ, 'Univ'),
-% frame_var('R', R_Univ),
-% lbl(frame101).
+[ lbl(frame89),
+  frame_var('R',R_Univ),
+  cg_type(R_Univ,'Univ'),
+  cg_holds(R_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE ROOM(r) IS [UNIV:*r].").
+% ?- pred_cg(assert_cg_real,"TYPE ROOM(r) IS [UNIV:*r].").
 % ===========================================
 
-% cg_quantz(type, R_Univ),
-% cg_type(R_Univ, 'Room'),
-% lbl(frame104),
-% cg_type(R_Univ, 'Univ'),
-% frame_var('R', R_Univ),
-% lbl(frame103).
+[ lbl(frame90),
+  frame_var('R',R_Univ),
+  cg_type(R_Univ,'Univ'),
+  cg_holds(R_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"TYPE TIME-PERIOD(t) IS [UNIV:*t].").
+% ?- pred_cg(assert_cg_real,"TYPE TIME-PERIOD(t) IS [UNIV:*t].").
 % ===========================================
 
-% cg_quantz(type, T_Univ),
-% cg_type(T_Univ, 'Time_Period'),
-% lbl(frame106),
-% cg_type(T_Univ, 'Univ'),
-% frame_var('T', T_Univ),
-% lbl(frame105).
+[ lbl(frame91),
+  frame_var('T',T_Univ),
+  cg_type(T_Univ,'Univ'),
+  cg_holds(T_Univ) ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [RESERVATION #316209]-
   ->(RCPT)->[PERSON:JOHN SOWA]
   ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
@@ -1249,34 +1369,34 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]").
 % ===========================================
 
-% cg_holds('Untl', March_14_1983_Arrival_Date, March_18_1983_Departure_Date),
-% cg_name(March_18_1983_Departure_Date, 'March_18_1983'),
-% cg_type(March_18_1983_Departure_Date, 'Departure_Date'),
-% cg_holds('Strt', Reservation, March_14_1983_Arrival_Date),
-% cg_name(March_14_1983_Arrival_Date, 'March_14_1983'),
-% cg_type(March_14_1983_Arrival_Date, 'Arrival_Date'),
-% cg_holds('Dur', Shelburne_Hotel, Nights_Time_Period),
-% cg_name(Nights_Time_Period, 'Nights'),
-% cg_quantz(4, Nights_Time_Period),
-% cg_type(Nights_Time_Period, 'Time_Period'),
-% cg_holds('Loc', Q2_Room, Shelburne_Hotel),
-% cg_name(Shelburne_Hotel, 'Shelburne'),
-% cg_type(Shelburne_Hotel, 'Hotel'),
-% cg_holds('Obj', John_Sowa_Person, Q2_Room),
-% cg_name(Q2_Room, 'Q2'),
-% cg_type(Q2_Room, 'Room'),
-% cg_holds('Rcpt', Reservation, John_Sowa_Person),
-% cg_name(John_Sowa_Person, 'John_Sowa'),
-% cg_type(John_Sowa_Person, 'Person'),
-% cg_equal(Reservation, 'Reservation#316209'),
-% cg_type(Reservation, 'Reservation'),
-% lbl(frame107).
+[ lbl(frame92),
+  cg_type(March_18_1983_Departure_Date,'Departure_Date'),
+  cg_type(March_14_1983_Arrival_Date,'Arrival_Date'),
+  cg_type(Nights_Time_Period_Num4_Num4,'Time_Period'),
+  cg_type(Shelburne_Hotel,'Hotel'),
+  cg_type(Q2_Room,'Room'),
+  cg_type(John_Sowa_Person,'Person'),
+  cg_type(Reservation,'Reservation'),
+  cg_quantz(4,Nights_Time_Period_Num4_Num4),
+  cg_name(March_18_1983_Departure_Date,'March_18_1983'),
+  cg_name(March_14_1983_Arrival_Date,'March_14_1983'),
+  cg_name(Nights_Time_Period_Num4_Num4,'Nights'),
+  cg_name(Shelburne_Hotel,'Shelburne'),
+  cg_name(Q2_Room,'Q2'),
+  cg_name(John_Sowa_Person,'John_Sowa'),
+  cg_holds('Untl',March_14_1983_Arrival_Date,March_18_1983_Departure_Date),
+  cg_holds('Strt',Reservation,March_14_1983_Arrival_Date),
+  cg_holds('Rcpt',Reservation,John_Sowa_Person),
+  cg_holds('Obj',John_Sowa_Person,Q2_Room),
+  cg_holds('Loc',Q2_Room,Shelburne_Hotel),
+  cg_holds('Dur',Shelburne_Hotel,Nights_Time_Period_Num4_Num4),
+  cg_equal(Reservation,'Reservation#316209') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 [RESERVATION:#316209]-
   ->(RCPT)->[PERSON:JOHN SOWA]
   ->(OBJ)->[ROOM:Q2]->(LOC)->[HOTEL:Shelburne]
@@ -1285,34 +1405,34 @@ init_why(before_boot,after(/.../(prolog,'cgprolog.pl')))
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983]").
 % ===========================================
 
-% cg_holds('Untl', March_14_1983_Arrival_Date, March_18_1983_Departure_Date),
-% cg_name(March_18_1983_Departure_Date, 'March_18_1983'),
-% cg_type(March_18_1983_Departure_Date, 'Departure_Date'),
-% cg_holds('Strt', Reservation, March_14_1983_Arrival_Date),
-% cg_name(March_14_1983_Arrival_Date, 'March_14_1983'),
-% cg_type(March_14_1983_Arrival_Date, 'Arrival_Date'),
-% cg_holds('Dur', Shelburne_Hotel, Nights_Time_Period),
-% cg_name(Nights_Time_Period, 'Nights'),
-% cg_quantz(4, Nights_Time_Period),
-% cg_type(Nights_Time_Period, 'Time_Period'),
-% cg_holds('Loc', Q2_Room, Shelburne_Hotel),
-% cg_name(Shelburne_Hotel, 'Shelburne'),
-% cg_type(Shelburne_Hotel, 'Hotel'),
-% cg_holds('Obj', John_Sowa_Person, Q2_Room),
-% cg_name(Q2_Room, 'Q2'),
-% cg_type(Q2_Room, 'Room'),
-% cg_holds('Rcpt', Reservation, John_Sowa_Person),
-% cg_name(John_Sowa_Person, 'John_Sowa'),
-% cg_type(John_Sowa_Person, 'Person'),
-% cg_equal(Reservation, 'Reservation#316209'),
-% cg_type(Reservation, 'Reservation'),
-% lbl(frame108).
+[ lbl(frame93),
+  cg_type(March_18_1983_Departure_Date,'Departure_Date'),
+  cg_type(March_14_1983_Arrival_Date,'Arrival_Date'),
+  cg_type(Nights_Time_Period_Num4_Num4,'Time_Period'),
+  cg_type(Shelburne_Hotel,'Hotel'),
+  cg_type(Q2_Room,'Room'),
+  cg_type(John_Sowa_Person,'Person'),
+  cg_type(Reservation,'Reservation'),
+  cg_quantz(4,Nights_Time_Period_Num4_Num4),
+  cg_name(March_18_1983_Departure_Date,'March_18_1983'),
+  cg_name(March_14_1983_Arrival_Date,'March_14_1983'),
+  cg_name(Nights_Time_Period_Num4_Num4,'Nights'),
+  cg_name(Shelburne_Hotel,'Shelburne'),
+  cg_name(Q2_Room,'Q2'),
+  cg_name(John_Sowa_Person,'John_Sowa'),
+  cg_holds('Untl',March_14_1983_Arrival_Date,March_18_1983_Departure_Date),
+  cg_holds('Strt',Reservation,March_14_1983_Arrival_Date),
+  cg_holds('Rcpt',Reservation,John_Sowa_Person),
+  cg_holds('Obj',John_Sowa_Person,Q2_Room),
+  cg_holds('Loc',Q2_Room,Shelburne_Hotel),
+  cg_holds('Dur',Shelburne_Hotel,Nights_Time_Period_Num4_Num4),
+  cg_equal(Reservation,'Reservation#316209') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 INDIVIDUAL HOTEL-RESERVATION(#316209) IS
 [RESERVATION:#316209]-
   ->(RCPT)->[PERSON:JOHN SOWA]
@@ -1322,38 +1442,36 @@ INDIVIDUAL HOTEL-RESERVATION(#316209) IS
              ->(UNTL)->[DEPARTURE-DATE:MARCH 18 1983],,.").
 % ===========================================
 
-% cg_quantz(individual, _920),
-% cg_type(_920, 'Hotel_Reservation'),
-% lbl(frame110),
-% cg_type(Reservation, 'Reservation'),
-% cg_equal(Reservation, 'Reservation#316209'),
-% cg_type(John_Sowa_Person, 'Person'),
-% cg_name(John_Sowa_Person, 'John_Sowa'),
-% cg_holds('Rcpt', Reservation, John_Sowa_Person),
-% cg_type(Q2_Room, 'Room'),
-% cg_name(Q2_Room, 'Q2'),
-% cg_holds('Obj', John_Sowa_Person, Q2_Room),
-% cg_type(Shelburne_Hotel, 'Hotel'),
-% cg_name(Shelburne_Hotel, 'Shelburne'),
-% cg_holds('Loc', Q2_Room, Shelburne_Hotel),
-% cg_type(Nights_Time_Period, 'Time_Period'),
-% cg_quantz(4, Nights_Time_Period),
-% cg_name(Nights_Time_Period, 'Nights'),
-% cg_holds('Dur', Shelburne_Hotel, Nights_Time_Period),
-% cg_type(March_14_1983_Arrival_Date, 'Arrival_Date'),
-% cg_name(March_14_1983_Arrival_Date, 'March_14_1983'),
-% cg_holds('Strt', Reservation, March_14_1983_Arrival_Date),
-% cg_type(March_18_1983_Departure_Date, 'Departure_Date'),
-% cg_name(March_18_1983_Departure_Date, 'March_18_1983'),
-% cg_holds('Untl', March_14_1983_Arrival_Date, March_18_1983_Departure_Date),
-% _920#316209,
-% lbl(frame109).
+[ lbl(frame94),
+  cg_type(March_18_1983_Departure_Date,'Departure_Date'),
+  cg_type(March_14_1983_Arrival_Date,'Arrival_Date'),
+  cg_type(Nights_Time_Period_Num4_Num4,'Time_Period'),
+  cg_type(Shelburne_Hotel,'Hotel'),
+  cg_type(Q2_Room,'Room'),
+  cg_type(John_Sowa_Person,'Person'),
+  cg_type(Reservation,'Reservation'),
+  cg_quantz(4,Nights_Time_Period_Num4_Num4),
+  cg_name(March_18_1983_Departure_Date,'March_18_1983'),
+  cg_name(March_14_1983_Arrival_Date,'March_14_1983'),
+  cg_name(Nights_Time_Period_Num4_Num4,'Nights'),
+  cg_name(Shelburne_Hotel,'Shelburne'),
+  cg_name(Q2_Room,'Q2'),
+  cg_name(John_Sowa_Person,'John_Sowa'),
+  cg_holds('Untl',March_14_1983_Arrival_Date,March_18_1983_Departure_Date),
+  cg_holds('Strt',Reservation,March_14_1983_Arrival_Date),
+  cg_holds('Rcpt',Reservation,John_Sowa_Person),
+  cg_holds('Obj',John_Sowa_Person,Q2_Room),
+  cg_holds('Loc',Q2_Room,Shelburne_Hotel),
+  cg_holds('Dur',Shelburne_Hotel,Nights_Time_Period_Num4_Num4),
+  Cg_Holds#316209,
+  cg_holds(Cg_Holds),
+  cg_equal(Reservation,'Reservation#316209') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 INDIVIDUAL HOTEL-RESERVATION(#316210) IS
 [RESERVATION:#316210]-
   ->(RCPT)->[PERSON:JOHN ESCH]
@@ -1363,56 +1481,303 @@ INDIVIDUAL HOTEL-RESERVATION(#316210) IS
              ->(UNTL)->[DEPARTURE-DATE:MARCH 19 1983],,.").
 % ===========================================
 
-% cg_quantz(individual, _918),
-% cg_type(_918, 'Hotel_Reservation'),
-% lbl(frame112),
-% cg_type(Reservation, 'Reservation'),
-% cg_equal(Reservation, 'Reservation#316210'),
-% cg_type(John_Esch_Person, 'Person'),
-% cg_name(John_Esch_Person, 'John_Esch'),
-% cg_holds('Rcpt', Reservation, John_Esch_Person),
-% cg_type(Q3_Room, 'Room'),
-% cg_name(Q3_Room, 'Q3'),
-% cg_holds('Obj', John_Esch_Person, Q3_Room),
-% cg_type(Sidney_Hotel, 'Hotel'),
-% cg_name(Sidney_Hotel, 'Sidney'),
-% cg_holds('Loc', Q3_Room, Sidney_Hotel),
-% cg_type(Nights_Time_Period, 'Time_Period'),
-% cg_quantz(7, Nights_Time_Period),
-% cg_name(Nights_Time_Period, 'Nights'),
-% cg_holds('Dur', Sidney_Hotel, Nights_Time_Period),
-% cg_type(March_12_1983_Arrival_Date, 'Arrival_Date'),
-% cg_name(March_12_1983_Arrival_Date, 'March_12_1983'),
-% cg_holds('Strt', Reservation, March_12_1983_Arrival_Date),
-% cg_type(March_19_1983_Departure_Date, 'Departure_Date'),
-% cg_name(March_19_1983_Departure_Date, 'March_19_1983'),
-% cg_holds('Untl', March_12_1983_Arrival_Date, March_19_1983_Departure_Date),
-% _918#316210,
-% lbl(frame111).
+[ lbl(frame95),
+  cg_type(March_19_1983_Departure_Date,'Departure_Date'),
+  cg_type(March_12_1983_Arrival_Date,'Arrival_Date'),
+  cg_type(Nights_Time_Period_Num7_Num7,'Time_Period'),
+  cg_type(Sidney_Hotel,'Hotel'),
+  cg_type(Q3_Room,'Room'),
+  cg_type(John_Esch_Person,'Person'),
+  cg_type(Reservation,'Reservation'),
+  cg_quantz(7,Nights_Time_Period_Num7_Num7),
+  cg_name(March_19_1983_Departure_Date,'March_19_1983'),
+  cg_name(March_12_1983_Arrival_Date,'March_12_1983'),
+  cg_name(Nights_Time_Period_Num7_Num7,'Nights'),
+  cg_name(Sidney_Hotel,'Sidney'),
+  cg_name(Q3_Room,'Q3'),
+  cg_name(John_Esch_Person,'John_Esch'),
+  cg_holds('Untl',March_12_1983_Arrival_Date,March_19_1983_Departure_Date),
+  cg_holds('Strt',Reservation,March_12_1983_Arrival_Date),
+  cg_holds('Rcpt',Reservation,John_Esch_Person),
+  cg_holds('Obj',John_Esch_Person,Q3_Room),
+  cg_holds('Loc',Q3_Room,Sidney_Hotel),
+  cg_holds('Dur',Sidney_Hotel,Nights_Time_Period_Num7_Num7),
+  Cg_Holds#316210,
+  cg_holds(Cg_Holds),
+  cg_equal(Reservation,'Reservation#316210') ].
 ```
 
 
 ```
 % ===========================================
-?- pred_cg(assert_cg_real,"
+% ?- pred_cg(assert_cg_real,"
 INDIVIDUAL CIRCUS-ELEPHANT(#BUMBO) IS
 [ELEPHANT:#BUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Flying Tigers].").
 % ===========================================
 
-% cg_quantz(individual, Bumbo),
-% cg_type(Bumbo, 'Circus_Elephant'),
-% lbl(frame114),
-% cg_type(Elephant, 'Elephant'),
-% cg_equal(Elephant, 'Elephant#Bumbo'),
-% cg_type(Set_Perform, 'Perform'),
-% cg_quantz(set, Set_Perform),
-% cg_count(Set_Perform, 1, _14388),
-% cg_holds('Agnt', Set_Perform, Elephant),
-% cg_type(Flying_Tigers_Circus, 'Circus'),
-% cg_name(Flying_Tigers_Circus, 'Flying_Tigers'),
-% cg_holds('Loc', Set_Perform, Flying_Tigers_Circus),
-% Bumbo#'Bumbo',
-% lbl(frame113).
+[ lbl(frame96),
+  cg_type(Flying_Tigers_Circus,'Circus'),
+  cg_type(Set_Perform,'Perform'),
+  cg_type(Elephant,'Elephant'),
+  cg_quantz(set,Set_Perform),
+  cg_name(Flying_Tigers_Circus,'Flying_Tigers'),
+  cg_holds('Loc',Set_Perform,Flying_Tigers_Circus),
+  cg_holds('Agnt',Set_Perform,Elephant),
+  Bumbo#'Bumbo',
+  cg_holds(Bumbo),
+  cg_equal(Elephant,'Elephant#Bumbo'),
+  cg_count(Set_Perform,1,Cg_Count) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
+INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
+[ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].").
+% ===========================================
+
+[ lbl(frame97),
+  cg_type(Barnum_C38_Bailey_Circus,'Circus'),
+  cg_type(Set_Perform,'Perform'),
+  cg_type(Elephant,'Elephant'),
+  cg_quantz(set,Set_Perform),
+  cg_name(Barnum_C38_Bailey_Circus,'Barnum_&_Bailey'),
+  cg_holds('Loc',Set_Perform,Barnum_C38_Bailey_Circus),
+  cg_holds('Agnt',Set_Perform,Elephant),
+  Jumbo#'Jumbo',
+  cg_holds(Jumbo),
+  cg_equal(Elephant,'Elephant#Jumbo'),
+  cg_count(Set_Perform,1,Cg_Count) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
+Leopard::[Animal : x]-isA->[Leopard] :-
+   Mammal::[Animal : x]-isA->[Mammal],
+   Carnivorous::[Animal : x]-isA->[Carnivorous],
+   Fact::[Animal : x]-colorOf->[Color]-attr->[Wild],
+   Fact::[Animal : x]-partOf->[Component]-attr->[Dark]. ").
+% ===========================================
+
+[ named_graph(
+     'Leopard',
+     [ preconds(
+          [ [ values_from('Mammal'),
+              named_graph(
+                 'Mammal',
+                 [ values_from('Carnivorous'),
+                   named_graph(
+                      'Carnivorous',
+                      [ values_from('Fact'),
+                        named_graph(
+                           'Fact',
+                           [ values_from('Fact'),
+                             named_graph(
+                                'Fact',
+                                [ cg_holds(attr,Component,Dark),
+                                  cg_type(Dark,'Dark'),
+                                  cg_holds(partOf,X_Animal13,Component),
+                                  cg_type(Component,'Component'),
+                                  frame_var('X',X_Animal13),
+                                  cg_type(X_Animal13,'Animal'),
+                                  lbl(frame104) ]),
+                             cg_holds(attr,Color,Wild),
+                             cg_type(Wild,'Wild'),
+                             cg_holds(colorOf,X_Animal9,Color),
+                             cg_type(Color,'Color'),
+                             frame_var('X',X_Animal9),
+                             cg_type(X_Animal9,'Animal'),
+                             lbl(frame103) ]),
+                        cg_holds(isA,X_Animal6,Carnivorous),
+                        cg_type(Carnivorous,'Carnivorous'),
+                        frame_var('X',X_Animal6),
+                        cg_type(X_Animal6,'Animal'),
+                        lbl(frame102) ]),
+                   cg_holds(isA,X_Animal3,Mammal),
+                   cg_type(Mammal,'Mammal'),
+                   frame_var('X',X_Animal3),
+                   cg_type(X_Animal3,'Animal'),
+                   lbl(frame101) ]),
+              lbl(frame100) ] ]),
+       cg_holds(isA,X_Animal13,Leopard),
+       cg_type(Leopard,'Leopard'),
+       frame_var('X',X_Animal13),
+       cg_type(X_Animal13,'Animal'),
+       lbl(frame99) ]),
+  values_from('Leopard'),
+  lbl(frame98) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
+Mammal::[Animal : x]-isA->[Mammal] :-
+        Fact::[Animal : x]-poss->[Hair].
+").
+% ===========================================
+
+[ named_graph(
+     'Mammal',
+     [ preconds(
+          [ [ values_from('Fact'),
+              named_graph(
+                 'Fact',
+                 [ cg_holds(poss,X_Animal3,Hair),
+                   cg_type(Hair,'Hair'),
+                   frame_var('X',X_Animal3),
+                   cg_type(X_Animal3,'Animal'),
+                   lbl(frame108) ]),
+              lbl(frame107) ] ]),
+       cg_holds(isA,X_Animal3,Mammal),
+       cg_type(Mammal,'Mammal'),
+       frame_var('X',X_Animal3),
+       cg_type(X_Animal3,'Animal'),
+       lbl(frame106) ]),
+  values_from('Mammal'),
+  lbl(frame105) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
+Carnivorous::[Animal : x]-isA->[Carnivorous] :-
+   Fact::[Animal : x]<-agnt-[Eat]-obj->[Meat].
+").
+% ===========================================
+
+[ named_graph(
+     'Carnivorous',
+     [ preconds(
+          [ [ values_from('Fact'),
+              named_graph(
+                 'Fact',
+                 [ cg_holds(obj,Eat,Meat),
+                   cg_type(Meat,'Meat'),
+                   cg_holds(agnt,Eat,X_Animal3),
+                   cg_type(Eat,'Eat'),
+                   frame_var('X',X_Animal3),
+                   cg_type(X_Animal3,'Animal'),
+                   lbl(frame112) ]),
+              lbl(frame111) ] ]),
+       cg_holds(isA,X_Animal3,Carnivorous),
+       cg_type(Carnivorous,'Carnivorous'),
+       frame_var('X',X_Animal3),
+       cg_type(X_Animal3,'Animal'),
+       lbl(frame110) ]),
+  values_from('Carnivorous'),
+  lbl(frame109) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
+Carnivorous::[Animal : x]-isA->[Carnivorous] :-
+   Fact::[Animal : x]-poss->[Teeth]-attr->[Sharp],
+   Fact::[Animal : x]-poss->[Claw],
+   Fact::[Animal : x]-has->[Eyes]-attr->[Forward].
+").
+% ===========================================
+
+[ named_graph(
+     'Carnivorous',
+     [ preconds(
+          [ [ values_from('Fact'),
+              named_graph(
+                 'Fact',
+                 [ values_from('Fact'),
+                   named_graph(
+                      'Fact',
+                      [ values_from('Fact'),
+                        named_graph(
+                           'Fact',
+                           [ cg_holds(attr,Eyes,Forward),
+                             cg_type(Forward,'Forward'),
+                             cg_holds(has,X_Animal10,Eyes),
+                             cg_type(Eyes,'Eyes'),
+                             frame_var('X',X_Animal10),
+                             cg_type(X_Animal10,'Animal'),
+                             lbl(frame118) ]),
+                        cg_holds(poss,X_Animal7,Claw),
+                        cg_type(Claw,'Claw'),
+                        frame_var('X',X_Animal7),
+                        cg_type(X_Animal7,'Animal'),
+                        lbl(frame117) ]),
+                   cg_holds(attr,Teeth,Sharp),
+                   cg_type(Sharp,'Sharp'),
+                   cg_holds(poss,X_Animal3,Teeth),
+                   cg_type(Teeth,'Teeth'),
+                   frame_var('X',X_Animal3),
+                   cg_type(X_Animal3,'Animal'),
+                   lbl(frame116) ]),
+              lbl(frame115) ] ]),
+       cg_holds(isA,X_Animal10,Carnivorous),
+       cg_type(Carnivorous,'Carnivorous'),
+       frame_var('X',X_Animal10),
+       cg_type(X_Animal10,'Animal'),
+       lbl(frame114) ]),
+  values_from('Carnivorous'),
+  lbl(frame113) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"
+Fact::[Animal : Yala]-
+            <-pat-[BelongTo]-bnfcre->[Man : Robert],
+            -colorOf->[Color]-attr->[Wild],
+            -poss->[Teeth]-attr->[Sharp],
+            -has->[Eyes]-attr->[Forward].
+").
+% ===========================================
+
+[ named_graph(
+     'Fact',
+     [ cg_holds(attr,Eyes,Forward),
+       cg_type(Forward,'Forward'),
+       cg_holds(has,Yala_Animal,Eyes),
+       cg_type(Eyes,'Eyes'),
+       cg_holds(attr,Teeth,Sharp),
+       cg_type(Sharp,'Sharp'),
+       cg_holds(poss,Yala_Animal,Teeth),
+       cg_type(Teeth,'Teeth'),
+       cg_holds(attr,Color,Wild),
+       cg_type(Wild,'Wild'),
+       cg_holds(colorOf,Yala_Animal,Color),
+       cg_type(Color,'Color'),
+       cg_holds(bnfcre,Belongto,Robert_Man),
+       cg_name(Robert_Man,'Robert'),
+       cg_type(Robert_Man,'Man'),
+       cg_holds(pat,Belongto,Yala_Animal),
+       cg_type(Belongto,'BelongTo'),
+       cg_name(Yala_Animal,'Yala'),
+       cg_type(Yala_Animal,'Animal'),
+       lbl(frame120) ]),
+  values_from('Fact'),
+  lbl(frame119) ].
+```
+
+
+```
+% ===========================================
+% ?- pred_cg(assert_cg_real,"Fact::[Animal : Yala]-poss->[Claw].").
+% ===========================================
+
+[ named_graph(
+     'Fact',
+     [ cg_holds(poss,Yala_Animal,Claw),
+       cg_type(Claw,'Claw'),
+       cg_name(Yala_Animal,'Yala'),
+       cg_type(Yala_Animal,'Animal'),
+       lbl(frame122) ]),
+  values_from('Fact'),
+  lbl(frame121) ].
 ```
 
 ```

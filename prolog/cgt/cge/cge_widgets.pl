@@ -45,7 +45,8 @@ Description     : Widgets for the Conceptual Graph Editor
 1.01    91/02/19  mw    minor improvements and debugging
 
 ************************************************************************/
- 
+:- use_module(library(cgt/cge/swi_apeal)).
+
 /* CONTENTS *************************************************************
 
 shell widget cge/4	the editor window widget

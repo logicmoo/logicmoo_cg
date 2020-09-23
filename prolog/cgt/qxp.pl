@@ -1,4 +1,5 @@
-:- module(cgt,[]).
+:- module(cgt,[load_cge/0,load_cgt/0]).
+:- use_module(library(cgt/cge/swi_apeal)).
 
 cgt_data(F/A):- multifile(F/A), dynamic(F/A), discontiguous(F/A).
 
@@ -136,7 +137,13 @@ shell widget snapshot(S) :-
 
 %%% Load the Conceptual Graph Tools
 
+load_dir_file(Dir,[F]):-!, load_dir_file(Dir,F).
+load_dir_file(Dir,F):- F\==[],!, reconsult(library(Dir/F)).
+load_dir_file(_,_).
+
+
 load_cgt :-
+   maplist(load_dir_file(cgt),[
     [can_ops], 		% canonical formation rules
     [type_ops],		% operations on the type hierarchy
     [log_ops],		% propositional inference rules
@@ -145,6 +152,7 @@ load_cgt :-
     [rec_lin],		% reads the linear notation
     [gramaux],		% auxillary grammar rules (tokeniser)
     [list],		% list and set operations
+    []]),
     start_cgp(canon).	% load the backup database
 
 %%% Load the Conceptual Graph Editor
@@ -152,14 +160,17 @@ load_cgt :-
 load_cge :-
    % load_set(xgraph),		% load the graph widget
    % language(L, [[unlp,wdl]|L]),% CGE is written in UNL Prolog and WDL
+   maplist(load_dir_file('cgt/cge'), [
+
     [wdl_ext],			% extensions to the Widget Description Language
     [cge_actions], 		% actions performed by the editor
     [cge_widgets],		% CGE's Window gadgets (editor's visual look)
     [dialog],			% widgets for several kinds of dialog boxes
-    ['tests/choice'],		% widgets for choice dialogs
-   % xt_display(D, D), 
-   % xt_fetch_server_fonts(D),	% to display greek letters
-   % shell widget qxp_shell(G), 	% open a new top-level shell
+    ['choice'],		% widgets for choice dialogs
+    []]),
+    %xt_display(D, D), 
+    %xt_fetch_server_fonts(D),	% to display greek letters
+    shell widget qxp_shell(G), 	% open a new top-level shell
     G = prolog,
     recorda(qxp_goal, G, _)	% remember the shell to make get_back possible
   %  !, G.			% start at the new shell
@@ -168,17 +179,17 @@ load_cge :-
 %%% get_back acts as an abort for CGE: it returns control to the top-level shell
 
 get_back :- recorded(qxp_goal, G, _), !, call(G).
-% get_back :- shell widget qxp_shell(G), recorda(qxp_goal, G, _), !, G.
+get_back :- shell widget qxp_shell(G), recorda(qxp_goal, G, _), !, G.
 
 %%% Load the whole GET system
 
 load_get :- load_cgt, load_cge.
 
-acknowledge(Msg):- wdmsg(Msg).
 
 :- dynamic(defined/3).
 
-:- load_cgt.
 
+:- load_cgt.
+:- load_cge.
 
 

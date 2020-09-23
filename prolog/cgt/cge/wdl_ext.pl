@@ -18,6 +18,7 @@ Copyright (C) 1990 Miguel Alexandre Wermelinger
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ************************************************************************/
+:- use_module(library(cgt/cge/swi_apeal)).
 
 /* AUTHOR(S) ************************************************************
 

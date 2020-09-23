@@ -46,8 +46,9 @@ cg_test_data(TstAtts,X):- nonvar(TstAtts), nonvar(X), !,
 
 
 assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)),!.
+assert_cg_real(X):- frmprint(X),!.
 assert_cg_real(X):- is_list(X),list_to_conjuncts(X,J),!,wdmsg(J).
-assert_cg_real(X):- !,  frmprint(X).
+
 assert_cg_real(X):- nb_current(cgid,Id), print_cg(Id:X),  ain(cg(Id,X)).
 
 call_cg(X):- pred_cg(call_cg_real,X).
@@ -59,11 +60,11 @@ pred_cg(Pred, X):- string(X),!,pred_cg(Pred, xtext(X)).
 pred_cg(Pred, [Int|Codes]):- notrace(catch(text_to_string([Int|Codes],X),_,fail)),pred_cg(Pred, xtext(X)).
 pred_cg(Pred, X):- is_list(X), !, maplist(pred_cg(Pred),X).
 pred_cg(Pred, xtext(X)):- locally_setval(cg_text,X,(( 
-  format('~N~n~n```~n% ===========================================~n?- pred_cg(~q,"~w").~n% ===========================================~n~n',[Pred,X]),
+  format('~N~n~n```~n% ===========================================~n% ?- pred_cg(~q,"~w").~n% ===========================================~n~n',[Pred,X]),
   cg_df_to_term(X,Y), !, pred_cg(Pred, Y), format("~N```~n",[])))),!.
 
 
-pred_cg(Pred, tOkS(Toks)):- !, (parse_cg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("
+pred_cg(Pred, tOkS(Toks)):- !, (parse_ncg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("
 % Failed Parse
 ?- rtrace( 
     ~q  
@@ -75,8 +76,8 @@ pred_cg(Pred, X):- wdmsg(pred_cg(Pred, X)), fail.
 pred_cg(_, _):- !.
 pred_cg(Pred, Error):- trace_or_throw(pred_cg(Pred, Error)).
 
-print_cg(X):- !, frmprint(X).
 print_cg(X):- is_list(X),!, maplist(print_cg,X).
+print_cg(X):- !, frmprint(X).
 print_cg(X):- nl,wdmsg(display(X)),nl.
 
 fixcase_atom(Name,NameR):- atom(Name), upcase_atom(Name,Name), \+ downcase_atom(Name,Name), to_case_break_atoms(Name,Atoms),
@@ -98,6 +99,7 @@ tokenize_cg_w(String) --> dcg_peek(`"`),!,double_quoted_string(String).
 tokenize_cg_w(Op)--> {sent_op_chars(Op,Chars)},Chars,!.
 tokenize_cg_w('?'(UNAME)) --> `?`,!,prolog_id_conted(CL),{ atom_codes(Name, CL)},!,{upcase_atom(Name,UNAME)}.
 tokenize_cg_w(T)--> dcg_basics:number(T),!.
+tokenize_cg_w(Name)--> [C], {\+code_type(C, prolog_identifier_continue),atom_codes(Name, [C])},!.
 tokenize_cg_w(Name)--> prolog_id_conted(CL), !,{atom_codes(NameR, CL),fixcase_atom(NameR,Name)},!.
 tokenize_cg_w(Name)--> [C],{ atom_codes(Name, [C])},!.
 
@@ -117,7 +119,7 @@ parse_rel(Logic) -->  cic('('),carg(Rel),
   dcg_list_of(carg,Args), cic(')'),!,{fixcase_atom(Rel,RelD),Logic=..[cg_holds,RelD|Args]},!.
 
 
-parse_decl(Type, [cg_type(Arg,RelD),cg_quantz(Type,Arg)],Arg) -->  cw(Rel), cic('('), carg(Arg), cic(')'),!,{fixcase_atom(Rel,RelD)},!.
+parse_decl(Type, [cg_type(Arg,RelD),cg_decl(Type,Arg)],Arg) -->  cw(Rel), cic('('), carg(Arg), cic(')'),!,{fixcase_atom(Rel,RelD)},!.
 
 
 
@@ -129,10 +131,10 @@ carg(V)-->cvalue(W),{concept_var(V,W)}.
 
 
 dcg_list_of( _,['*']) --> cic('*'), ending(_),!.
+dcg_list_of(_Cw,[]) --> ending(_),!.
 dcg_list_of( Cw,[H|Frame]) --> cic('|'), !, {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
 dcg_list_of( Cw,[H|Frame]) --> cic(','), !, {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
 dcg_list_of( Cw,[H|Frame]) --> {append_term(Cw,H,CwH)}, CwH, dcg_list_of(Cw,Frame).
-dcg_list_of(_Cw,[]) --> ending(_).
 
 ending(R) --> {sent_op_pair(_,R)},dcg_peek(cic(R)),!.
 ending(_) --> \+[_].
@@ -158,43 +160,49 @@ dcg_beforeSeq(Skipped,Mid,S,E):-
 
 maybe_codes_to_tokens(_,_):- !, fail.
 maybe_codes_to_tokens(S,_):- is_list(S), notrace(catch((atom_codes(_,S),fail),_,true)),!,fail.
-maybe_codes_to_tokens(S,Toks):- \+ is_list(S),!, any_to_codes(S,Codes), maybe_codes_to_tokens(Codes,Toks).
+maybe_codes_to_tokens(S,Toks):- \+ is_list(S),!,any_to_atom(S,Atom),atom_codes(Atom,Codes), maybe_codes_to_tokens(Codes,Toks).
 maybe_codes_to_tokens(S,Toks):- tokenize_cg(Toks,S,[]),!.
 
 
 maybe_to_codes(S,_):- is_list(S), notrace(catch(atom_codes(_,S),_,fail)),!,fail.
 maybe_to_codes(S,Codes):- any_to_string(S,Str),atom_codes(Str,Codes),!.
 
-% parse_cg(CG) --> maybe_codes_to_tokens,!,parse_cg(CG).
-parse_cg(CG)--> parse_cg0(CG0), {must(var(CG)),resolve_frame_constants(CG0,CG)},!,dcgOptional(cic('.')).
+% parse_ncg(CG) --> maybe_codes_to_tokens,!,parse_ncg(CG).
+% parse_ncg(named_graph(Name,PCG)) --> cw(Name), (cic('::');(cic(':'),cic(':'))),parse_ncg(PCG).
+parse_ncg(CG)--> {var(CG)},!, parse_cg(['.'],CG0), {resolve_frame_constants(CG0,CG)},!,dcgOptional(cic('.')).
+parse_ncg(CG)--> parse_ncg(CG0), {push_frame_info(CG0,CG)}.
+
+parse_cg(StopAt,CG) --> parse_cg0(StopAt,CG).
+
+parse_cg0(StopAt,CG,S,E) :- var(CG), \+ attvar(CG), !,cg_new(CG), must( \+ ((var(CG), \+ attvar(CG)))),!,locally_setval(cgframe,CG,parse_cg0(StopAt,CG,S,E)).
+parse_cg0(StopAt,_) --> ends_cg(StopAt),!.
+parse_cg0(StopAt,CG) --> cw(Name), (cic('::');(cic(':'),cic(':'))),parse_cg0(StopAt,PCG), 
+  {push_frame_info(named_graph(Name,PCG),CG), push_frame_info(values_from(Name),CG)}.
+parse_cg0(_StopAt,CG)--> [':-'], !, parse_cg_list([','],PCG), { merge_simular_graph_vars(CG,PCG), push_frame_info(preconds(PCG),CG)}.
+parse_cg0(_StopAt,CG)--> {member(Type,[type,individual])}, cic(Type), !, zalwayz(parse_decl(Type,Expr,_X)), !, zalwayz(cic('Is')),!, 
+ zalwayz(parse_ncg(CG0)),!, {push_frame_info(CG0,CG),push_frame_info(Expr,CG)},!.
+parse_cg0(StopAt,CG) --> parse_rel(H), {push_frame_info([H],CG)}, parse_cg0(StopAt,CG).
+parse_cg0(StopAt,CG) --> concept(S), cont_graph(StopAt,S,S,CG),!,parse_cg0(StopAt,CG).
+
+ends_cg(   _   ) --> \+ [_],!.
+ends_cg(StopAt ) --> StopAt,!.
+ends_cg(   _   ) --> {sent_op_pair(_,R)},dcg_peek(cic(R)),!.
+ends_cg(   _   ) --> cic('.'),!.
 
 
-parse_cg0(CG,S,E) :- var(CG), \+ attvar(CG),cg_new(CG),!,locally_setval(cgframe,CG,parse_cg0(CG,S,E)).
-parse_cg0(CG) --> cw(Name), (cic('::');(cic(':'),cic(':'))),parse_cg(CG), push_frame_info([lbl=Name],CG).
-
-parse_cg0(CG)--> [':-'], !,parse_cg(PCG), { merge_simular_graph_vars(CG,PCG), push_frame_info(preconds(PCG),CG)}.
-
-parse_cg0(CG)--> {member(Type,[type,individual])}, cic(Type), !, zalwayz(parse_decl(Type,Expr,_X)), !, zalwayz(cic('Is')),!, 
- zalwayz(parse_cg(CG0)),!, {push_frame_info(CG0,CG),push_frame_info(Expr,CG)},!.
-
-parse_cg0(CG) --> parse_rel(H), {push_frame_info([H],CG)}, parse_cg0(CG).
-parse_cg0(CG) --> concept(S), cont_graph(S,S,CG),!,parse_cg0(CG).
-parse_cg0(_) --> {sent_op_pair(_,R)},dcg_peek(cic(R)),!.
-parse_cg0(_) --> cic('.'),!.
-parse_cg0(_) --> \+ [_],!.
+parse_cg_list(StopAt,[] ) --> ends_cg(StopAt),!.
+parse_cg_list(StopAt,[CG|More])--> parse_cg0(StopAt,CG),parse_cg_list(StopAt,More).
 
 s_e(S,E,S,E).
 
-cont_graph(Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Obj,CG).
-cont_graph(Parent,Subj,CG) --> rel_right(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Obj,CG).
-cont_graph(Parent,Obj,CG) --> rel_left2(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Subj,CG).
-cont_graph(Parent,Obj,CG) --> rel_left(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(Parent,Subj,CG).
-cont_graph(Parent,_Subj,CG) --> cic(','),!,cont_graph(Parent,Parent,CG).
-cont_graph(Parent,_Subj,CG) --> cic('-'),!,cont_graph(Parent,Parent,CG).
-cont_graph(_Parent,_Subj,_) --> dcg_peek(cic(']')),!.
-cont_graph(_Parent,_Subj,_) --> cic('.'),!.
-cont_graph(_Parent,_,_)--> \+ [_],!.
-cont_graph(_Parent,_Subj,CG) --> parse_cg0(CG).
+cont_graph(StopAt,_,_,_) --> ends_cg(StopAt),!.
+cont_graph(StopAt,Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Obj,CG).
+cont_graph(StopAt,Parent,Subj,CG) --> rel_right(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Obj,CG).
+cont_graph(StopAt,Parent,Obj,CG) --> rel_left2(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Subj,CG).
+cont_graph(StopAt,Parent,Obj,CG) --> rel_left(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Subj,CG).
+cont_graph(StopAt,Parent,_Subj,CG) --> cic(','),!,cont_graph(StopAt,Parent,Parent,CG).
+cont_graph(StopAt,Parent,_Subj,CG) --> cic('-'),!,cont_graph(StopAt,Parent,Parent,CG).
+cont_graph(StopAt,_Parent,_Subj,CG) --> parse_cg(StopAt,CG).
 
 rel_right(Rel)-->cic('-'),rel(Rel),cic('->').
 rel_right2(Rel)-->cic('->'),rel(Rel),cic('->').
@@ -266,7 +274,7 @@ cvalue_cont([]) --> {sent_op(Op)},dcg_peek(cic(Op)),!.
 cvalue_cont([H|T]) --> cw(H), cvalue_cont(T).
 
 
-cvalue('GRAPH'(W))--> dcg_peek(cic('[')), zalwayz(parse_cg(W)).
+cvalue('GRAPH'(W))--> dcg_peek(cic('[')), zalwayz(parse_ncg(W)).
 cvalue(=(REL))--> dcg_peek(cic('(')), zalwayz(parse_rel(REL)),!.
 cvalue(=(X,REL))--> dcg_peek((cw(_),cic('('))), parse_decl(instance,REL,X),!.
 cvalue(textOf(String))--> [String], {string(String)},!.
@@ -328,14 +336,14 @@ sent_op_pair_q('\'').
 
 cw(H,[H|T],T):- notrace(( \+ sent_op(H))).
 
-cic(CI)-->[C],{notrace((atom(C),upcase_atom(C,UC),(CI=UC->true; upcase_atom(CI,UC))))}.
+cic(CI)-->[C],{notrace((atom(C),fixcase_atom(C,UC),(CI=UC->true; fixcase_atom(CI,UC))))}.
 
 
 cg_df_to_term(In,Out):- any_to_string(In,Str),
   % replace_in_string(['('='{',')'='}'],Str,Str0),
   replace_in_string(['\r'='\n'],Str,Str0),
-  atom_codes(Str0,Codes),
-  must_or_rtrace(tokenize_cg(Toks,Codes,[])),
+  atom_codes(Str0,Codes),!,
+  must_or_rtrace(tokenize_cg(Toks,Codes,[])),!,
   Out = tOkS(Toks).
 
 
@@ -649,8 +657,46 @@ cg_test_data([cg_dialect([lf,sowa]), group(1)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#BUMBO) IS
 [ELEPHANT:#BUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Flying Tigers].").
 
-cg_test_data([skip,cg_dialect([lf,sowa]), group(1)], "
+cg_test_data([cg_dialect([lf,sowa]), tokenize_cg, group(1)], "
 INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
 [ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].").
 
+ext_test:- tokenize_cg(T,`INDIVIDUAL CIRCUS-ELEPHANT(#JUMBO) IS
+[ELEPHANT:#JUMBO]<-(AGNT)<-[PERFORM: {*}]->(LOC)->[CIRCUS:Barnum & Bailey].`,O),wdmsg(T+O).
 
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
+Leopard::[Animal : x]-isA->[Leopard] :-
+   Mammal::[Animal : x]-isA->[Mammal],
+   Carnivorous::[Animal : x]-isA->[Carnivorous],
+   Fact::[Animal : x]-colorOf->[Color]-attr->[Wild],
+   Fact::[Animal : x]-partOf->[Component]-attr->[Dark]. ").
+
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
+Mammal::[Animal : x]-isA->[Mammal] :-
+   	Fact::[Animal : x]-poss->[Hair].
+").
+
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
+Carnivorous::[Animal : x]-isA->[Carnivorous] :-
+   Fact::[Animal : x]<-agnt-[Eat]-obj->[Meat].
+").
+
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
+Carnivorous::[Animal : x]-isA->[Carnivorous] :-
+   Fact::[Animal : x]-poss->[Teeth]-attr->[Sharp],
+   Fact::[Animal : x]-poss->[Claw],
+   Fact::[Animal : x]-has->[Eyes]-attr->[Forward].
+").
+
+
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "
+Fact::[Animal : Yala]-
+            <-pat-[BelongTo]-bnfcre->[Man : Robert],
+            -colorOf->[Color]-attr->[Wild],
+            -poss->[Teeth]-attr->[Sharp],
+            -has->[Eyes]-attr->[Forward].
+").
+
+cg_test_data([cg_dialect([lf,sowa]), group(1)], "Fact::[Animal : Yala]-poss->[Claw].").
+
+% cg_reader_tests

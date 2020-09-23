@@ -1,5 +1,7 @@
 % $Id: util.pl,v 1.7 90/04/23 19:31:32 spa Exp $
 
+:- use_module(library(cgt/cge/swi_apeal)).
+
 % =============================================================================
 %
 % choice(Prompt, ListOfItems, ChosenItem)
@@ -12,7 +14,7 @@ choice(Name, [],     Choice) :- choice(Name, [], 0, Choice).
 choice(Name, [I|Is], Choice) :- choice(Name, [I|Is], I, Choice).
 
 choice(Name, Items, Default, Choice) :-
-	( nth(DefaultIndex, Items, Default) -> true ; DefaultIndex=0 ),
+	( nth0(DefaultIndex, Items, Default) -> true ; DefaultIndex=0 ),
 	get_choice_translations(Tr),
 	shell widget choice_dialog(S, Items, DefaultIndex, Name, Tr, List),
 	next_event(E),
@@ -23,7 +25,7 @@ choice(Name, Items, Default, Choice) :-
 choice_action(cancel, _,    _,      Items, fail) :- !.
 choice_action(ok,     List, Choice, Items, Choice=Item) :-
 	List wproc show_current(_:I),
-	nth(I, Items, Item).
+	nth0(I, Items, Item).
 
 
 shell widget choice_dialog(S, Items, Default, Label, Tr, List) :-

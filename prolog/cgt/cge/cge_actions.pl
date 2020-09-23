@@ -28,6 +28,9 @@ Phone: (+351) (1) 295 44 64 ext. 1360  Internet: mw@fct.unl.pt
 
 ************************************************************************/
 
+:- use_module(library(cgt/cge/swi_apeal)).
+
+
 % 91/01/03 mw   update_linear/1 now updates header too; added update_viewer/1
 % 91/02/19 mw   cge_save_gr/1 now updates display
 

@@ -9,6 +9,7 @@
 %
 
 
+acknowledge(Msg):- wdmsg(Msg).
 acknowledge(Text) :-
         process_confirm_dialog(ack_dialog, Text, _).
 
@@ -71,6 +72,7 @@ write_confirm_text(_).
 
 
 % -----------------------------------------------------------------------------
+:- use_module(library(cgt/cge/swi_apeal)).
 
 shell widget ack_dialog(Dialog, Text) :-
   ack_dialog: Dialog= transientShell / [

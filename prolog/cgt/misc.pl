@@ -522,7 +522,17 @@ Notes		: succeeds always; Object may be a list of IDs
 
 ************************************************************************/
 
-show_obj([ID|List]) :-
+getable_objects(g/Id) :- g(g/Id, CL, RL).
+getable_objects(p/Id-_) :- p(p/Id, Type, Ref, Env).
+getable_objects(c/Id-_) :- type(c/Id, Type) ; referent(c/Id, Ref).
+getable_objects(l/Id) :- l(l/Id, CL, GIDs).
+getable_objects(Rel) :- relation_type(Rel, Label, Def, Can, Arcs).
+getable_objects(Type) :- concept_type(Type, Label, Def, Can, SL).
+
+
+
+show_obj(Var):-var(Var),!,getable_objects(Var),nonvar(Var),show_obj(Var).
+show_obj([ID|List]) :- 
 	show_obj(ID), show_obj(List), !.
 show_obj(g/Id) :-
 	g(g/Id, CL, RL), write( g(g/Id, CL, RL) ), nl, show_obj(CL), !.

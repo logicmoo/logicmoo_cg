@@ -15,6 +15,7 @@ cginput:is_module.
 :- ensure_loaded(cgp_lib/cgp_translator).
 :- ensure_loaded(cgp_lib/cgp_operations).
 :- ensure_loaded(cgp_lib/cgp_reader).
+:- ensure_loaded(cgt/qxp).
 %:- cginput:ensure_loaded('cgp_lib/cgp_fwd.pfc').
 
 %:- break.
