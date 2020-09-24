@@ -4,6 +4,7 @@
 :- use_module(library(logicmoo/util_bb_frame)).
 
 :- ensure_loaded(library(cgp_lib/cgp_swipl)).
+:- ensure_loaded(library(pfc_lib)).
 
 :- multifile_data(cg_test_data/2). 
 %:- multifile_data(skip_cg_test_data/2). 
@@ -16,12 +17,14 @@ debug_fvar(N,_):- (\+ ground(N) ; number(N)),!.
 debug_fvar(N,V):- debug_var(N,V).
 
 cg_new(CG):- must(push_frame_info([], CG)),!.
-push_frame_info(Info,Frame):- atom(Frame),must(nb_current(Frame,CG)),!,push_frame_info(Info,CG).
-push_frame_info(Info,Frame):- must(push_frame(Info,Frame)).
+push_frame_info(Info,Frame):- atom(Frame),must(nb_current_no_nil(Frame,CG)),!,push_frame_info(Info,CG).
+push_frame_info(Info,Frame):- push_frame(Info,Frame).
 push_frame_info(Info,Frame,S,S):-push_frame_info(Info,Frame).
-push_frame_concept(C,Frame):-atom(Frame),must(nb_current(Frame,CG)),!,push_frame_concept(C,CG).
+
+push_frame_concept(C,Frame):-atom(Frame),must(nb_current_no_nil(Frame,CG)),!,push_frame_concept(C,CG).
 push_frame_concept(C,Frame):-nop(push_frame(C,Frame)).
 push_frame_concept(C,Frame,S,S):-push_frame_concept(C,Frame).
+
 nb_set_add(X,Y,S,S):- must(nb_set_add(X,Y)).
 
 
@@ -31,8 +34,8 @@ cg_reader_tests :- make, forall(cg_test_data(TstAtts,X), must(do_cg_test(TstAtts
 do_cg_test( TstAtts,_):- memberchk(skip,TstAtts),!.
 do_cg_test( TstAtts,X):- select(cg_dialect(What),TstAtts,NewTstAtts),!, 
   locally_setval(cg_dialect,What,do_cg_test( NewTstAtts,X)).
-do_cg_test( TstAtts,X):- memberchk(xcall,TstAtts),!, must(ignore(call_cg(xtext(X)))).
-do_cg_test(_TstAtts,X):- must(ignore(assert_cg(xtext(X)))).
+do_cg_test( TstAtts,X):- memberchk(xcall,TstAtts),!, must(ignore(call_cg(cg_text(X)))).
+do_cg_test(_TstAtts,X):- must(ignore(assert_cg(cg_text(X)))).
 
 subset_loose(S1,S2):- \+ is_list(S2),!,member(S2,S1),!.
 subset_loose(S1,S2):- subset(S1,S2).
@@ -45,23 +48,38 @@ cg_test_data(TstAtts,X):- nonvar(TstAtts), nonvar(X), !,
    do_cg_test(NTstAtts,X).
 
 
-assert_cg(X):- newId(Id),!,locally(nb_setval(cgid,Id), pred_cg(assert_cg_real,X)),!.
-assert_cg_real(X):- frmprint(X),!.
+%assert_cg(X):- nb_current_no_nil(named_graph,ID),!,pred_cg(assert_cg_real,X),!.
+assert_cg(X):- newId(Id),!,locally(nb_setval(named_graph,anonymous(Id)), pred_cg(assert_cg_real,X)),!.
+
+assert_cg_real_now(named_graph(Id,X)):- !, assert_cg_real_now(Id,X).
+assert_cg_real_now(X):- nb_current_no_nil(named_graph,Id),  assert_cg_real_now(Id,X).
+
+assert_cg_real_now(anonymous(_),[named_graph(Id,X)]):- nonvar(Id), !, assert_cg_real_now(Id,X).
+%assert_cg_real_now(anonymous(Id),X):- nonvar(Id), !, assert_cg_real_now(Id,X).
+assert_cg_real_now(Id,X):- frmprint(named_graph(Id, X)), ain(cg(Id,X)).
+
+assert_cg_real(X):- assert_cg_real_now(X),!.
 assert_cg_real(X):- is_list(X),list_to_conjuncts(X,J),!,wdmsg(J).
 
-assert_cg_real(X):- nb_current(cgid,Id), print_cg(Id:X),  ain(cg(Id,X)).
+
 
 call_cg(X):- pred_cg(call_cg_real,X).
-call_cg_real(X):- print_cg(X),call(cg(_,X)).
+call_cg_real(X):- frmprint(call_cg(X)),!.
+call_cg_real(X):- is_list(X),list_to_conjuncts(X,J),!,wdmsg(J).
+
+
+locally_setval(A,B,C,S,E):- locally_setval(A,B,phrase(C,S,E)).
 
 
 pred_cg(Pred, Error):- var(Error),!, trace_or_throw(pred_cg(Pred, Error)).
-pred_cg(Pred, X):- string(X),!,pred_cg(Pred, xtext(X)).
-pred_cg(Pred, [Int|Codes]):- notrace(catch(text_to_string([Int|Codes],X),_,fail)),pred_cg(Pred, xtext(X)).
+pred_cg(Pred, X):- string(X),!,pred_cg(Pred, cg_text(X)).
+pred_cg(Pred, [Int|Codes]):- notrace(catch(text_to_string([Int|Codes],X),_,fail)),pred_cg(Pred, cg_text(X)).
 pred_cg(Pred, X):- is_list(X), !, maplist(pred_cg(Pred),X).
-pred_cg(Pred, xtext(X)):- locally_setval(cg_text,X,(( 
+pred_cg(Pred, cg_text(A)):- any_to_string(A,X),
+ locally_setval(cg_text,X,(( 
   format('~N~n~n```~n% ===========================================~n% ?- pred_cg(~q,"~w").~n% ===========================================~n~n',[Pred,X]),
-  cg_df_to_term(X,Y), !, pred_cg(Pred, Y), format("~N```~n",[])))),!.
+  ignore((cg_df_to_term(X,Y),ignore((nb_current_no_nil(named_graph,Id), ain(cg_text(Id,X)))), !, pred_cg(Pred, Y))), 
+  format("~N```~n",[])))),!.
 
 
 pred_cg(Pred, tOkS(Toks)):- !, (parse_ncg(CG,Toks,[])-> pred_cg(Pred, cg(CG)) ; (format("
@@ -164,21 +182,33 @@ maybe_codes_to_tokens(S,Toks):- \+ is_list(S),!,any_to_atom(S,Atom),atom_codes(A
 maybe_codes_to_tokens(S,Toks):- tokenize_cg(Toks,S,[]),!.
 
 
+named_graph_starter(Name)--> cw(Name), (cic('::');(cic(':'),cic(':'))).
+
+
+cg_clause_connective--> (cic('.');cic(',');cic(':-');cic(';')).
+
 maybe_to_codes(S,_):- is_list(S), notrace(catch(atom_codes(_,S),_,fail)),!,fail.
 maybe_to_codes(S,Codes):- any_to_string(S,Str),atom_codes(Str,Codes),!.
 
 % parse_ncg(CG) --> maybe_codes_to_tokens,!,parse_ncg(CG).
 % parse_ncg(named_graph(Name,PCG)) --> cw(Name), (cic('::');(cic(':'),cic(':'))),parse_ncg(PCG).
 parse_ncg(CG)--> {var(CG)},!, parse_cg(['.'],CG0), {resolve_frame_constants(CG0,CG)},!,dcgOptional(cic('.')).
-parse_ncg(CG)--> parse_ncg(CG0), {push_frame_info(CG0,CG)}.
+parse_ncg(CG)--> parse_ncg(CG0),!,{push_frame_info(CG0,CG)}.
 
 parse_cg(StopAt,CG) --> parse_cg0(StopAt,CG).
 
 parse_cg0(StopAt,CG,S,E) :- var(CG), \+ attvar(CG), !,cg_new(CG), must( \+ ((var(CG), \+ attvar(CG)))),!,locally_setval(cgframe,CG,parse_cg0(StopAt,CG,S,E)).
+
+
+parse_cg0(_StopAt,CG)--> [':-'], !, parse_cg_list([','],PCG), { merge_simular_graph_vars(CG,PCG), 
+  push_frame_info(preconds(PCG),CG)}.
 parse_cg0(StopAt,_) --> ends_cg(StopAt),!.
-parse_cg0(StopAt,CG) --> cw(Name), (cic('::');(cic(':'),cic(':'))),parse_cg0(StopAt,PCG), 
-  {push_frame_info(named_graph(Name,PCG),CG), push_frame_info(values_from(Name),CG)}.
-parse_cg0(_StopAt,CG)--> [':-'], !, parse_cg_list([','],PCG), { merge_simular_graph_vars(CG,PCG), push_frame_info(preconds(PCG),CG)}.
+
+parse_cg0(_StopAt,CG) --> named_graph_starter(Name),
+  {once(nb_current_no_nil(named_graph,WasName);WasName=[])},
+   locally_setval(named_graph,Name,parse_cg0((cg_clause_connective),PCG)), 
+  {WasName==Name-> push_frame_info(PCG,CG);push_frame_info(named_graph(Name,PCG),CG)}.
+
 parse_cg0(_StopAt,CG)--> {member(Type,[type,individual])}, cic(Type), !, zalwayz(parse_decl(Type,Expr,_X)), !, zalwayz(cic('Is')),!, 
  zalwayz(parse_ncg(CG0)),!, {push_frame_info(CG0,CG),push_frame_info(Expr,CG)},!.
 parse_cg0(StopAt,CG) --> parse_rel(H), {push_frame_info([H],CG)}, parse_cg0(StopAt,CG).
@@ -195,13 +225,19 @@ parse_cg_list(StopAt,[CG|More])--> parse_cg0(StopAt,CG),parse_cg_list(StopAt,Mor
 
 s_e(S,E,S,E).
 
+cont_graph(_StopAt,_Parent,_Subj,CG) --> [':-'], !, parse_cg_list([','],PCG), { merge_simular_graph_vars(CG,PCG), 
+  push_frame_info(preconds(PCG),CG)}.
+
 cont_graph(StopAt,_,_,_) --> ends_cg(StopAt),!.
-cont_graph(StopAt,Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Obj,CG).
-cont_graph(StopAt,Parent,Subj,CG) --> rel_right(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Obj,CG).
-cont_graph(StopAt,Parent,Obj,CG) --> rel_left2(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Subj,CG).
-cont_graph(StopAt,Parent,Obj,CG) --> rel_left(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Subj,CG).
 cont_graph(StopAt,Parent,_Subj,CG) --> cic(','),!,cont_graph(StopAt,Parent,Parent,CG).
-cont_graph(StopAt,Parent,_Subj,CG) --> cic('-'),!,cont_graph(StopAt,Parent,Parent,CG).
+cont_graph(StopAt,Parent,_Subj,CG) --> cic('-'),dcg_peek(cic('-');cic('<-');cic('->')),!,cont_graph((dcg_peek(\+ cic(',')), StopAt),Parent,Parent,CG).
+
+cont_graph(StopAt,Parent,Subj,CG) --> rel_right2(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Obj,CG).
+cont_graph(StopAt,Parent,Subj,CG) -->  rel_right(Rel),!,concept(Obj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Obj,CG).
+
+cont_graph(StopAt,Parent,Obj,CG) --> rel_left2(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Subj,CG).
+cont_graph(StopAt,Parent,Obj,CG) -->  rel_left(Rel),!,concept(Subj),push_frame_info(cg_holds(Rel,Subj,Obj),CG),cont_graph(StopAt,Parent,Subj,CG).
+
 cont_graph(StopAt,_Parent,_Subj,CG) --> parse_cg(StopAt,CG).
 
 rel_right(Rel)-->cic('-'),rel(Rel),cic('->').
@@ -414,7 +450,7 @@ cg_test_data([cg_dialect([df])],"[CAT_SET_MIN_TWO:{Felix,Moris,*}]-(On)->[Mat]")
 cg_test_data([cg_dialect([df])],"[CAT_SET_FIVE:{Felix,Moris,*}@5]-(On)->[Mat]").
 
 cg_test_data([cg_dialect([df]), group(1)], "['Man':imad]<-agnt-['Drive']-obj->['Car']").
-cg_test_data([cg_dialect([df]), group(1)], "[Cat#1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
+cg_test_data([cg_dialect([df]), group(1)], "[Cat #1]-(On)->[Mat #1]-(Attrib)->[Color #1]").
 cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(Attrib)->[C1]->(On)->[Mat]").
 cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(On)->[Mat]").
 cg_test_data([cg_dialect([df]), group(1)], "[Cat: ?x]-(On)->[*MatC]").
@@ -486,7 +522,7 @@ cg_test_data([cg_dialect([df]), group(4)], "
 cg_test_data([skip, cg_dialect([df]), group(4)], "
 // ontology required (to load first): aminePlatform/samples/ontology/ManOntology2.xml
 [Eat #0] -
-   - obj->[Apple],
+   - obj ->[Apple],
    - manr->[Fast],
    - agnt->[Man]").
 
