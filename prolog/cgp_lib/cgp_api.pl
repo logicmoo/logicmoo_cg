@@ -1,5 +1,24 @@
 
 
+cg_graph_value(N,V):- cg(N,Data),cg_formate(Data,V).
+
+cg_formate(Data,V):- 
+     findall(Member,cg_member(Member,Data),Members),
+     unnumbervars(Members,UMembers),!,
+     exclude(formed,UMembers,V).
+
+formed(frame_var(_, _)).
+formed(cg_type(_, _)).
+formed(cg_name(Var, Value)):- =(Var, Value).
+formed(cg_equal(Var, Value)):- =(Var, Value).
+% formed(cg_values(E, List)):- member(E,List).
+%formed(_).
+
+cg_member(E,named_graph(_,Data)):- !, cg_member(E,Data).
+cg_member(E,Data):- is_list(Data),!, member(ED,Data),cg_member(E,ED).
+cg_member(E,E).
+
+
 id_to_info(ID,(Label + List)):- cgc(ID,simple,Label,_,_),!,
    findall(Text,(cg(_,CGRS, _, _),member(cgr(Rel, Args, _),CGRS),
           member(ID,Args),id_to_text(cgr(Rel, Args, _),Text)),List).

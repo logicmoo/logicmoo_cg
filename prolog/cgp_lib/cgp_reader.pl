@@ -1,4 +1,6 @@
 
+%:- use_module(library(logicmoo_clif)).
+%:- use_module(library(logicmoo/typesystem/mpred_type_constraints)).
 
 :- use_module(library(logicmoo/dcg_meta)).
 :- use_module(library(logicmoo/util_bb_frame)).

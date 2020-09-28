@@ -393,7 +393,7 @@ graphrels(Gid1, Gid2, Cid1, Cid2, C1, R1, C2, R2):-
 graphrels(_, _, _, _, _, _, _, _):-
     write('No compatible triples of relations'), !, fail.
 
-/*cg_replace every appearance of X in list with Y*/
+/*,,,,,,,,,,,cg_replace every appearance of X in list with Y*/
 find_rep(_, _, [], []).
 find_rep(X, Y, [X|T], [Y|T1]):- !, find_rep(X, Y, T, T1).
 find_rep(X, Y, [H|T], [H|T1]):- !, find_rep(X, Y, T, T1).
