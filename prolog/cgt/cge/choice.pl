@@ -22,7 +22,7 @@ choice(Name, Items, Default, Choice) :-
 	S wproc destroy, !,
 	Goal.
 
-choice_action(cancel, _,    _,      Items, fail) :- !.
+choice_action(cancel, _,    _,      _Items, fail) :- !.
 choice_action(ok,     List, Choice, Items, Choice=Item) :-
 	List wproc show_current(_:I),
 	nth0(I, Items, Item).

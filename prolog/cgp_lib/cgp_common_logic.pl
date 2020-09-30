@@ -50,10 +50,10 @@ cl_example("
 cl_example("
 (exists (x y) (and (Red x) (not (Ball x)) (On x y) (not (and (Table y) (not (Blue y))))))").
 
-cl_example("
+cl_example('
 (exists ((x Drive) (y Chevy) (z Old))
-  (and (Person Bob) (City \"St. Louis\")
-   (Agnt x Bob)(Dest x \"St. Louis\") (Thme x y) (Poss Bob y) (Attr y z) ))").
+  (and (Person Bob) (City "St. Louis")
+   (Agnt x Bob)(Dest x "St. Louis") (Thme x y) (Poss Bob y) (Attr y z) ))').
 
 % If a cat is on a mat, then the cat is a happy pet.
 cl_example("(not (exists ((x Cat) (y Mat)) (and (On x y)(not (exists z) (and (Pet x) (Happy z) (Attr x z))))))").
