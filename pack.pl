@@ -1,5 +1,5 @@
 name(logicmoo_cg).
-version('2.0.1').
+version('2.0.3').
 title('Conceptual Graph (CG) Libraries in Prolog and test data').
 author( 'Douglas Miles', 'http://www.linkedin.com/in/logicmoo' ).
 packager( 'TeamSPoon/LogicMoo', 'https://github.com/TeamSPoon/' ).
