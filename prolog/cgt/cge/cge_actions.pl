@@ -29,6 +29,9 @@ Phone: (+351) (1) 295 44 64 ext. 1360  Internet: mw@fct.unl.pt
 ************************************************************************/
 
 :- use_module(library(cgt/cge/swi_apeal)).
+term_expansion(HeadIn,IS,Head,OS):- current_prolog_flag(swi_apeal,true), gui_expansion(HeadIn,Head)->IS=OS.
+
+:- set_prolog_flag(swi_apeal,true).
 
 
 % 91/01/03 mw   update_linear/1 now updates header too; added update_viewer/1
@@ -374,7 +377,7 @@ unselect_all(_).
 ************************************************************************/
 
 cge_open_db(_) :-
-	current_editors(Editors), apply(cge_clear(_), Editors),
+	current_editors(Editors), apply(cge_clear_editor(_), Editors),
 	( recorded(get_db_modif, true, _)
 		-> confirm('Save changes to current database?', Choice),
 	   	   ( Choice = yes -> current_db(Canon), save_db(Canon),
@@ -405,7 +408,7 @@ all_modified(Modified) :-
 all_modified(Modified) :-
 	recorda(get_db_modif, Modified, _).
 
-cge_clear(Editor) <->
+cge_clear_editor(Editor) <->
 	recorded(cg_editor, Editor-_-Viewer-_-_, _),
 	Viewer wproc unmap, clear_graph(GIDs), Viewer wproc map, 
 	apply(erasure(_), GIDs),
@@ -414,7 +417,7 @@ cge_clear(Editor) <->
 	   recorded(cge_num, Editor-Number, _),
 	   confirm(['Do you really want to delete the selected graph(s) ',
 		    'in editor #', Number, '?']).
-cge_clear(Editor) <->
+cge_clear_editor(Editor) <->
 	recorded(cg_editor, Editor-Header-Viewer-Linear-_, _),
 	Viewer wproc unmap, clear_graph(TopGraphs), Viewer wproc map,
 	replace_text(Header, ''), replace_text(Linear, ''),
@@ -423,12 +426,12 @@ cge_clear(Editor) <->
 	   recorded(cge_num, Editor-Number, _),
 	   confirm(['Do you really want to delete the displayed graph(s) ',
 		    'in editor #', Number, '?']).
-cge_clear(_).
+cge_clear_editor(_) <-> true.
 
 cge_help :- acknowledge('Sorry...').
 
 cge_quit(Editor) <->
-	cge_clear(Editor),
+	cge_clear_editor(Editor),
 	( recorded(get_db_modif, Modified, _) ; Modified = false ),
 	( Modified
 		-> confirm('Save changes to current database?', Choice),
@@ -767,6 +770,8 @@ cge_deiteration(GID) :-
 cge_deiteration(_) :-
 	acknowledge('Selected graph has not a copy in a dominating context!').
 
+%:- style_check(-singleton).
+
 cge_draw_dn(Editor) :-
 	cge_selected(prim, Editor, graph, multiple, GIDs),
 	same_context(GIDs, Env), which_viewer(GIDs, Viewer), 
@@ -780,7 +785,7 @@ cge_draw_dn(Editor) :-
 	acknowledge('Selected graphs must be in the same context!').
 cge_draw_dn(Editor) :-
 	cge_selected(sec, Editor, only-context, single, [Context]),
-	cge_which_obj(Context, Env, _, Viewer),
+	cge_which_obj(Context, Env, _, _Viewer),
 	double_negation([], Env, NewGraph), 
 	recorded(cg_editor, Editor-_-TopViewer-_-_, _),
         TopViewer wproc unmap, 
@@ -908,4 +913,6 @@ cge_replace(Editor, Kind, Obj) <->
 	replace_text(Header, ''), replace_text(Linear, ''),
 	update_layout_param(Editor), gen_graphical(Kind, Obj, Editor),
 	Viewer wproc map.
+
+:- set_prolog_flag(swi_apeal,false).
 

@@ -522,6 +522,8 @@ Notes		: succeeds always; Object may be a list of IDs
 
 ************************************************************************/
 
+:- style_check(-singleton).
+
 getable_objects(g/Id) :- g(g/Id, CL, RL).
 getable_objects(p/Id-_) :- p(p/Id, Type, Ref, Env).
 getable_objects(c/Id-_) :- type(c/Id, Type) ; referent(c/Id, Ref).

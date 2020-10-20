@@ -190,6 +190,6 @@ load_get :- load_cgt, load_cge.
 
 
 :- load_cgt.
-:- load_cge.
+% :- load_cge.
 
 

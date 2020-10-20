@@ -45,6 +45,8 @@ Description     : Widgets for the Conceptual Graph Editor
 1.01    91/02/19  mw    minor improvements and debugging
 
 ************************************************************************/
+
+
 :- use_module(library(cgt/cge/swi_apeal)).
 
 /* CONTENTS *************************************************************
@@ -52,6 +54,7 @@ Description     : Widgets for the Conceptual Graph Editor
 shell widget cge/4	the editor window widget
 
 ************************************************************************/
+:- set_prolog_flag(swi_apeal,false).
 
 _Parent widget Graph= graphViewer(Width, Height, Editor)  <->
     Graph= graphGraph
@@ -66,6 +69,7 @@ _Parent widget Graph= graphViewer(Width, Height, Editor)  <->
       + [
 	recorda(cge_graph, Graph-none+Editor, _)	% remember graph's WID
         ].
+
 
 shell widget cge(DisplayWidth, MiniatureFraction, LinearHeight, Editor) <->
     ( recorded(cge_num, _-N, _), succ(N, Number) ; Number = 1 ),
@@ -357,7 +361,7 @@ shell widget cge(DisplayWidth, MiniatureFraction, LinearHeight, Editor) <->
 	    control/key-s :
 	      goal(cge_save_gr(Editor)),
 	    key-'Delete' :
-	      goal(cge_clear(Editor)),
+	      goal(cge_clear_editor(Editor)),
 	    control/key-o :
 	      goal(cge_open_db(Editor)),
 	    control/key-u :
@@ -438,7 +442,7 @@ popup(Editor) widget mainMenu <->
 	    ],
 	'Clear graph(s)  Delete': smeBSB
 	  / [
-	    callback(g(cge_clear(Editor)))
+	    callback(g(cge_clear_editor(Editor)))
 	    ],
 	smeLine,
 	'Open database...   C-O': smeBSB
@@ -785,3 +789,4 @@ shell widget graphLoader(S, LIST, Items) <->
     ]
   ].
 
+:- set_prolog_flag(swi_apeal,false).

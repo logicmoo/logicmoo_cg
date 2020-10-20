@@ -1,4 +1,6 @@
 
+:- use_module(library(logicmoo_cg)).
+
 
 cg_graph_value(N,V):- cg(N,Data),cg_formate(Data,V).
 

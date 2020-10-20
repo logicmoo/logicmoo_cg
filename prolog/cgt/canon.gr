@@ -1,3 +1,5 @@
+:- style_check(-singleton).
+:- multifile g/3, c/3, p/4, l/3.
 :- dynamic g/3, c/3, p/4, l/3.
 g(g/1,[c/1-A,c/1-B],[accm(A,B)]).
 g(g/2,[c/2-A,c/3-B],[agnt(A,B)]).

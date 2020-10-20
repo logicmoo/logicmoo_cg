@@ -1,6 +1,7 @@
 % $Id: util.pl,v 1.7 90/04/23 19:31:32 spa Exp $
 
 :- use_module(library(cgt/cge/swi_apeal)).
+:- set_prolog_flag(swi_apeal,true).
 
 % =============================================================================
 %
@@ -81,3 +82,7 @@ get_choice_translations(Tr) :-
 		    btn(3)/btn(motion):	'Set',
 		    btn(up)*2:		term(t(ok)) ], Tr),
 	recorda('$_choice_translations', Tr, _).
+
+
+:- set_prolog_flag(swi_apeal,false).
+

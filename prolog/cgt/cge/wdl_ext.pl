@@ -31,8 +31,8 @@ Phone: (+351) (1) 295 44 64 ext. 1360  Internet: mw@fct.unl.pt
 
 xt_accelerators(Term, Acc) :-
 	xt_translate(Term, String, []),
-	xt_convert(string, to_C, String, _String),
-	xt_parse_accelerator_table(_String, Acc).
+	xt_convert(string, to_C, String, A_String),
+	xt_parse_accelerator_table(A_String, Acc).
 
 xt_flush :-
 	xt_context(C, C), 

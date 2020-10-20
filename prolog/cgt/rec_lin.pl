@@ -203,6 +203,7 @@ Description	: Concept will be the N-th argument of Relation
 Notes		: if N > 0 then the arc points to Relation, else points away
 		  
 ************************************************************************/
+:- style_check(-singleton).
 
 put_arg(CID, -NArgs, Rel) :-
 	functor(Rel, _, NArgs), arg(NArgs, Rel, Arg), var(Arg), Arg = CID.
