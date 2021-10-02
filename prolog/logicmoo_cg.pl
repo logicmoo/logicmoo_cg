@@ -21,8 +21,8 @@ cginput:is_module.
 
 %:- break.
 % :- kb_shared(cg_isa/2).
-
-:- initialization(module(logicmoo_cg),main).
+:- set_prolog_flag(print_write_options, [ portray(true), numbervars(true), quoted(true)]).
+% :- initialization(module(logicmoo_cg),main).
 
 
 

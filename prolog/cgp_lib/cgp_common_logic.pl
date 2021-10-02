@@ -1,15 +1,15 @@
 :- module(cgp_common_logic, 
-  [run_tests/0, 
+  [%run_tests/0, 
    convert_clif_to_cg/2]).
-
 
 :- use_module(library(logicmoo_common)).
 :- use_module(library(logicmoo/dcg_meta)).
 :- use_module(library(logicmoo/util_bb_frame)).
-% :- ensure_loaded(library(cgp_lib/cgp_swipl)).
+:- ensure_loaded(library(cgp_lib/cgp_swipl)).
 :- use_module(library(logicmoo_clif)).
+:- cgp_common_logic:import(dcg_basics:eol/2).
 
-
+%:-ensure_loaded('cgp_common_logic.plt').
 
 % ==========================================================================
 % do_varaibles/5 replaces the VARS in things like (exists ...VARS... Stuff)
@@ -29,7 +29,7 @@ do_one_var(Mode, EoF, X, Var, Asserts, Fixes):- \+ is_list(Var), !,
 
 do_one_var(Mode, EoF, X, [VarName| Types], [Grok|Asserts], [Fix|Fixes]):-
   \+ number(VarName),
-  var(X), var_name(VarName, X, Fix),
+  var(X), cg_var_name(VarName, X, Fix),
   add_mode(Mode, cg_quantz(EoF, ?(X)), Grok),
   do_one_var(Mode, EoF, X, Types, Asserts, Fixes).
 do_one_var(Mode, EoF, X, [Number| Types], [Grok|Asserts], Fixes):-
@@ -40,8 +40,8 @@ do_one_var(Mode, EoF, X, [Type| Types], [cg_type(?(X),Type)|Asserts], Fixes):-
   do_one_var(Mode, EoF, X, Types, Asserts, Fixes).
 do_one_var(_Mode, _EoF, _X, [], [], []).
 
-var_name('?'(X), X, []):-!.
-var_name(X, X, [X = '?'(X)]).
+cg_var_name('?'(X), X, []):-!.
+cg_var_name(X, X, [X = '?'(X)]).
 
 % ==========================================================================
 % unchop/3 - unchops (joins) things into a list
@@ -141,10 +141,10 @@ kif_to_term(InS, Clif):-
 run_1_test(String):-
    write('\n\n\n'), 
    dmsg("================================================="), 
-   kif_to_term(String, Clif), 
-   pprint_ecp(magenta, (?- run_1_test(String))), 
-   pprint_ecp(yellow, clif=Clif), 
-   convert_clif_to_cg(Clif, CG), 
+  mpred_test(mort(cgp_common_logic:kif_to_term(String, Clif))),
+  pprint_ecp(magenta, (?- run_1_test(String))), 
+  pprint_ecp(yellow, clif=Clif), 
+  mpred_test(mort(cgp_common_logic:convert_clif_to_cg(Clif, CG))),
    pprint_ecp(cyan, cg(CG)), 
    dmsg("================================================="), !.
 
